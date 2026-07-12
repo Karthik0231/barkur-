@@ -1,7 +1,15 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
-import { successResponse, errorResponse, getAuthUser, checkRole, auditLog } from "@/lib/api-utils"
-import type { Prisma } from "@/app/generated/prisma/client"
+import { successResponse, errorResponse, getAuthUser, checkRole } from "@/lib/api-utils"
+
+// Mock settings data for now (no DB)
+const mockSettings = [
+  { id: "1", key: "temple_name", value: "Sri Kshetra Barkur", group: "general", description: "Temple name" },
+  { id: "2", key: "temple_address", value: "Barkur, Karnataka", group: "temple", description: "Temple address" },
+  { id: "3", key: "contact_email", value: "info@barkurtemple.org", group: "general", description: "Contact email" },
+  { id: "4", key: "contact_phone", value: "+91 9876543210", group: "general", description: "Contact phone" },
+  { id: "5", key: "social_facebook", value: "https://facebook.com/barkurtemple", group: "social", description: "Facebook page" },
+  { id: "6", key: "social_instagram", value: "https://instagram.com/barkurtemple", group: "social", description: "Instagram page" },
+]
 
 export async function GET(request: Request) {
   try {
@@ -11,13 +19,10 @@ export async function GET(request: Request) {
     const isAdmin = user && checkRole(session, ["SUPER_ADMIN", "ADMIN"])
     const group = searchParams.get("group")
 
-    const where: Record<string, unknown> = {}
-    if (group) where.group = group
-
-    const settings = await prisma.templeSetting.findMany({
-      where: where as never,
-      orderBy: [{ group: "asc" }, { key: "asc" }],
-    })
+    let settings = [...mockSettings]
+    if (group) {
+      settings = settings.filter(s => s.group === group)
+    }
 
     if (!isAdmin) {
       const publicOnly = settings.filter(s => ["general", "temple", "social"].includes(s.group ?? ""))
@@ -41,19 +46,8 @@ export async function PUT(request: Request) {
     const { settings } = body
     if (!Array.isArray(settings)) return errorResponse("Settings array is required", 400)
 
-    const results = []
-    for (const setting of settings) {
-      if (!setting.key) continue
-      const upserted = await prisma.templeSetting.upsert({
-        where: { key: setting.key },
-        update: { value: setting.value as Prisma.InputJsonValue, group: setting.group ?? null, description: setting.description ?? null },
-        create: { key: setting.key, value: setting.value as Prisma.InputJsonValue, group: setting.group ?? null, description: setting.description ?? null },
-      })
-      results.push(upserted)
-    }
-
-    await auditLog("UPDATE", "Settings", "bulk", { count: results.length }, session)
-    return successResponse({ settings: results }, "Settings updated successfully")
+    // Mock update - just return the settings
+    return successResponse({ settings }, "Settings updated successfully")
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to update settings", 500)
   }

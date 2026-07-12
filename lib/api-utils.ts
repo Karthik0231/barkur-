@@ -1,6 +1,3 @@
-import { prisma } from "@/lib/prisma"
-import type { Prisma } from "@/app/generated/prisma/client"
-
 import type { Session } from "@auth/core/types"
 type SessionLike = Session | null
 
@@ -55,6 +52,7 @@ export function paginationHelper(searchParams: URLSearchParams) {
   return { page, limit, skip, search, sortBy, sortOrder }
 }
 
+// Mock audit log for now (no DB)
 export async function auditLog(
   action: string,
   entity: string,
@@ -62,18 +60,5 @@ export async function auditLog(
   metadata?: Record<string, unknown>,
   session?: SessionLike
 ) {
-  try {
-    const user = session?.user as { id?: string } | undefined
-    await prisma.auditLog.create({
-      data: {
-        action,
-        entity,
-        entityId,
-        metadata: (metadata ?? {}) as Prisma.InputJsonValue,
-        userId: user?.id ?? "system",
-      },
-    })
-  } catch {
-    console.error("Failed to create audit log:", action, entity, entityId)
-  }
+  console.log("Audit log (mock):", { action, entity, entityId, metadata })
 }

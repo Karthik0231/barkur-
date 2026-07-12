@@ -1,6 +1,6 @@
 "use client"
 
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react"
+import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Loader2 } from "lucide-react"
 
@@ -46,16 +46,16 @@ const iconOnlySquare = {
 export type ButtonVariant = keyof typeof variantStyles
 export type ButtonSize = keyof typeof sizeStyles
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
   size?: ButtonSize
   loading?: boolean
   loadingText?: string
-  iconLeft?: ReactNode
-  iconRight?: ReactNode
-  /** Render as a square icon-only button (no visible label, uses aria-label) */
+  iconLeft?: React.ReactNode
+  iconRight?: React.ReactNode
   iconOnly?: boolean
   fullWidth?: boolean
+  asChild?: boolean
 }
 
 export const buttonVariants = ({
@@ -82,53 +82,73 @@ export const buttonVariants = ({
     className,
   )
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      className,
-      variant = "primary",
-      size = "md",
-      loading = false,
-      loadingText,
-      disabled,
-      iconLeft,
-      iconRight,
-      iconOnly = false,
-      fullWidth = false,
-      children,
-      "aria-label": ariaLabel,
-      ...props
-    },
-    ref,
-  ) => {
-    return (
-      <button
-        ref={ref}
-        className={buttonVariants({ variant, size, className, iconOnly, fullWidth })}
-        disabled={disabled || loading}
-        aria-disabled={disabled || loading}
-        aria-busy={loading}
-        aria-label={iconOnly ? ariaLabel : undefined}
-        {...props}
-      >
-        {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin shrink-0" aria-hidden="true" />
-        ) : iconLeft ? (
-          <span className="shrink-0 flex items-center" aria-hidden="true">
-            {iconLeft}
-          </span>
-        ) : null}
-        {!iconOnly && children && (
-          <span className="truncate">{loading && loadingText ? loadingText : children}</span>
-        )}
-        {!loading && iconRight && !iconOnly && (
-          <span className="shrink-0 flex items-center" aria-hidden="true">
-            {iconRight}
-          </span>
-        )}
-      </button>
-    )
-  },
-)
+export const Button = React.forwardRef<
+  HTMLButtonElement,
+  ButtonProps
+>(({
+  className,
+  variant = "primary",
+  size = "md",
+  loading = false,
+  loadingText,
+  disabled,
+  iconLeft,
+  iconRight,
+  iconOnly = false,
+  fullWidth = false,
+  asChild = false,
+  children,
+  "aria-label": ariaLabel,
+  ...props
+}, ref) => {
+  const buttonClasses = buttonVariants({ variant, size, className, iconOnly, fullWidth })
+  const buttonContent = (
+    <>
+      {loading ? (
+        <Loader2 className="h-4 w-4 animate-spin shrink-0" aria-hidden="true" />
+      ) : iconLeft ? (
+        <span className="shrink-0 flex items-center" aria-hidden="true">
+          {iconLeft}
+        </span>
+      ) : null}
+      {!iconOnly && children && (
+        <span className="truncate">{loading && loadingText ? loadingText : children}</span>
+      )}
+      {!loading && iconRight && !iconOnly && (
+        <span className="shrink-0 flex items-center" aria-hidden="true">
+          {iconRight}
+        </span>
+      )}
+    </>
+  )
+
+  if (asChild && React.isValidElement(children)) {
+    return React.cloneElement(children as React.ReactElement<any>, {
+      ref,
+      className: cn(buttonClasses, (children as React.ReactElement<any>).props.className),
+      disabled: disabled || loading,
+      "aria-disabled": disabled || loading,
+      "aria-busy": loading,
+      "aria-label": iconOnly ? ariaLabel : undefined,
+      ...props,
+      ...(children as React.ReactElement<any>).props,
+      children: buttonContent,
+    })
+  }
+
+  return (
+    <button
+      ref={ref}
+      className={buttonClasses}
+      disabled={disabled || loading}
+      aria-disabled={disabled || loading}
+      aria-busy={loading}
+      aria-label={iconOnly ? ariaLabel : undefined}
+      {...props}
+    >
+      {buttonContent}
+    </button>
+  )
+})
 
 Button.displayName = "Button"
