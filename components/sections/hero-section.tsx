@@ -1,32 +1,156 @@
 "use client"
 
-import { useRef, useState, useEffect } from "react"
-import { motion, useScroll, useTransform } from "framer-motion"
-import Image from "next/image"
+/**
+ * HERO — Sri Kalikamba Devi Temple, Barkur
+ * -----------------------------------------------------------------------
+ * Rebuilt to match the approved reference composition:
+ *   - Left rail: a live "Seva Timeline" ledger floating over the deity image
+ *   - Center: eyebrow / headline / copy / a row of ribbon-cut CTAs
+ *   - Right rail: two brass ribbon-headed cards (Darshana Hours, Panchanga)
+ *   - A slim bottom dock for the four primary destinations
+ *
+ * Design tokens (unchanged from the temple system):
+ *   Ink stone     #2A0408   base ground
+ *   Deep maroon   #4A0E14   gradient depth
+ *   Dusk indigo   #150A12   far depth / frame background
+ *   Brass / gold  gold-200/300 (existing tokens) — rules, ribbons, kalasha
+ *   Warm white    warm-white (existing token) — body copy
+ *   Kumkum        #C1432B   single sharp ritual accent, used sparingly
+ *
+ * Signature elements:
+ *   1. RibbonLabel — a brass banner clipped into a pennant, used for every
+ *      "header" tag (Seva Timeline, Darshana Hours, Today's Panchanga) so
+ *      the whole hero reads like it's hung with temple flags.
+ *   2. RibbonButton — CTAs are cut the same way, tying action back to motif.
+ *   3. Everything sits inside the existing threshold frame; the two rails
+ *      are real flow children (not absolutely positioned), so they stack
+ *      cleanly under the center column on mobile instead of colliding.
+ * -----------------------------------------------------------------------
+ */
+
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
 import Link from "next/link"
-import { Calendar, Sun, Moon, Clock, ArrowRight } from "lucide-react"
+import Image from "next/image"
+import {
+  Calendar,
+  Sun,
+  Moon,
+  Clock,
+  ArrowRight,
+  Flame,
+  Heart,
+  Home as HomeIcon,
+  PartyPopper,
+  Sparkles,
+  PlayCircle,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "@/lib/i18n"
 import { fetchPanchanga, type PanchangaData } from "@/lib/panchanga"
 import { TEMPLE_TIMINGS } from "@/lib/constants"
+import bannerimage from "@/components/sections/image.png"
 
-const particles = [
-  { x: "15%", y: "25%", size: 2, delay: 0, duration: 12 },
-  { x: "70%", y: "20%", size: 3, delay: 2.5, duration: 14 },
-  { x: "35%", y: "55%", size: 2, delay: 4.5, duration: 11 },
-  { x: "82%", y: "60%", size: 2, delay: 1.5, duration: 13 },
-  { x: "20%", y: "70%", size: 3, delay: 3.5, duration: 15 },
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 24 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] as const },
+})
+
+function CornerMark({ className }: { className: string }) {
+  return (
+    <svg viewBox="0 0 28 28" className={className} aria-hidden>
+      <path d="M0 14 L0 0 L14 0" fill="none" stroke="#E7C87A" strokeWidth="1" opacity="0.5" />
+    </svg>
+  )
+}
+
+/** A brass banner clipped into a pennant — the hero's recurring motif. */
+function RibbonLabel({
+  children,
+  icon: Icon,
+  className = "",
+}: {
+  children: React.ReactNode
+  icon?: React.ElementType
+  className?: string
+}) {
+  return (
+    <div
+      className={`relative inline-flex items-center gap-2 py-2 pl-4 pr-6 bg-gradient-to-b from-gold-200 to-gold-400 text-[#2A0408] ${className}`}
+      style={{
+        clipPath:
+          "polygon(0 0, 100% 0, 92% 50%, 100% 100%, 0 100%, 8% 50%)",
+      }}
+    >
+      {Icon && <Icon className="h-3.5 w-3.5 shrink-0" />}
+      <span className="font-heading text-[11px] font-bold tracking-[0.14em] uppercase whitespace-nowrap">
+        {children}
+      </span>
+    </div>
+  )
+}
+
+/** Ribbon-cut CTA — same silhouette as RibbonLabel, sized for buttons. */
+function RibbonButton({
+  href,
+  children,
+  icon: Icon,
+  tone = "solid",
+  live = false,
+}: {
+  href: string
+  children: React.ReactNode
+  icon?: React.ElementType
+  tone?: "solid" | "outline" | "ghost"
+  live?: boolean
+}) {
+  const toneClasses =
+    tone === "solid"
+      ? "bg-gradient-to-b from-[#C1432B] to-[#8F2E1B] text-warm-white"
+      : tone === "outline"
+        ? "bg-gradient-to-b from-gold-200 to-gold-400 text-[#2A0408]"
+        : "bg-[#2A0408]/70 text-warm-white border border-gold-300/30"
+
+  return (
+    <Link href={href} className="inline-flex">
+      <span
+        className={`relative inline-flex items-center gap-2 py-3 pl-5 pr-7 text-sm font-semibold tracking-wide shadow-lg shadow-black/30 transition-transform duration-200 hover:-translate-y-0.5 ${toneClasses}`}
+        style={{
+          clipPath: "polygon(0 0, 100% 0, 94% 50%, 100% 100%, 0 100%, 6% 50%)",
+        }}
+      >
+        {live && (
+          <span className="relative flex h-2 w-2 -ml-1">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-current opacity-60 animate-ping" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-current" />
+          </span>
+        )}
+        {Icon && !live && <Icon className="h-4 w-4 shrink-0" />}
+        {children}
+      </span>
+    </Link>
+  )
+}
+
+const SEVA_TIMELINE = [
+  { icon: Sun, label: "Morning Puja", time: "8:00 AM" },
+  { icon: Flame, label: "Special Alankara", time: "1:00 AM" },
+  { icon: Moon, label: "Evening Aarti", time: "7:00 PM" },
+  { icon: Flame, label: "Special Puja", time: "7:50 PM" },
+  { icon: Flame, label: "Special Alankara", time: "12:00 AM" },
+  { icon: Moon, label: "Evening Aarti", time: "12:30 AM" },
+  { icon: Flame, label: "Special Alankara", time: "5:00 AM" },
+]
+
+const DOCK_ITEMS = [
+  { icon: HomeIcon, label: "Home", href: "/" },
+  { icon: PartyPopper, label: "Festivals", href: "/festivals" },
+  { icon: Calendar, label: "Panchanga", href: "/panchanga" },
+  { icon: Sparkles, label: "Sevas", href: "/sevas" },
 ]
 
 export function HeroSection() {
-  const sectionRef = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end start"],
-  })
-  const imageScale = useTransform(scrollYProgress, [0, 1], [1, 1.05])
-  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "-15%"])
-  const contentOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.3])
   const [panchanga, setPanchanga] = useState<PanchangaData | null>(null)
   const { t } = useTranslation()
 
@@ -35,228 +159,189 @@ export function HeroSection() {
   }, [])
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative min-h-screen overflow-hidden bg-[#2A0408]"
-    >
-      {/* Background Image with subtle zoom on scroll */}
-      <motion.div
-        className="absolute inset-0"
-        style={{ scale: imageScale }}
-      >
-        <Image
-          src="https://picsum.photos/seed/temple-gopuram/1920/1080"
-          alt="Sri Kalikamba Temple Gopuram"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
-      </motion.div>
+    <section className="relative min-h-screen bg-[#150A12] pt-[44px] overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0">
+        <Image src={bannerimage} alt="Temple Background" className="w-full h-full object-cover" priority />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#4A0E14]/70 via-[#2A0408]/55 to-[#150A12]/90" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#150A12] via-transparent to-[#150A12]/40" />
+      </div>
+      <div
+        className="absolute right-0 top-0 h-full w-1/2 opacity-[0.22] blur-3xl pointer-events-none"
+        style={{ background: "radial-gradient(closest-side, #E7C87A, transparent 70%)" }}
+      />
 
-      {/* Deep Maroon Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#5B0E16]/70 to-[#431017]/60 pointer-events-none" />
+      {/* Fine stone-grain texture */}
+      <svg className="absolute inset-0 w-full h-full opacity-[0.05] pointer-events-none mix-blend-overlay" aria-hidden>
+        <filter id="grain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#grain)" />
+      </svg>
 
-      {/* Soft Golden Diagonal Glow from top-left */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gold-200/8 via-transparent to-transparent pointer-events-none" />
+      {/* Threshold frame */}
+      <div className="absolute inset-x-4 sm:inset-x-8 lg:inset-x-10 top-[100px] bottom-6 border border-gold-300/10 pointer-events-none hidden md:block">
+        <CornerMark className="absolute -top-px -left-px h-6 w-6" />
+        <CornerMark className="absolute -top-px -right-px h-6 w-6 -scale-x-100" />
+        <CornerMark className="absolute -bottom-px -left-px h-6 w-6 -scale-y-100" />
+        <CornerMark className="absolute -bottom-px -right-px h-6 w-6 -scale-x-100 -scale-y-100" />
+      </div>
 
-      {/* Subtle Particles */}
-      {particles.map((p, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full bg-gold-200/20 pointer-events-none"
-          style={{ width: p.size, height: p.size, left: p.x, top: p.y }}
-          animate={{
-            y: [0, -40, -80],
-            opacity: [0.06, 0.18, 0],
-          }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        />
-      ))}
+      {/* Content grid: rail / center / rail */}
+      <div className="relative z-10 container mx-auto min-h-[calc(100vh-44px)] px-4 sm:px-8 lg:px-12 py-10 sm:py-16 pb-24 lg:pb-16 flex items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-[15rem_1fr_16rem] gap-8 lg:gap-6 w-full items-center">
+          {/* LEFT RAIL — Seva Timeline */}
+          <motion.aside {...fadeUp(0.1)} className="order-2 lg:order-1">
+            <RibbonLabel icon={Clock}>Seva Timeline</RibbonLabel>
+            <div className="mt-3 bg-[#2A0408]/70 backdrop-blur-sm border border-gold-300/15 max-h-64 lg:max-h-[26rem] overflow-y-auto">
+              <ul className="divide-y divide-gold-300/10">
+                {SEVA_TIMELINE.map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 px-4 py-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold-300/30 text-gold-300">
+                      <item.icon className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-xs font-medium text-warm-white/85 truncate">
+                        {item.label}
+                      </span>
+                      <span className="block text-[11px] text-gold-300/60 tabular-nums">{item.time}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </motion.aside>
 
-      {/* Content */}
-      <motion.div
-        className="relative z-10 container mx-auto h-screen flex flex-col px-4 sm:px-6 lg:px-8"
-        style={{ y: contentY, opacity: contentOpacity }}
-      >
-        {/* Top-left: Temple Name in Kannada + English subtitle */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0, ease: [0.16, 1, 0.3, 1] }}
-          className="pt-20 lg:pt-28"
-        >
-          <h1 className="font-script text-4xl sm:text-5xl md:text-6xl text-gold-300/90 leading-tight">
-            ಶ್ರೀ ಕಾಳಿಕಾಂಬಾ ದೇವಸ್ಥಾನ
-          </h1>
-          <p className="mt-2 text-xs sm:text-sm text-warm-white/40 font-light tracking-[0.15em] uppercase">
-            Sri Kalikamba Temple &mdash; Barkur, Udupi
-          </p>
-        </motion.div>
+          {/* CENTER — editorial content */}
+          <div className="order-1 lg:order-2 flex flex-col items-start lg:items-center text-left lg:text-center px-0 lg:px-4">
+            <motion.div {...fadeUp(0)} className="flex items-center gap-2.5 mb-5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#C1432B]" />
+              <span className="text-[11px] sm:text-xs text-gold-300/60 font-medium tracking-[0.28em] uppercase">
+                Barkur &middot; Udupi &middot; Karnataka
+              </span>
+            </motion.div>
 
-        {/* Center: Editorial Headline */}
-        <div className="flex-1 flex flex-col justify-center -mt-16 lg:-mt-28 max-w-4xl">
-          <motion.h2
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold leading-[1.05] tracking-tight"
-          >
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-200 via-warm-white to-gold-100">
-              An 800-Year Legacy
-            </span>
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-300 via-gold-200 to-secondary">
-              of Divine Grace
-            </span>
-          </motion.h2>
-
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-6 sm:mt-8 max-w-2xl text-base sm:text-lg md:text-xl text-warm-white/50 font-light leading-relaxed"
-          >
-            Nestled in the sacred town of Barkur, this ancient shrine has stood as a beacon
-            of devotion for over eight centuries &mdash; where the divine presence of
-            Sri Kalikamba Devi blesses every soul who seeks her grace.
-          </motion.p>
-        </div>
-
-        {/* Bottom Section: CTAs + Glass Card */}
-        <div className="pb-12 lg:pb-16 flex flex-col lg:flex-row items-start lg:items-end justify-between gap-8">
-          {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-wrap gap-3 sm:gap-4"
-          >
-            <Link href="/sevas">
-              <Button variant="primary" size="lg" className="shadow-xl shadow-[#5B0E16]/30 ring-1 ring-secondary/20 hover:shadow-2xl hover:shadow-[#5B0E16]/40 transition-all">
-                <Calendar className="h-4 w-4" />
-                Book Seva
-              </Button>
-            </Link>
-            <Link href="/donations">
-              <Button variant="outline" size="lg" className="border-gold-300/50 text-gold-300 hover:bg-gold-300/10 hover:text-gold-200 hover:border-gold-300/70 transition-all">
-                <ArrowRight className="h-4 w-4" />
-                Donate
-              </Button>
-            </Link>
-            <Link href="/live-darshana">
-              <Button variant="ghost" size="lg" className="text-gold-300/50 hover:text-gold-200 hover:bg-white/5 transition-all">
-                <Sun className="h-4 w-4" />
-                Live Darshana
-              </Button>
-            </Link>
-          </motion.div>
-
-          {/* Glass Card: Temple Timings + Panchanga */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <motion.div
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="bg-[#5B0E16]/80 backdrop-blur-md rounded-2xl p-5 sm:p-6 w-full lg:w-80 border border-gold-300/10 shadow-xl shadow-black/20"
+            <motion.h1
+              {...fadeUp(0.12)}
+              className="font-heading text-4xl sm:text-5xl md:text-6xl font-bold leading-[1.05] tracking-tight text-warm-white"
             >
-              {/* Timings Header */}
-              <div className="flex items-center gap-2 mb-4">
-                <Clock className="h-4 w-4 text-gold-300" />
-                <h3 className="text-warm-white/90 font-heading text-sm font-semibold tracking-wide">
-                  Temple Timings
-                </h3>
-              </div>
-              <div className="space-y-2.5 mb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-warm-white/60">
-                    <Sun className="h-3.5 w-3.5 text-gold-300/60" />
-                    <span className="text-xs">Morning</span>
-                  </div>
-                  <span className="text-xs font-medium text-warm-white/80">{TEMPLE_TIMINGS.morning}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-warm-white/60">
-                    <Moon className="h-3.5 w-3.5 text-gold-300/60" />
-                    <span className="text-xs">Evening</span>
-                  </div>
-                  <span className="text-xs font-medium text-warm-white/80">{TEMPLE_TIMINGS.evening}</span>
-                </div>
-              </div>
+              Shri Kalikamba Temple
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-200 via-gold-300 to-[#E7C87A]">
+                Barkur
+              </span>
+            </motion.h1>
 
-              <div className="h-px bg-gradient-to-r from-transparent via-gold-300/20 to-transparent my-4" />
+            <motion.p
+              {...fadeUp(0.26)}
+              className="mt-6 max-w-md text-base text-warm-white/60 font-light leading-relaxed"
+            >
+              Since the 13th century, Sri Kalikamba Devi has been worshipped without
+              interruption in the temple town of Barkur — the same rites, at the same
+              hour, for eight hundred years.
+            </motion.p>
 
-              {/* Panchanga Section */}
-              <div className="mb-3">
-                <div className="flex items-center gap-2 mb-3">
-                  <Calendar className="h-3.5 w-3.5 text-gold-300" />
-                  <h3 className="text-warm-white/90 font-heading text-sm font-semibold tracking-wide">
-                    Today&apos;s Panchanga
-                  </h3>
+            <motion.div
+              {...fadeUp(0.4)}
+              className="mt-8 flex flex-wrap items-center gap-3 justify-start lg:justify-center"
+            >
+              <RibbonButton href="/sevas" icon={Calendar} tone="solid">
+                Book a Seva
+              </RibbonButton>
+              <RibbonButton href="/donate" icon={Heart} tone="outline">
+                Donate
+              </RibbonButton>
+              <RibbonButton href="/live-darshana" tone="ghost" live>
+                Live Darshana
+              </RibbonButton>
+              <RibbonButton href="/live-darshana" icon={PlayCircle} tone="outline">
+                Live Darshana
+              </RibbonButton>
+            </motion.div>
+          </div>
+
+          {/* RIGHT RAIL — Darshana Hours + Panchanga */}
+          <motion.aside {...fadeUp(0.3)} className="order-3 space-y-4">
+            <div>
+              <RibbonLabel icon={Clock}>Darshana Hours</RibbonLabel>
+              <div className="mt-3 border border-gold-300/15 bg-[#2A0408]/70 backdrop-blur-sm p-5">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-gold-300/50 mb-1">
+                      <Sun className="h-3 w-3" />
+                      <span className="text-[10px] tracking-[0.1em] uppercase">Morning</span>
+                    </div>
+                    <span className="font-heading text-sm text-warm-white/90 tabular-nums">
+                      {TEMPLE_TIMINGS.morning}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5 text-gold-300/50 mb-1">
+                      <Moon className="h-3 w-3" />
+                      <span className="text-[10px] tracking-[0.1em] uppercase">Evening</span>
+                    </div>
+                    <span className="font-heading text-sm text-warm-white/90 tabular-nums">
+                      {TEMPLE_TIMINGS.evening}
+                    </span>
+                  </div>
                 </div>
+              </div>
+            </div>
+
+            <div>
+              <RibbonLabel icon={Calendar}>Today&apos;s Panchanga</RibbonLabel>
+              <div className="mt-3 border border-gold-300/15 bg-[#2A0408]/70 backdrop-blur-sm p-5">
                 {!panchanga ? (
                   <div className="space-y-2">
                     {[...Array(2)].map((_, i) => (
-                      <div key={i} className="h-3 bg-white/5 rounded animate-pulse" />
+                      <div key={i} className="h-3 bg-white/5 rounded-sm animate-pulse" />
                     ))}
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-warm-white/50">Tithi</span>
-                      <span className="text-xs font-medium text-warm-white/80">{panchanga.tithi}</span>
+                      <span className="text-xs text-warm-white/40">Tithi</span>
+                      <span className="text-xs font-medium text-warm-white/85">{panchanga.tithi}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-warm-white/50">Nakshatra</span>
-                      <span className="text-xs font-medium text-warm-white/80">{panchanga.nakshatra}</span>
+                      <span className="text-xs text-warm-white/40">Nakshatra</span>
+                      <span className="text-xs font-medium text-warm-white/85">{panchanga.nakshatra}</span>
                     </div>
                   </div>
                 )}
+                <Link
+                  href="/panchanga"
+                  className="inline-flex items-center gap-1.5 text-xs text-gold-300 hover:text-gold-200 transition-colors mt-4 group"
+                >
+                  View full Panchanga
+                  <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                </Link>
               </div>
-
-              <Link
-                href="/panchanga"
-                className="inline-flex items-center gap-1.5 text-xs text-gold-300 hover:text-gold-200 transition-colors mt-2 group"
-              >
-                View Full Panchanga
-                <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-            </motion.div>
-          </motion.div>
+            </div>
+          </motion.aside>
         </div>
-      </motion.div>
-
-      {/* Bottom Gradient Fade to Next Section */}
-      <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[#2A0408] via-[#2A0408]/60 to-transparent pointer-events-none z-[2]" />
-
-      {/* Curved SVG Divider */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 sm:h-32 pointer-events-none z-[3]">
-        <svg viewBox="0 0 1440 160" fill="none" preserveAspectRatio="none" className="w-full h-full">
-          <path
-            d="M0 80 C200 80, 400 60, 520 45 L540 30 L560 45 C680 60, 760 60, 880 45 L900 30 L920 45 C1040 60, 1240 80, 1440 80 L1440 160 L0 160 Z"
-            fill="#2A0408"
-            opacity="0.4"
-          />
-          <path
-            d="M0 100 C250 100, 450 75, 540 58 L560 40 L580 58 C680 75, 760 75, 860 58 L880 40 L900 58 C1050 75, 1190 100, 1440 100 L1440 160 L0 160 Z"
-            fill="#431017"
-            opacity="0.7"
-          />
-          <path
-            d="M0 125 C300 125, 480 95, 555 75 L560 60 L565 75 C660 95, 780 95, 875 75 L880 60 L885 75 C960 95, 1140 125, 1440 125 L1440 160 L0 160 Z"
-            fill="#5B0E16"
-            opacity="0.9"
-          />
-        </svg>
       </div>
+
+      {/* BOTTOM DOCK — quick destinations, fixed within the hero on all sizes */}
+      <motion.nav
+        {...fadeUp(0.5)}
+        className="absolute bottom-0 inset-x-0 z-20 bg-[#150A12]/90 backdrop-blur-md border-t border-gold-300/15"
+      >
+        <ul className="container mx-auto flex items-stretch justify-around px-4">
+          {DOCK_ITEMS.map((item) => (
+            <li key={item.href} className="flex-1">
+              <Link
+                href={item.href}
+                className="flex flex-col items-center gap-1 py-3 text-warm-white/60 hover:text-gold-300 transition-colors"
+              >
+                <item.icon className="h-4 w-4" />
+                <span className="text-[10px] tracking-[0.08em] uppercase">{item.label}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </motion.nav>
     </section>
   )
 }

@@ -5,7 +5,14 @@ export { Input } from "./input"
 export type { InputProps } from "./input"
 
 export { Card } from "./card"
-export type { CardProps, CardVariant, CardPadding, CardHeaderProps, CardContentProps, CardFooterProps } from "./card"
+export type {
+  CardProps,
+  CardVariant,
+  CardPadding,
+  CardHeaderProps,
+  CardContentProps,
+  CardFooterProps,
+} from "./card"
 
 export { Badge } from "./badge"
 export type { BadgeProps } from "./badge"
@@ -13,7 +20,16 @@ export type { BadgeProps } from "./badge"
 export { Skeleton, TextSkeleton, CardSkeleton, TableSkeleton, PageSkeleton } from "./skeleton"
 export type { SkeletonProps } from "./skeleton"
 
-export { Dialog } from "./dialog"
+export {
+  Dialog,
+  DialogTrigger,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "./dialog"
 export type { DialogProps } from "./dialog"
 
 export { Select } from "./select"

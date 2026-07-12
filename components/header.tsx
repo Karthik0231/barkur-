@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { Menu, ChevronDown, Heart, Landmark, Phone, MapPin, Bell } from "lucide-react"
+import { Menu, ChevronDown, Heart, Landmark } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n"
 import { LanguageSwitcher } from "@/lib/i18n/language-switcher"
@@ -52,6 +52,53 @@ export const navItems: NavItem[] = [
   { label: "nav.contact", href: "/contact" },
 ]
 
+/**
+ * Logo mark — a brass pennant banner (same ribbon motif as the hero)
+ * flying out from behind a circular temple emblem. Drawn with an SVG
+ * path rather than a CSS clip-path, so the point stays crisp instead
+ * of rendering as a soft blob under the drop-shadow.
+ */
+function LogoBanner() {
+  return (
+    <Link href="/" className="relative flex items-center shrink-0 group">
+      <div className="relative z-20 h-12 w-12 md:h-14 md:w-14 rounded-full bg-gradient-to-br from-[#8A1420] to-[#4A0E14] border-[3px] border-gold-300 shadow-lg shadow-black/50 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+        <span className="text-gold-200 font-heading font-bold text-base md:text-lg tracking-wider">ಶ್ರೀ</span>
+      </div>
+
+      <div className="hidden sm:block relative -ml-6 h-14 md:h-16 w-64 md:w-[19rem]">
+        <svg
+          viewBox="0 0 300 70"
+          preserveAspectRatio="none"
+          className="absolute inset-0 h-full w-full"
+          style={{ filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.45))" }}
+        >
+          <defs>
+            <linearGradient id="logoGold" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#F6E2A0" />
+              <stop offset="45%" stopColor="#DDB25C" />
+              <stop offset="100%" stopColor="#B3872F" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M0 2 H253 L297 35 L253 68 H0 Z"
+            fill="url(#logoGold)"
+            stroke="#7A5A1E"
+            strokeWidth="1.5"
+          />
+        </svg>
+        <div className="relative z-10 h-full flex flex-col justify-center pl-9 pr-11">
+          <span className="text-xs md:text-sm font-script font-bold text-[#4A0E14] leading-tight whitespace-nowrap">
+            ಶ್ರೀ ಕಾಳಿಕಾಂಬಾ ದೇವಸ್ಥಾನ
+          </span>
+          <span className="text-[9px] md:text-[10px] text-[#4A0E14]/75 tracking-[0.14em] uppercase font-semibold whitespace-nowrap">
+            Sri Kalikamba Temple, Barkur
+          </span>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
 export function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -76,7 +123,7 @@ export function Header() {
   }
 
   const underlineClasses =
-    "after:absolute after:bottom-0 after:left-0 after:h-[2px] after:bg-gradient-to-r after:from-gold-400 after:to-gold-600 after:transition-all after:duration-300"
+    "after:absolute after:bottom-0 after:left-0 after:h-[2px] after:bg-gradient-to-r after:from-gold-300 after:to-gold-500 after:transition-all after:duration-300"
 
   return (
     <>
@@ -84,25 +131,13 @@ export function Header() {
         className={cn(
           "fixed top-[44px] left-0 right-0 z-50 transition-all duration-500",
           scrolled
-            ? "bg-warm-ivory/90 backdrop-blur-xl shadow-premium border-b border-border/50 h-14 md:h-16"
-            : "bg-warm-ivory/50 backdrop-blur-md border-b border-transparent h-16 md:h-20"
+            ? "bg-[#150A12]/92 backdrop-blur-xl shadow-lg shadow-black/40 border-b border-gold-300/15 h-16 md:h-[4.5rem]"
+            : "bg-transparent border-b border-transparent h-20 md:h-24"
         )}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex items-center justify-between h-full">
-            <Link href="/" className="flex items-center gap-3 group shrink-0">
-              <div className="relative w-10 h-10 md:w-11 md:h-11 rounded-xl gradient-bg-maroon flex items-center justify-center shadow-md group-hover:shadow-glow-maroon transition-all duration-300 group-hover:scale-105">
-                <span className="text-warm-white font-heading font-bold text-lg md:text-xl tracking-wider">ಶ್ರೀ</span>
-              </div>
-              <div className="hidden sm:block">
-                <span className="block text-sm md:text-base font-script font-semibold text-dark-slate leading-tight group-hover:text-primary transition-colors duration-300">
-                  ಶ್ರೀ ಕಾಳಿಕಾಂಬಾ ದೇವಸ್ಥಾನ
-                </span>
-                <span className="block text-[10px] md:text-[11px] text-text-muted tracking-wider uppercase font-medium">
-                  Sri Kalikamba Temple
-                </span>
-              </div>
-            </Link>
+            <LogoBanner />
 
             <nav className="hidden lg:flex items-center gap-0.5 h-full">
               {navItems.map((item) => (
@@ -118,8 +153,8 @@ export function Header() {
                         "relative flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 h-fit",
                         underlineClasses,
                         isActive(item.href)
-                          ? "text-primary after:w-full"
-                          : "text-text-secondary hover:text-primary after:w-0 hover:after:w-full"
+                          ? "text-gold-200 after:w-full"
+                          : "text-warm-white/75 hover:text-gold-200 after:w-0 hover:after:w-full"
                       )}
                     >
                       {t(item.label)}
@@ -137,8 +172,8 @@ export function Header() {
                         "relative flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 h-fit",
                         underlineClasses,
                         pathname === item.href
-                          ? "text-primary after:w-full"
-                          : "text-text-secondary hover:text-primary after:w-0 hover:after:w-full"
+                          ? "text-gold-200 after:w-full"
+                          : "text-warm-white/75 hover:text-gold-200 after:w-0 hover:after:w-full"
                       )}
                     >
                       {t(item.label)}
@@ -153,7 +188,7 @@ export function Header() {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 6, scale: 0.96 }}
                           transition={{ duration: 0.15, ease: "easeOut" }}
-                          className="absolute top-full left-0 mt-1 w-56 rounded-xl bg-white/90 backdrop-blur-xl shadow-premium border border-border-light p-1.5"
+                          className="absolute top-full left-0 mt-1 w-56 rounded-xl bg-[#2A0408]/95 backdrop-blur-xl shadow-xl shadow-black/50 border border-gold-300/15 p-1.5"
                         >
                           {item.children.map((child) => (
                             <Link
@@ -162,8 +197,8 @@ export function Header() {
                               className={cn(
                                 "block px-3 py-2.5 rounded-lg text-sm transition-all duration-200",
                                 pathname === child.href
-                                  ? "bg-gold-50/80 text-primary font-medium"
-                                  : "text-text-secondary hover:bg-gold-50/60 hover:text-primary"
+                                  ? "bg-gold-300/15 text-gold-200 font-medium"
+                                  : "text-warm-white/70 hover:bg-gold-300/10 hover:text-gold-200"
                               )}
                             >
                               {t(child.label)}
@@ -184,7 +219,7 @@ export function Header() {
 
               <Link
                 href="/donate"
-                className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-xl gradient-bg-maroon text-warm-white text-sm font-semibold shadow-md hover:shadow-glow-maroon hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-b from-[#C1432B] to-[#8F2E1B] text-warm-white text-sm font-semibold border border-gold-300/40 shadow-md shadow-black/30 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
               >
                 <Heart className="w-4 h-4" />
                 <span>{t("nav.donate")}</span>
@@ -192,7 +227,7 @@ export function Header() {
 
               <motion.button
                 onClick={() => setMobileOpen(true)}
-                className="lg:hidden flex items-center justify-center w-10 h-10 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-colors"
+                className="lg:hidden flex items-center justify-center w-10 h-10 rounded-xl bg-gold-300/10 text-gold-200 hover:bg-gold-300/20 transition-colors"
                 aria-label="Open menu"
                 whileTap={{ scale: 0.9 }}
               >

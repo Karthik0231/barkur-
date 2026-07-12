@@ -70,50 +70,31 @@ export function VisitSection() {
             transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
             className="lg:w-[55%]"
           >
-            <div className="relative h-[320px] sm:h-[400px] lg:h-[520px] rounded-2xl border border-gold-200/40 overflow-hidden bg-[#F5F0E8] shadow-premium">
-              <div className="absolute inset-0 opacity-[0.15]"
-                style={{
-                  backgroundImage: `
-                    radial-gradient(circle at 30% 40%, rgba(212,175,55,0.3) 0%, transparent 40%),
-                    radial-gradient(circle at 70% 60%, rgba(180,150,100,0.15) 0%, transparent 35%),
-                    repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(180,160,130,0.08) 20px, rgba(180,160,130,0.08) 21px),
-                    repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(180,160,130,0.08) 20px, rgba(180,160,130,0.08) 21px)
-                  `,
-                }}
-              />
+            <div className="relative h-[320px] sm:h-[400px] lg:h-[520px] overflow-hidden rounded-2xl border border-gold-200/40 shadow-premium bg-white">
+  <iframe
+    title="Shri Kalikamba Temple"
+    src="https://www.google.com/maps?q=13.4666553,74.7522106&z=17&output=embed"
+    width="100%"
+    height="100%"
+    loading="lazy"
+    allowFullScreen
+    referrerPolicy="no-referrer-when-downgrade"
+    className="absolute inset-0 h-full w-full border-0"
+  />
 
-              <div className="absolute top-6 left-6 right-6 flex items-center justify-between">
-                <span className="text-xs font-medium text-dark-slate/40 tracking-wider uppercase">Google Maps</span>
-                <div className="flex items-center gap-1.5 text-dark-slate/30">
-                  <Compass className="h-4 w-4" />
-                  <span className="text-[10px] font-medium tracking-wider">N</span>
-                </div>
-              </div>
-
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/60 backdrop-blur-sm border border-gold-200/50 shadow-lg mb-4">
-                    <MapPin className="h-7 w-7 text-gold-600" />
-                  </div>
-                  <p className="text-sm font-medium text-dark-slate/70">Sri Kalikamba Temple</p>
-                  <p className="text-xs text-dark-slate/40 mt-1">Barkur, Udupi District</p>
-                  <p className="text-[10px] text-dark-slate/30 mt-0.5">13.47&deg;N, 74.75&deg;E</p>
-                </div>
-              </div>
-
-              <div className="absolute bottom-5 left-1/2 -translate-x-1/2">
-                <a
-                  href="https://maps.google.com/?q=Sri+Kalikamba+Temple+Barkur"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-gold-200/40 text-xs font-medium text-dark-slate/70 hover:text-primary hover:border-gold-400/60 transition-all shadow-sm"
-                >
-                  <MapPin className="h-3 w-3" />
-                  Open in Google Maps
-                  <ArrowRight className="h-3 w-3" />
-                </a>
-              </div>
-            </div>
+  <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10">
+    <a
+      href="https://www.google.com/maps/place/Shri+Kalikamba+Temple/@13.4666553,74.7496357,17z/data=!4m16!1m9!3m8!1s0x3bbc97bf39f7c9b5:0x139619cb2edb81fb!2sShri+Kalikamba+Temple!8m2!3d13.4666553!4d74.7522106!9m1!1b1!16s%2Fg%2F11c2rb530h!3m5!1s0x3bbc97bf39f7c9b5:0x139619cb2edb81fb!8m2!3d13.4666553!4d74.7522106!16s%2Fg%2F11c2rb530h?entry=ttu"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-2 rounded-full bg-white/95 px-5 py-2.5 text-sm font-medium text-dark-slate shadow-lg backdrop-blur transition-all hover:scale-105 hover:bg-white"
+    >
+      <MapPin className="h-4 w-4 text-gold-600" />
+      Open in Google Maps
+      <ArrowRight className="h-4 w-4" />
+    </a>
+  </div>
+</div>
           </motion.div>
 
           <div className="lg:w-[45%] flex flex-col gap-5">

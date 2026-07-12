@@ -1,10 +1,11 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo, useRef, useState, type KeyboardEvent } from "react"
 import {
   format,
   addMonths,
   subMonths,
+  addDays,
   startOfMonth,
   endOfMonth,
   startOfWeek,
@@ -66,6 +67,8 @@ export function Calendar({
 }: CalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [direction, setDirection] = useState(0)
+  const [focusedDate, setFocusedDate] = useState<Date | null>(null)
+  const dayRefs = useRef<Record<string, HTMLButtonElement | null>>({})
 
   const selectedDates = useMemo(() => {
     if (!selected) return []
@@ -124,20 +127,60 @@ export function Calendar({
     }
   }, [canGoNext])
 
-  const handleDayClick = useCallback(
+  const isDayDisabled = useCallback(
     (day: Date) => {
       const ds = toDateString(day)
-      if (unavailableSet.has(ds) || bookedSet.has(ds)) return
-      if (minDate && isBefore(day, startOfDay(minDate))) return
-      if (maxDate && isAfter(day, startOfDay(maxDate))) return
+      return (
+        unavailableSet.has(ds) ||
+        bookedSet.has(ds) ||
+        (!!minDate && isBefore(day, startOfDay(minDate))) ||
+        (!!maxDate && isAfter(day, startOfDay(maxDate)))
+      )
+    },
+    [unavailableSet, bookedSet, minDate, maxDate],
+  )
+
+  const handleDayClick = useCallback(
+    (day: Date) => {
+      if (isDayDisabled(day)) return
       onSelect?.(day)
     },
-    [onSelect, unavailableSet, bookedSet, minDate, maxDate],
+    [onSelect, isDayDisabled],
+  )
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLButtonElement>, day: Date) => {
+      const deltaMap: Record<string, number> = {
+        ArrowRight: 1,
+        ArrowLeft: -1,
+        ArrowDown: 7,
+        ArrowUp: -7,
+      }
+      const delta = deltaMap[e.key]
+      if (delta === undefined) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          handleDayClick(day)
+        }
+        return
+      }
+      e.preventDefault()
+      const next = addDays(day, delta)
+      if (!isSameMonth(next, currentMonth)) {
+        setDirection(isAfter(next, day) ? 1 : -1)
+        setCurrentMonth(next)
+      }
+      setFocusedDate(next)
+      requestAnimationFrame(() => {
+        dayRefs.current[toDateString(next)]?.focus()
+      })
+    },
+    [currentMonth, handleDayClick],
   )
 
   return (
     <div className={cn("w-full max-w-sm select-none", className)}>
-      <div className="flex items-center justify-between mb-5 px-1">
+      <div className="flex items-center justify-between mb-4 sm:mb-5 px-1">
         <button
           type="button"
           onClick={prevMonth}
@@ -152,16 +195,17 @@ export function Calendar({
         >
           <ChevronLeft className="h-5 w-5 text-text-primary" />
         </button>
-        <div className="relative overflow-hidden h-7">
+        <div className="relative overflow-hidden h-7 flex-1">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.h3
-              key={currentMonth.toISOString()}
+              key={currentMonth.toISOString().slice(0, 7)}
               custom={direction}
               variants={monthVariants}
               initial="enter"
               animate="center"
               exit="exit"
-              className="text-base font-semibold font-heading text-text-primary absolute inset-x-0 text-center"
+              className="text-sm sm:text-base font-semibold font-heading text-text-primary absolute inset-x-0 text-center"
+              aria-live="polite"
             >
               {format(currentMonth, "MMMM yyyy")}
             </motion.h3>
@@ -183,18 +227,18 @@ export function Calendar({
         </button>
       </div>
 
-      <div className="grid grid-cols-7 mb-3 gap-1">
+      <div className="grid grid-cols-7 mb-2 sm:mb-3 gap-1">
         {dayNames.map((name) => (
           <div
             key={name}
-            className="text-xs font-semibold text-text-muted text-center py-1.5 tracking-wide"
+            className="text-[11px] sm:text-xs font-semibold text-text-muted text-center py-1 sm:py-1.5 tracking-wide"
           >
             {name}
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-0.5 sm:gap-1" role="grid">
         {days.map((day, idx) => {
           const ds = toDateString(day)
           const inMonth = isSameMonth(day, currentMonth)
@@ -203,21 +247,25 @@ export function Calendar({
           const isBooked = bookedSet.has(ds)
           const isHigh = highlightSet.has(ds)
           const isTodayDate = isToday(day)
-          const isDisabled =
-            !inMonth ||
-            isUnavail ||
-            isBooked ||
-            (minDate && isBefore(day, startOfDay(minDate))) ||
-            (maxDate && isAfter(day, startOfDay(maxDate)))
+          const isDisabled = !inMonth || isDayDisabled(day)
+          const isFocusTarget = focusedDate ? toDateString(focusedDate) === ds : isTodayDate && inMonth
 
           return (
             <button
               key={idx}
+              ref={(el) => {
+                dayRefs.current[ds] = el
+              }}
               type="button"
+              role="gridcell"
               onClick={() => handleDayClick(day)}
+              onKeyDown={(e) => handleKeyDown(e, day)}
+              onFocus={() => setFocusedDate(day)}
               disabled={isDisabled}
+              tabIndex={isFocusTarget ? 0 : -1}
               className={cn(
-                "relative h-10 w-full text-sm rounded-xl transition-all duration-150",
+                "relative aspect-square w-full text-xs sm:text-sm rounded-lg sm:rounded-xl transition-all duration-150",
+                "flex items-center justify-center",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-1",
                 "font-medium",
                 !inMonth && "text-text-muted/20",

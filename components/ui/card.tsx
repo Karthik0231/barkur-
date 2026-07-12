@@ -18,14 +18,14 @@ const variantStyles = {
     "bg-warm-white border border-gold-200/30 shadow-premium hover:shadow-xl",
   "glass-elevated":
     "glass shadow-premium hover:shadow-xl",
-}
+} as const
 
 const paddingStyles = {
   none: "p-0",
-  sm: "p-4",
-  md: "p-6",
-  lg: "p-8",
-}
+  sm: "p-3 sm:p-4",
+  md: "p-4 sm:p-6",
+  lg: "p-6 sm:p-8",
+} as const
 
 export type CardVariant = keyof typeof variantStyles
 export type CardPadding = keyof typeof paddingStyles
@@ -54,7 +54,7 @@ const CardRoot = forwardRef<HTMLElement, CardProps>(
       <Component
         ref={ref}
         className={cn(
-          "rounded-xl transition-all duration-300",
+          "rounded-xl transition-all duration-300 flex flex-col",
           variantStyles[variant],
           paddingStyles[padding],
           hover && "hover:-translate-y-0.5 hover:shadow-elevated hover:border-gold-300/50 cursor-pointer",
@@ -93,6 +93,28 @@ const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
 
 CardHeader.displayName = "CardHeader"
 
+const CardTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadingElement>>(
+  ({ className, children, ...props }, ref) => (
+    <h3
+      ref={ref}
+      className={cn("text-base sm:text-lg font-heading font-semibold text-text-primary leading-snug", className)}
+      {...props}
+    >
+      {children}
+    </h3>
+  ),
+)
+CardTitle.displayName = "CardTitle"
+
+const CardDescription = forwardRef<HTMLParagraphElement, HTMLAttributes<HTMLParagraphElement>>(
+  ({ className, children, ...props }, ref) => (
+    <p ref={ref} className={cn("text-sm text-text-muted leading-relaxed", className)} {...props}>
+      {children}
+    </p>
+  ),
+)
+CardDescription.displayName = "CardDescription"
+
 export interface CardContentProps extends HTMLAttributes<HTMLDivElement> {
   padding?: CardPadding
 }
@@ -102,7 +124,7 @@ const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
     return (
       <div
         ref={ref}
-        className={cn("flex-1", className)}
+        className={cn("flex-1 min-w-0", className)}
         {...props}
       >
         {children}
@@ -123,7 +145,7 @@ const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
       <div
         ref={ref}
         className={cn(
-          "flex items-center gap-3 pt-4 mt-auto border-t border-border/50",
+          "flex flex-wrap items-center gap-3 pt-4 mt-auto border-t border-border/50",
           className,
         )}
         {...props}
@@ -138,6 +160,8 @@ CardFooter.displayName = "CardFooter"
 
 export const Card = Object.assign(CardRoot, {
   Header: CardHeader,
+  Title: CardTitle,
+  Description: CardDescription,
   Content: CardContent,
   Footer: CardFooter,
 })

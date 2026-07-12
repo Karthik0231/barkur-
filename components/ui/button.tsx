@@ -23,15 +23,25 @@ const variantStyles = {
     "bg-gradient-to-r from-secondary to-secondary-light text-dark-slate hover:from-secondary-light hover:to-secondary shadow-sm hover:shadow-premium hover:shadow-glow-gold/30 font-semibold",
   premium:
     "bg-gradient-to-r from-primary via-primary-light to-primary text-warm-white shadow-md hover:shadow-premium hover:shadow-glow-maroon/40 font-semibold",
-}
+} as const
 
 const sizeStyles = {
   xs: "h-7 px-2.5 text-xs gap-1 rounded-md",
-  sm: "h-9 px-3.5 text-sm gap-1.5 rounded-lg",
-  md: "h-10 px-5 text-sm gap-2 rounded-xl",
-  lg: "h-12 px-7 text-base gap-2 rounded-xl",
-  xl: "h-14 px-9 text-lg gap-2.5 rounded-xl",
-}
+  sm: "h-9 px-3 sm:px-3.5 text-sm gap-1.5 rounded-lg",
+  md: "h-10 px-4 sm:px-5 text-sm gap-2 rounded-xl",
+  lg: "h-12 px-6 sm:px-7 text-base gap-2 rounded-xl",
+  xl: "h-14 px-7 sm:px-9 text-base sm:text-lg gap-2.5 rounded-xl",
+  icon: "h-10 w-10 p-0 rounded-xl shrink-0",
+} as const
+
+const iconOnlySquare = {
+  xs: "h-7 w-7 p-0",
+  sm: "h-9 w-9 p-0",
+  md: "h-10 w-10 p-0",
+  lg: "h-12 w-12 p-0",
+  xl: "h-14 w-14 p-0",
+  icon: "h-10 w-10 p-0",
+} as const
 
 export type ButtonVariant = keyof typeof variantStyles
 export type ButtonSize = keyof typeof sizeStyles
@@ -40,26 +50,35 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
   size?: ButtonSize
   loading?: boolean
+  loadingText?: string
   iconLeft?: ReactNode
   iconRight?: ReactNode
+  /** Render as a square icon-only button (no visible label, uses aria-label) */
+  iconOnly?: boolean
+  fullWidth?: boolean
 }
 
 export const buttonVariants = ({
   variant = "primary",
   size = "md",
   className,
+  iconOnly = false,
+  fullWidth = false,
 }: {
   variant?: ButtonVariant
   size?: ButtonSize
   className?: string
+  iconOnly?: boolean
+  fullWidth?: boolean
 } = {}) =>
   cn(
     "inline-flex items-center justify-center font-medium whitespace-nowrap transition-all duration-300 ease-out select-none",
     "hover:scale-[1.02] active:scale-[0.98]",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary",
-    "disabled:pointer-events-none disabled:opacity-50",
+    "disabled:pointer-events-none disabled:opacity-50 disabled:hover:scale-100",
     variantStyles[variant],
-    sizeStyles[size],
+    iconOnly ? iconOnlySquare[size] : sizeStyles[size],
+    fullWidth && "w-full",
     className,
   )
 
@@ -70,10 +89,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       variant = "primary",
       size = "md",
       loading = false,
+      loadingText,
       disabled,
       iconLeft,
       iconRight,
+      iconOnly = false,
+      fullWidth = false,
       children,
+      "aria-label": ariaLabel,
       ...props
     },
     ref,
@@ -81,9 +104,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
-        className={buttonVariants({ variant, size, className })}
+        className={buttonVariants({ variant, size, className, iconOnly, fullWidth })}
         disabled={disabled || loading}
         aria-disabled={disabled || loading}
+        aria-busy={loading}
+        aria-label={iconOnly ? ariaLabel : undefined}
         {...props}
       >
         {loading ? (
@@ -93,8 +118,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             {iconLeft}
           </span>
         ) : null}
-        {children && <span className="truncate">{children}</span>}
-        {!loading && iconRight && (
+        {!iconOnly && children && (
+          <span className="truncate">{loading && loadingText ? loadingText : children}</span>
+        )}
+        {!loading && iconRight && !iconOnly && (
           <span className="shrink-0 flex items-center" aria-hidden="true">
             {iconRight}
           </span>

@@ -1,5 +1,6 @@
 import { forwardRef, type HTMLAttributes } from "react"
 import { cn } from "@/lib/utils"
+import { X } from "lucide-react"
 
 const variantStyles = {
   default:
@@ -26,14 +27,14 @@ const variantStyles = {
     "bg-gold-100 text-gold-800 border border-gold-200/50 shadow-sm",
   maroon:
     "bg-maroon-100 text-maroon-800 border border-maroon-200/50 shadow-sm",
-}
+} as const
 
 const sizeStyles = {
   xs: "text-[10px] px-1.5 py-0.5 gap-0.5",
   sm: "text-[11px] px-2 py-0.5 gap-1",
   md: "text-xs px-2.5 py-1 gap-1.5",
   lg: "text-sm px-3 py-1.5 gap-2",
-}
+} as const
 
 const dotColors: Record<string, string> = {
   default: "bg-text-muted",
@@ -55,6 +56,9 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   size?: keyof typeof sizeStyles
   dot?: boolean
   pill?: boolean
+  /** Show a remove (x) button. Fires onRemove when clicked. */
+  removable?: boolean
+  onRemove?: () => void
 }
 
 export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
@@ -65,6 +69,8 @@ export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
       size = "sm",
       dot = false,
       pill = true,
+      removable = false,
+      onRemove,
       children,
       ...props
     },
@@ -74,7 +80,7 @@ export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
       <span
         ref={ref}
         className={cn(
-          "inline-flex items-center font-medium whitespace-nowrap select-none",
+          "inline-flex items-center font-medium whitespace-nowrap select-none max-w-full",
           pill ? "rounded-full" : "rounded-md",
           variantStyles[variant],
           sizeStyles[size],
@@ -92,7 +98,20 @@ export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
             aria-hidden="true"
           />
         )}
-        {children}
+        <span className="truncate">{children}</span>
+        {removable && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onRemove?.()
+            }}
+            className="shrink-0 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors p-0.5 -mr-0.5"
+            aria-label="Remove"
+          >
+            <X className={size === "lg" ? "h-3.5 w-3.5" : "h-3 w-3"} />
+          </button>
+        )}
       </span>
     )
   },

@@ -11,6 +11,7 @@ import { DonationsSection } from "@/components/sections/donations-section"
 import { GallerySection } from "@/components/sections/gallery-section"
 import { TestimonialsSection } from "@/components/sections/testimonials-section"
 import { VisitSection } from "@/components/sections/visit-section"
+import { TempleBulletinSection } from "@/components/sections/TempleBulletinSection"
 
 export default function HomePage() {
   return (
@@ -18,11 +19,12 @@ export default function HomePage() {
       <HeroSection />
       <QuickActionsSection />
       <PanchangaSection />
-      <FeaturedSevasSection />
+      {/* <FeaturedSevasSection /> */}
       <TempleStorySection />
-      <UpcomingEventsSection />
-      <AnnouncementsSection />
-      <DonationsSection />
+      <TempleBulletinSection />
+      {/* <UpcomingEventsSection /> */}
+      {/* <AnnouncementsSection /> */}
+      {/* <DonationsSection /> */}
       <GallerySection />
       <TestimonialsSection />
       <VisitSection />
