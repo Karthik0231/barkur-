@@ -2,10 +2,10 @@
 
 @theme inline {
   --color-primary: #5B0E16;
-  --color-primary-light: #7A1825;
+  --color-primary-light: #6E1520;
   --color-primary-dark: #431017;
-  --color-secondary: #D4AF37;
-  --color-secondary-light: #E0C45A;
+  --color-secondary: #C9A037;
+  --color-secondary-light: #D4B84A;
   --color-secondary-dark: #B8942E;
   --color-accent: #D4A574;
   --color-accent-light: #E4C4A0;
@@ -30,12 +30,12 @@
 
   --color-gold-50: #FDF8ED;
   --color-gold-100: #F9EFCB;
-  --color-gold-200: #F3DE93;
-  --color-gold-300: #ECC85A;
-  --color-gold-400: #E0C45A;
-  --color-gold-500: #D4AF37;
-  --color-gold-600: #C19F30;
-  --color-gold-700: #B8942E;
+  --color-gold-200: #F0D88A;
+  --color-gold-300: #DFBA48;
+  --color-gold-400: #D4B84A;
+  --color-gold-500: #C9A037;
+  --color-gold-600: #B8942A;
+  --color-gold-700: #A88628;
   --color-gold-800: #75572A;
   --color-gold-900: #54401E;
   --color-gold-950: #3A2812;
@@ -69,8 +69,8 @@
   --color-bg-tertiary: #EDE4D8;
   --color-bg-card: var(--color-warm-white);
   --color-text-primary: var(--color-dark-slate);
-  --color-text-secondary: #5A4A3A;
-  --color-text-muted: #7B746C;
+  --color-text-secondary: #4D3F32;
+  --color-text-muted: #6E675F;
   --color-text-on-primary: var(--color-warm-white);
   --color-text-on-secondary: var(--color-dark-slate);
   --color-border: #E0D0BC;
@@ -93,8 +93,8 @@
   --shadow-elevated: 0 4px 16px -2px rgb(42 27 21 / 0.08), 0 2px 4px -2px rgb(42 27 21 / 0.06);
   --shadow-modal: 0 20px 60px -12px rgb(42 27 21 / 0.25), 0 8px 20px -8px rgb(42 27 21 / 0.15);
   --shadow-premium: 0 8px 32px -4px rgb(42 27 21 / 0.10), 0 2px 8px -2px rgb(42 27 21 / 0.06);
-  --shadow-glow-gold: 0 0 24px rgb(212 175 55 / 0.35);
-  --shadow-glow-maroon: 0 0 24px rgb(91 14 22 / 0.3);
+  --shadow-glow-gold: 0 0 24px rgb(212 175 55 / 0.25);
+  --shadow-glow-maroon: 0 0 24px rgb(91 14 22 / 0.2);
   --shadow-sm: 0 1px 2px 0 rgb(42 27 21 / 0.03);
   --shadow-md: 0 4px 12px -2px rgb(42 27 21 / 0.06);
   --shadow-lg: 0 8px 24px -4px rgb(42 27 21 / 0.08);
@@ -118,6 +118,8 @@
   --animate-slide-in-right: slideInRight 0.4s ease-out forwards;
   --animate-slide-in-left: slideInLeft 0.4s ease-out forwards;
   --animate-draw-in: drawIn 1.5s ease-out forwards;
+  --animate-reveal-up: revealUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-shimmer-refined: shimmerRefined 2.5s ease-in-out infinite;
 
   @keyframes shimmer {
     0% { background-position: -200% 0; }
@@ -175,6 +177,14 @@
   @keyframes slideInRight { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
   @keyframes slideInLeft { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
   @keyframes drawIn { from { stroke-dashoffset: 1000; } to { stroke-dashoffset: 0; } }
+  @keyframes revealUp {
+    from { opacity: 0; clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%); }
+    to { opacity: 1; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+  }
+  @keyframes shimmerRefined {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
 }
 
 body {
@@ -472,4 +482,49 @@ body {
   bottom: 0;
   width: 100%;
   height: 60px;
+}
+
+@media (min-width: 1280px) {
+  .section-container-wide {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
+
+.section-spacing {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
+
+@media (min-width: 768px) {
+  .section-spacing {
+    padding-top: 7.5rem;
+    padding-bottom: 7.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-spacing {
+    padding-top: 10rem;
+    padding-bottom: 10rem;
+  }
+}
+
+.section-gap {
+  margin-top: 5rem;
+  margin-bottom: 5rem;
+}
+
+@media (min-width: 768px) {
+  .section-gap {
+    margin-top: 7.5rem;
+    margin-bottom: 7.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-gap {
+    margin-top: 10rem;
+    margin-bottom: 10rem;
+  }
 }

@@ -23,6 +23,7 @@ import {
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { StatsCard } from "@/components/admin/stats-card"
 import { StatusBadge } from "@/components/admin/status-badge"
 import {
@@ -311,6 +312,4 @@ export default function AdminDashboard() {
   )
 }
 
-function cn(...inputs: unknown[]) {
-  return inputs.filter(Boolean).join(" ")
-}
+
