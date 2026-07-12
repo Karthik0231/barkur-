@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   ChevronRight, Sunrise, Sunset, AlertTriangle, Clock, Star, CalendarDays, Ban, Moon, Sun,
   ChevronLeft, Sparkles, Download, Share2, Bell, Heart, Zap, CloudSun, Droplets, Wind, Eye,
-  ArrowRight, Info,
+  ArrowRight, Info, Check, Copy,
 } from "lucide-react"
 import { SectionHeading } from "@/components/section-heading"
 import { AnimatedSection } from "@/components/animated-section"
@@ -16,6 +16,9 @@ import { Button } from "@/components/ui/button"
 import { calculatePanchanga, fetchPanchanga, type PanchangaData } from "@/lib/panchanga"
 import { TEMPLE_NAME } from "@/lib/constants"
 import { cn } from "@/lib/utils"
+
+// Adjust to match your actual fixed navbar height.
+const NAVBAR_OFFSET = "pt-20 sm:pt-24"
 
 const VARA_NAMES = ["Ravivara", "Somavara", "Mangalavara", "Budhavara", "Guruvara", "Shukravara", "Shanivara"]
 const VARA_SHORT = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
@@ -70,7 +73,6 @@ function getMoonIllumination(tithi: string): number {
 
 function getMoonPhaseName(tithi: string): string {
   const idx = getTithiIndex(tithi)
-  const illum = getMoonIllumination(tithi)
   if (idx === 14) return "Purnima (Full Moon)"
   if (idx === 29) return "Amavasya (New Moon)"
   if (idx === 0 || idx === 15) return "Pratipada (Waxing Crescent)"
@@ -84,6 +86,68 @@ function getMoonPhaseName(tithi: string): string {
 
 function getRashi(nakshatra: string): string {
   return NAKSHATRA_RASHI[nakshatra] || "—"
+}
+
+function daysUntil(dateStr: string): number {
+  const target = new Date(dateStr + "T00:00:00")
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return Math.round((target.getTime() - today.getTime()) / 86400000)
+}
+
+// --- Small, dependency-free "make the buttons actually do something" helpers ---
+
+function slugify(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+}
+
+function toICSDate(date: Date): string {
+  return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z"
+}
+
+function downloadICS(title: string, description: string, dateStr: string) {
+  const start = new Date(dateStr + "T00:00:00")
+  const end = new Date(start.getTime() + 86400000)
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//" + TEMPLE_NAME + "//Panchanga//EN",
+    "BEGIN:VEVENT",
+    `UID:${slugify(title)}-${dateStr}@panchanga`,
+    `DTSTAMP:${toICSDate(new Date())}`,
+    `DTSTART;VALUE=DATE:${dateStr.replace(/-/g, "")}`,
+    `DTEND;VALUE=DATE:${end.toISOString().split("T")[0].replace(/-/g, "")}`,
+    `SUMMARY:${title}`,
+    `DESCRIPTION:${description.replace(/\n/g, "\\n")}`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n")
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = `${slugify(title)}.ics`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+async function shareContent(title: string, text: string, url: string): Promise<"shared" | "copied" | "failed"> {
+  if (typeof navigator !== "undefined" && "share" in navigator) {
+    try {
+      await (navigator as Navigator & { share: (data: ShareData) => Promise<void> }).share({ title, text, url })
+      return "shared"
+    } catch {
+      // user cancelled or share failed — fall through to clipboard
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(`${text} ${url}`)
+    return "copied"
+  } catch {
+    return "failed"
+  }
 }
 
 function Skeleton({ className }: { className?: string }) {
@@ -128,38 +192,41 @@ function MoonPhaseSVG({ tithi }: { tithi: string }) {
 }
 
 function DayTimeline({ data }: { data: PanchangaData }) {
-  const periods: { label: string; start: string; end: string; type: "auspicious" | "inauspicious" | "neutral" }[] = [
-    { label: "Sunrise", start: data.sunrise, end: data.sunrise, type: "neutral" },
-    { label: "Abhijit", start: data.abhijitMuhurta.start, end: data.abhijitMuhurta.end, type: "auspicious" },
-    { label: "Amrita Kala", start: data.amritaKala.start, end: data.amritaKala.end, type: "auspicious" },
-    { label: "Rahu Kala", start: data.rahuKala.start, end: data.rahuKala.end, type: "inauspicious" },
-    { label: "Yamaganda", start: data.yamaganda.start, end: data.yamaganda.end, type: "inauspicious" },
-    { label: "Gulika", start: data.gulika.start, end: data.gulika.end, type: "inauspicious" },
-    { label: "Sunset", start: data.sunset, end: data.sunset, type: "neutral" },
+  const periods: { label: string; start: string; end: string; type: "auspicious" | "inauspicious" | "neutral"; icon: typeof Star }[] = [
+    { label: "Abhijit", start: data.abhijitMuhurta.start, end: data.abhijitMuhurta.end, type: "auspicious", icon: Sparkles },
+    { label: "Amrita Kala", start: data.amritaKala.start, end: data.amritaKala.end, type: "auspicious", icon: Heart },
+    { label: "Rahu Kala", start: data.rahuKala.start, end: data.rahuKala.end, type: "inauspicious", icon: AlertTriangle },
+    { label: "Yamaganda", start: data.yamaganda.start, end: data.yamaganda.end, type: "inauspicious", icon: Ban },
+    { label: "Gulika", start: data.gulika.start, end: data.gulika.end, type: "inauspicious", icon: Eye },
   ]
+
+  const parseH = (s: string) => {
+    if (!s || s === "—") return null
+    const [h, m] = s.replace(/\s*[AP]M/, "").split(":").map(Number)
+    const isPM = s.includes("PM")
+    return (h % 12) + (isPM ? 12 : 0) + m / 60
+  }
 
   return (
     <div className="relative">
-      <h4 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-4 flex items-center gap-2">
+      {/* <h4 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-4 flex items-center gap-2">
         <Clock className="h-4 w-4 text-secondary" />
         Day Timeline
-      </h4>
-      <div className="relative h-20 bg-gradient-to-r from-bg-secondary/80 via-bg-secondary/40 to-bg-secondary/80 rounded-2xl overflow-hidden border border-border/50 premium-shadow">
+      </h4> */}
+
+      {/* Desktop / tablet: horizontal timeline */}
+      {/* <div className="relative h-20 bg-gradient-to-r from-bg-secondary/80 via-bg-secondary/40 to-bg-secondary/80 rounded-2xl overflow-hidden border border-border/50 premium-shadow hidden sm:block">
         <div className="absolute inset-0 pattern-dots-subtle" />
         <div className="absolute inset-0 flex">
-          {periods.filter(p => p.label !== "Sunrise" && p.label !== "Sunset").map((p, i) => {
-            const parseH = (s: string) => {
-              const [h, m] = s.replace(/\s*[AP]M/, "").split(":").map(Number)
-              const isPM = s.includes("PM")
-              return (h % 12) + (isPM ? 12 : 0) + m / 60
-            }
+          {periods.map((p, i) => {
             const startH = parseH(p.start)
             const endH = parseH(p.end)
+            if (startH === null || endH === null) return null
             const dayStart = 5
             const dayEnd = 20
             const range = dayEnd - dayStart
             const left = ((startH - dayStart) / range) * 100
-            const width = p.start === p.end ? 2 : Math.max(2, ((endH - startH) / range) * 100)
+            const width = Math.max(2, ((endH - startH) / range) * 100)
             return (
               <motion.div
                 key={p.label}
@@ -170,7 +237,6 @@ function DayTimeline({ data }: { data: PanchangaData }) {
                   "absolute top-2 bottom-2 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:z-10",
                   p.type === "auspicious" && "bg-gradient-to-b from-emerald-400/40 to-emerald-400/20 border border-emerald-400/30 shadow-sm shadow-emerald-400/10",
                   p.type === "inauspicious" && "bg-gradient-to-b from-red-400/30 to-red-400/15 border border-red-400/20 shadow-sm shadow-red-400/10",
-                  p.type === "neutral" && "bg-gradient-to-b from-gold-400/20 to-gold-400/10 border border-gold-400/20",
                 )}
                 style={{ left: `${left}%`, width: `${width}%` }}
                 title={`${p.label}: ${p.start} - ${p.end}`}
@@ -180,7 +246,6 @@ function DayTimeline({ data }: { data: PanchangaData }) {
                     "text-[10px] font-semibold whitespace-nowrap px-2 py-0.5 rounded-full backdrop-blur-sm",
                     p.type === "auspicious" && "bg-emerald-900/20 text-emerald-700",
                     p.type === "inauspicious" && "bg-red-900/20 text-red-600",
-                    p.type === "neutral" && "bg-gold-900/20 text-gold-700",
                   )}>
                     {p.label}
                   </span>
@@ -196,16 +261,39 @@ function DayTimeline({ data }: { data: PanchangaData }) {
             ))}
           </div>
         </div>
-        <div className="absolute top-0 left-0 right-0 h-6 flex items-start px-3 pt-1">
-          <div className="w-full flex justify-between">
-            {[Sunrise, ...periods.filter(p => p.label !== "Sunrise" && p.label !== "Sunset").map(p => {
-              const Icon = p.type === "auspicious" ? Star : p.type === "inauspicious" ? AlertTriangle : Clock
-              return Icon
-            }), Sunset].slice(0, 8).map((Icon, i) => (
-              <Icon key={i} className="h-3 w-3 text-text-muted/30" />
-            ))}
-          </div>
-        </div>
+      </div> */}
+
+      {/* Mobile: stacked list — the horizontal timeline's labels overlap below ~640px */}
+      <div className="sm:hidden space-y-2">
+        {periods.map((p, i) => {
+          const Icon = p.icon
+          return (
+            <motion.div
+              key={p.label}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.06, duration: 0.3 }}
+              className={cn(
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 border",
+                p.type === "auspicious" && "bg-emerald-50/80 border-emerald-200/60",
+                p.type === "inauspicious" && "bg-red-50/80 border-red-200/60",
+              )}
+            >
+              <div className={cn(
+                "p-1.5 rounded-lg shrink-0",
+                p.type === "auspicious" ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-500",
+              )}>
+                <Icon className="h-3.5 w-3.5" />
+              </div>
+              <span className={cn("text-xs font-semibold flex-1", p.type === "auspicious" ? "text-emerald-800" : "text-red-800")}>
+                {p.label}
+              </span>
+              <span className={cn("text-[11px] font-medium", p.type === "auspicious" ? "text-emerald-600" : "text-red-600")}>
+                {p.start} – {p.end}
+              </span>
+            </motion.div>
+          )
+        })}
       </div>
     </div>
   )
@@ -296,6 +384,7 @@ function MonthCalendar({
   const today = new Date()
 
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+  const dayNamesShort = ["S", "M", "T", "W", "T", "F", "S"]
 
   return (
     <div>
@@ -304,7 +393,8 @@ function MonthCalendar({
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => onChangeMonth(-1)}
-          className="w-10 h-10 rounded-xl bg-warm-white border border-border/60 flex items-center justify-center text-text-secondary hover:text-primary hover:border-secondary hover:shadow-md transition-all"
+          aria-label="Previous month"
+          className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-warm-white border border-border/60 flex items-center justify-center text-text-secondary hover:text-primary hover:border-secondary hover:shadow-md transition-all"
         >
           <ChevronLeft className="h-5 w-5" />
         </motion.button>
@@ -312,7 +402,7 @@ function MonthCalendar({
           key={`${month}-${year}`}
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-xl font-heading font-bold text-primary"
+          className="text-lg sm:text-xl font-heading font-bold text-primary text-center"
         >
           {new Date(year, month).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
         </motion.h3>
@@ -320,19 +410,23 @@ function MonthCalendar({
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => onChangeMonth(1)}
-          className="w-10 h-10 rounded-xl bg-warm-white border border-border/60 flex items-center justify-center text-text-secondary hover:text-primary hover:border-secondary hover:shadow-md transition-all"
+          aria-label="Next month"
+          className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-warm-white border border-border/60 flex items-center justify-center text-text-secondary hover:text-primary hover:border-secondary hover:shadow-md transition-all"
         >
           <ChevronRight className="h-5 w-5" />
         </motion.button>
       </div>
       <div className="grid grid-cols-7 gap-px bg-border/50 rounded-2xl overflow-hidden border border-border/50">
-        {dayNames.map((d) => (
-          <div key={d} className="bg-bg-secondary/80 px-2 py-3 text-center">
-            <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider">{d}</span>
+        {dayNames.map((d, i) => (
+          <div key={d} className="bg-bg-secondary/80 px-1 sm:px-2 py-2.5 sm:py-3 text-center">
+            <span className="text-[10px] sm:text-[11px] font-bold text-text-muted uppercase tracking-wider">
+              <span className="sm:hidden">{dayNamesShort[i]}</span>
+              <span className="hidden sm:inline">{d}</span>
+            </span>
           </div>
         ))}
         {Array.from({ length: firstDay }).map((_, i) => (
-          <div key={`empty-${i}`} className="bg-warm-white/50 min-h-[80px] sm:min-h-[100px]" />
+          <div key={`empty-${i}`} className="bg-warm-white/50 min-h-[64px] sm:min-h-[100px]" />
         ))}
         <AnimatePresence mode="popLayout">
           {days.map((d) => {
@@ -346,7 +440,7 @@ function MonthCalendar({
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                 className={cn(
-                  "relative min-h-[80px] sm:min-h-[100px] p-2 sm:p-3 transition-all duration-200 group cursor-default",
+                  "relative min-h-[64px] sm:min-h-[100px] p-1.5 sm:p-3 transition-all duration-200 group cursor-default",
                   isToday
                     ? "bg-gradient-to-br from-gold-50/90 to-amber-50/90 ring-2 ring-secondary/50 shadow-glow-gold z-10"
                     : "bg-warm-white hover:bg-bg-secondary/40",
@@ -354,14 +448,14 @@ function MonthCalendar({
               >
                 <div className="flex items-start justify-between">
                   <span className={cn(
-                    "text-sm font-bold leading-none",
+                    "text-xs sm:text-sm font-bold leading-none",
                     isToday ? "text-primary" : "text-text-primary",
                   )}>
                     {d.day}
                   </span>
                   {(d.isEkadashi || d.isAmavasya || d.isPournami) && (
                     <span className={cn(
-                      "text-[7px] font-bold px-1 py-0.5 rounded-full uppercase tracking-wider",
+                      "text-[6px] sm:text-[7px] font-bold px-1 py-0.5 rounded-full uppercase tracking-wider",
                       d.isEkadashi && "bg-emerald-100 text-emerald-700",
                       d.isAmavasya && "bg-maroon-100 text-maroon-700",
                       d.isPournami && "bg-gold-100 text-gold-700",
@@ -370,9 +464,9 @@ function MonthCalendar({
                     </span>
                   )}
                 </div>
-                <div className="mt-1">
-                  <p className="text-[9px] font-semibold text-text-secondary leading-tight truncate">{d.tithi}</p>
-                  <p className="text-[7px] text-text-muted leading-tight truncate mt-0.5">{d.nakshatra}</p>
+                <div className="mt-1 hidden xs:block sm:block">
+                  <p className="text-[8px] sm:text-[9px] font-semibold text-text-secondary leading-tight truncate">{d.tithi}</p>
+                  <p className="text-[7px] text-text-muted leading-tight truncate mt-0.5 hidden sm:block">{d.nakshatra}</p>
                 </div>
                 {isToday && (
                   <div className="absolute inset-0 rounded-2xl ring-1 ring-secondary/30 pointer-events-none" />
@@ -386,11 +480,81 @@ function MonthCalendar({
   )
 }
 
+function FestivalCard({ festival, index }: { festival: (typeof FESTIVALS)[number]; index: number }) {
+  const IconComponent = FESTIVAL_ICONS[festival.icon] || Star
+  const days = daysUntil(festival.date)
+  const isPast = days < 0
+  const isToday = days === 0
+  const isSoon = days > 0 && days <= 7
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ delay: index * 0.07, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <Card
+        variant="glass"
+        padding="none"
+        className={cn(
+          "relative overflow-hidden h-full flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-premium group",
+          isPast && "opacity-60",
+        )}
+      >
+        <div className={cn("h-2 w-full bg-gradient-to-r shrink-0", festival.color)} />
+
+        <div className="p-5 sm:p-6 flex flex-col flex-1">
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div className={cn(
+              "w-11 h-11 rounded-2xl bg-gradient-to-br flex items-center justify-center shrink-0 shadow-sm",
+              festival.color,
+            )}>
+              <IconComponent className="h-5 w-5 text-white" />
+            </div>
+            {isToday ? (
+              <Badge variant="primary" size="sm" dot>Today</Badge>
+            ) : isSoon ? (
+              <Badge variant="secondary" size="sm">In {days} day{days === 1 ? "" : "s"}</Badge>
+            ) : !isPast ? (
+              <Badge variant="default" size="sm">
+                {new Date(festival.date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+              </Badge>
+            ) : (
+              <Badge variant="default" size="sm">Past</Badge>
+            )}
+          </div>
+
+          <h4 className="text-lg font-heading font-bold text-primary leading-snug">{festival.name}</h4>
+          <p className="text-xs text-text-muted font-medium mt-1">
+            {new Date(festival.date).toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+          </p>
+          <p className="text-sm text-text-secondary mt-3 leading-relaxed flex-1">{festival.description}</p>
+
+          <div className="flex items-center gap-2 mt-5 pt-4 border-t border-border/50">
+            <Button variant="secondary" size="sm" className="flex-1" iconRight={<ArrowRight className="h-3.5 w-3.5" />} asChild>
+              <Link href={`/seva?event=${slugify(festival.name)}`}>Book Seva</Link>
+            </Button>
+            <button
+              onClick={() => downloadICS(festival.name, festival.description, festival.date)}
+              aria-label={`Add ${festival.name} to calendar`}
+              className="w-9 h-9 shrink-0 rounded-lg border border-border/60 flex items-center justify-center text-text-muted hover:text-secondary hover:border-secondary transition-colors"
+            >
+              <CalendarDays className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </Card>
+    </motion.div>
+  )
+}
+
 export default function PanchangaPage() {
   const [panchanga, setPanchanga] = useState<PanchangaData | null>(null)
   const [loading, setLoading] = useState(true)
   const [month, setMonth] = useState(new Date().getMonth())
   const [year, setYear] = useState(new Date().getFullYear())
+  const [shareStatus, setShareStatus] = useState<"idle" | "shared" | "copied" | "failed">("idle")
 
   useEffect(() => {
     setLoading(true)
@@ -399,6 +563,12 @@ export default function PanchangaPage() {
       setLoading(false)
     })
   }, [])
+
+  useEffect(() => {
+    if (shareStatus === "idle") return
+    const t = setTimeout(() => setShareStatus("idle"), 2500)
+    return () => clearTimeout(t)
+  }, [shareStatus])
 
   const today = new Date()
   const vara = VARA_NAMES[today.getDay()]
@@ -422,7 +592,7 @@ export default function PanchangaPage() {
     })
   }, [month, year])
 
-  const handleMonthChange = (dir: number) => {
+  const handleMonthChange = useCallback((dir: number) => {
     if (dir > 0) {
       if (month === 11) { setMonth(0); setYear(y => y + 1) }
       else setMonth(m => m + 1)
@@ -430,20 +600,40 @@ export default function PanchangaPage() {
       if (month === 0) { setMonth(11); setYear(y => y - 1) }
       else setMonth(m => m - 1)
     }
-  }
+  }, [month])
+
+  const handleShare = useCallback(async () => {
+    const url = typeof window !== "undefined" ? window.location.href : ""
+    const text = panchanga
+      ? `Today's Panchanga at ${TEMPLE_NAME}: ${panchanga.tithi} tithi, ${panchanga.nakshatra} nakshatra.`
+      : `Today's Panchanga at ${TEMPLE_NAME}.`
+    const status = await shareContent(`${TEMPLE_NAME} Panchanga`, text, url)
+    setShareStatus(status)
+  }, [panchanga])
+
+  const handleAddToCalendar = useCallback(() => {
+    if (!panchanga) return
+    const dateStr = today.toISOString().split("T")[0]
+    const description = `Tithi: ${panchanga.tithi}\\nNakshatra: ${panchanga.nakshatra}\\nAbhijit Muhurta: ${panchanga.abhijitMuhurta.start} - ${panchanga.abhijitMuhurta.end}\\nRahu Kala: ${panchanga.rahuKala.start} - ${panchanga.rahuKala.end}`
+    downloadICS(`Panchanga — ${panchanga.tithi}`, description, dateStr)
+  }, [panchanga, today])
+
+  const handleDownloadPdf = useCallback(() => {
+    if (typeof window !== "undefined") window.print()
+  }, [])
 
   const todayCards = useMemo(() => {
     if (!panchanga) return []
     return [
       { label: "Tithi", value: panchanga.tithi, icon: Moon },
-      { label: "Nakshatra", value: panchanga.nakshatra, icon: Star },
+      { label: "Nakshatra", value: `${panchanga.nakshatra} · Pada ${panchanga.nakshatraPada}`, icon: Star },
       { label: "Yoga", value: panchanga.yoga, icon: Zap },
       { label: "Karana", value: panchanga.karana, icon: Clock },
       { label: "Vara", value: `${vara} (${varaShort})`, icon: CalendarDays },
       { label: "Sunrise", value: panchanga.sunrise, icon: Sunrise },
       { label: "Sunset", value: panchanga.sunset, icon: Sunset },
-      { label: "Moonrise", value: "—", icon: Moon },
-      { label: "Moonset", value: "—", icon: CloudSun },
+      { label: "Moonrise", value: panchanga.moonrise, icon: Moon },
+      { label: "Moonset", value: panchanga.moonset, icon: CloudSun },
       { label: "Rahu Kala", value: `${panchanga.rahuKala.start} – ${panchanga.rahuKala.end}`, icon: AlertTriangle },
       { label: "Yamaganda", value: `${panchanga.yamaganda.start} – ${panchanga.yamaganda.end}`, icon: Ban },
       { label: "Gulika Kala", value: `${panchanga.gulika.start} – ${panchanga.gulika.end}`, icon: Eye },
@@ -458,15 +648,20 @@ export default function PanchangaPage() {
   const moonPhaseName = panchanga ? getMoonPhaseName(panchanga.tithi) : ""
   const rashi = panchanga ? getRashi(panchanga.nakshatra) : "—"
 
+  const upcomingFestivals = useMemo(
+    () => [...FESTIVALS].sort((a, b) => daysUntil(a.date) - daysUntil(b.date)),
+    [],
+  )
+
   return (
-    <div className="min-h-screen bg-bg-primary">
-      <section className="relative min-h-[45vh] flex items-center justify-center overflow-hidden">
+    <div className={cn("min-h-screen bg-bg-primary", NAVBAR_OFFSET)}>
+      <section className="relative min-h-[42vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-maroon-800 via-maroon-700 to-gold-700 z-0" />
         <div className="absolute inset-0 bg-gradient-to-t from-maroon-900/40 via-transparent to-gold-500/20 z-[1]" />
         <div className="absolute inset-0 pattern-mandala opacity-20 z-[2]" />
         <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-gold-400/10 to-transparent z-[3]" />
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-bg-primary to-transparent z-[4]" />
-        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto pt-12 pb-16">
+        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto py-14 sm:py-16">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -476,17 +671,17 @@ export default function PanchangaPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.6 }}
-              className="inline-block text-gold-300/90 text-sm md:text-base tracking-[0.3em] uppercase mb-4 font-medium"
+              className="inline-block text-gold-300/90 text-xs sm:text-sm md:text-base tracking-[0.3em] uppercase mb-4 font-medium"
             >
               <Sun className="inline-block h-4 w-4 mr-2 text-gold-300" />
               Astrological Calendar
               <Sun className="inline-block h-4 w-4 ml-2 text-gold-300" />
             </motion.span>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-heading font-bold text-warm-white leading-tight drop-shadow-lg">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-heading font-bold text-warm-white leading-tight drop-shadow-lg">
               Panchanga
             </h1>
             <div className="h-1 w-24 bg-gradient-to-r from-gold-400 to-gold-300 rounded-full mx-auto mt-6 mb-6" />
-            <p className="text-warm-white/80 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-sans">
+            <p className="text-warm-white/80 text-base sm:text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-sans px-2">
               The sacred Hindu almanac — today&apos;s tithi, nakshatra, yoga, karana, and auspicious timings for {TEMPLE_NAME}.
             </p>
           </motion.div>
@@ -566,7 +761,7 @@ export default function PanchangaPage() {
                   <div className="grid sm:grid-cols-2 gap-3">
                     {[
                       { label: "Tithi", value: panchanga.tithi, icon: Moon },
-                      { label: "Nakshatra", value: panchanga.nakshatra, icon: Star },
+                      { label: "Nakshatra", value: `${panchanga.nakshatra} (Pada ${panchanga.nakshatraPada})`, icon: Star },
                       { label: "Yoga", value: panchanga.yoga, icon: Zap },
                       { label: "Karana", value: panchanga.karana, icon: Clock },
                       { label: "Masa", value: panchanga.masa, icon: CalendarDays },
@@ -677,7 +872,7 @@ export default function PanchangaPage() {
         </motion.div>
       </section>
 
-      <section className="py-20 px-4 bg-gradient-to-b from-bg-secondary/40 to-bg-primary">
+      <section className="py-16 sm:py-20 px-4 bg-gradient-to-b from-bg-secondary/40 to-bg-primary">
         <div className="max-w-7xl mx-auto">
           <AnimatedSection>
             <SectionHeading
@@ -686,8 +881,8 @@ export default function PanchangaPage() {
             />
           </AnimatedSection>
 
-          <div className="mt-12">
-            <Card variant="elevated" padding="lg" className="shadow-premium">
+          <div className="mt-10 sm:mt-12">
+            <Card variant="elevated" padding="lg" className="shadow-premium overflow-hidden">
               <MonthCalendar
                 month={month}
                 year={year}
@@ -699,7 +894,8 @@ export default function PanchangaPage() {
         </div>
       </section>
 
-      <section className="py-20 px-4">
+      {/* --- Upcoming Festivals: redesigned as a responsive card grid --- */}
+      <section className="py-16 sm:py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <AnimatedSection>
             <SectionHeading
@@ -708,57 +904,15 @@ export default function PanchangaPage() {
             />
           </AnimatedSection>
 
-          <div className="mt-16 max-w-3xl mx-auto">
-            <div className="relative">
-              <div className="absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-secondary via-secondary/50 to-transparent" />
-              <div className="space-y-12">
-                {FESTIVALS.map((festival, i) => {
-                  const IconComponent = FESTIVAL_ICONS[festival.icon] || Star
-                  return (
-                    <motion.div
-                      key={festival.name}
-                      initial={{ opacity: 0, x: -30 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true, margin: "-80px" }}
-                      transition={{ delay: i * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                      className="relative pl-20"
-                    >
-                      <div className="absolute left-5 top-1 w-6 h-6 rounded-full bg-gradient-to-br from-secondary to-gold-300 shadow-glow-gold flex items-center justify-center -translate-x-1/2 z-10">
-                        <IconComponent className="h-3 w-3 text-dark-slate" />
-                      </div>
-                      <Card variant="glass" padding="lg" className="relative hover:shadow-premium transition-all duration-300 hover:-translate-y-0.5">
-                        <div className={cn(
-                          "absolute top-0 left-0 right-0 h-1 rounded-t-2xl bg-gradient-to-r",
-                          festival.color,
-                        )} />
-                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <Badge variant="primary" size="sm">
-                                {new Date(festival.date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                              </Badge>
-                              <span className="text-xs text-text-muted font-medium">
-                                {new Date(festival.date).toLocaleDateString("en-IN", { weekday: "long" })}
-                              </span>
-                            </div>
-                            <h4 className="text-lg font-heading font-bold text-primary">{festival.name}</h4>
-                            <p className="text-sm text-text-secondary mt-2 leading-relaxed">{festival.description}</p>
-                          </div>
-                          <Button variant="secondary" size="sm" iconRight={<ArrowRight className="h-3.5 w-3.5" />}>
-                            Book Related Seva
-                          </Button>
-                        </div>
-                      </Card>
-                    </motion.div>
-                  )
-                })}
-              </div>
-            </div>
+          <div className="mt-10 sm:mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+            {upcomingFestivals.map((festival, i) => (
+              <FestivalCard key={festival.name} festival={festival} index={i} />
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-gradient-to-b from-bg-primary to-bg-secondary/30">
+      <section className="py-16 sm:py-20 px-4 bg-gradient-to-b from-bg-primary to-bg-secondary/30">
         <div className="max-w-6xl mx-auto">
           <AnimatedSection>
             <SectionHeading
@@ -767,7 +921,7 @@ export default function PanchangaPage() {
             />
           </AnimatedSection>
 
-          <div className="mt-12 grid md:grid-cols-3 gap-6">
+          <div className="mt-10 sm:mt-12 grid sm:grid-cols-2 md:grid-cols-3 gap-6">
             <Card variant="glass" padding="lg" className="flex flex-col items-center text-center">
               <div className="w-36 h-36 sm:w-44 sm:h-44">
                 {panchanga ? (
@@ -817,7 +971,7 @@ export default function PanchangaPage() {
               </div>
             </Card>
 
-            <Card variant="glass" padding="lg" className="flex flex-col items-center text-center">
+            <Card variant="glass" padding="lg" className="flex flex-col items-center text-center sm:col-span-2 md:col-span-1">
               <h4 className="text-lg font-heading font-bold text-primary mb-6">Zodiac (Rashi)</h4>
               <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-gradient-to-br from-secondary/20 to-gold-400/10 border-2 border-secondary/30 flex items-center justify-center shadow-premium">
                 <div className="text-center">
@@ -839,27 +993,30 @@ export default function PanchangaPage() {
         </div>
       </section>
 
-      <div className="sticky bottom-6 z-50 px-4">
+      <div className="sticky bottom-4 sm:bottom-6 z-50 px-4 print:hidden">
         <motion.div
           initial={{ opacity: 0, y: 60 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="max-w-5xl mx-auto"
         >
-          <div className="glass rounded-2xl px-4 py-3 sm:px-6 sm:py-4 shadow-premium border border-gold-400/20 flex items-center justify-between gap-2 sm:gap-4 overflow-x-auto">
-            <Button variant="primary" size="sm" iconLeft={<Sparkles className="h-4 w-4" />} className="shrink-0">
-              <span className="hidden sm:inline">Book Today&apos;s Seva</span>
-              <span className="sm:hidden">Book Seva</span>
+          <div className="glass rounded-2xl px-3 py-3 sm:px-6 sm:py-4 shadow-premium border border-gold-400/20 flex flex-wrap items-center justify-center gap-2 sm:gap-4">
+            <Button variant="primary" size="sm" iconLeft={<Sparkles className="h-4 w-4" />} className="shrink-0" asChild>
+              <Link href="/seva?event=today">
+                <span className="hidden sm:inline">Book Today&apos;s Seva</span>
+                <span className="sm:hidden">Book Seva</span>
+              </Link>
             </Button>
-            <Button variant="ghost" size="sm" iconLeft={<Download className="h-4 w-4" />} className="shrink-0">
+            <Button variant="ghost" size="sm" iconLeft={<Download className="h-4 w-4" />} className="shrink-0" onClick={handleDownloadPdf}>
               <span className="hidden sm:inline">Download PDF</span>
               <span className="sm:hidden">PDF</span>
             </Button>
-            <Button variant="ghost" size="sm" iconLeft={<Share2 className="h-4 w-4" />} className="shrink-0">
-              <span className="hidden sm:inline">Share</span>
-              <span className="sm:hidden">Share</span>
+            <Button variant="ghost" size="sm" className="shrink-0" onClick={handleShare} iconLeft={
+              shareStatus === "shared" || shareStatus === "copied" ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />
+            }>
+              {shareStatus === "shared" ? "Shared" : shareStatus === "copied" ? "Link copied" : "Share"}
             </Button>
-            <Button variant="ghost" size="sm" iconLeft={<CalendarDays className="h-4 w-4" />} className="shrink-0">
+            <Button variant="ghost" size="sm" iconLeft={<CalendarDays className="h-4 w-4" />} className="shrink-0" onClick={handleAddToCalendar}>
               <span className="hidden sm:inline">Add to Calendar</span>
               <span className="sm:hidden">Calendar</span>
             </Button>
