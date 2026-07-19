@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Plus, Edit3, Trash2, Search, Calendar, Bell, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -15,6 +15,7 @@ import {
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@/lib/zod-resolver"
 import { z } from "zod"
+import toast from "react-hot-toast"
 
 interface Announcement {
   id: string
@@ -44,20 +45,24 @@ const announcementSchema = z.object({
 
 const types = ["INFO", "WARNING", "URGENT", "EVENT"]
 
-const sampleData: Announcement[] = [
-  { id: "a1", title: "Temple Timings Changed", content: "Due to summer season, temple timings have been revised. Morning: 5:30 AM to 1:00 PM, Evening: 4:30 PM to 8:00 PM.", type: "INFO", isActive: true, isPopup: false, startDate: "2026-04-01", endDate: "2026-08-31", link: null, linkText: null, createdAt: "2026-03-28T10:00:00Z" },
-  { id: "a2", title: "Brahmotsava Registration Open", content: "Register now for the annual Brahmotsava to be held from April 10th to 17th.", type: "EVENT", isActive: true, isPopup: true, startDate: "2026-03-01", endDate: "2026-04-10", link: "/festivals/brahmotsava", linkText: "Register Now", createdAt: "2026-03-01T08:00:00Z" },
-  { id: "a3", title: "URGENT: Temple Closed on Ekadashi", content: "The temple will remain closed on the upcoming Ekadashi day for maintenance work.", type: "URGENT", isActive: true, isPopup: true, startDate: "2026-07-10", endDate: "2026-07-11", link: null, linkText: null, createdAt: "2026-07-05T14:00:00Z" },
-  { id: "a4", title: "New Online Booking System", content: "We have launched a new online seva booking system. Devotees can now book sevas from anywhere.", type: "INFO", isActive: true, isPopup: false, startDate: null, endDate: null, link: "/sevas", linkText: "Book Now", createdAt: "2026-02-15T09:00:00Z" },
-  { id: "a5", title: "Old Announcement", content: "This is an old announcement that is no longer active.", type: "INFO", isActive: false, isPopup: false, startDate: null, endDate: null, link: null, linkText: null, createdAt: "2025-12-01T10:00:00Z" },
-]
-
 export default function AnnouncementsPage() {
-  const [items, setItems] = useState<Announcement[]>(sampleData)
+  const [items, setItems] = useState<Announcement[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Announcement | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const res = await fetch("/api/announcements")
+        const data = await res.json()
+        setItems(data.announcements || [])
+      } catch { toast.error("Failed to load announcements") }
+      finally { setLoading(false) }
+    })()
+  }, [])
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: zodResolver(announcementSchema),
@@ -75,18 +80,38 @@ export default function AnnouncementsPage() {
     setDialogOpen(true)
   }
 
-  const onSubmit = (data: any) => {
-    const processed = { ...data, startDate: data.startDate || null, endDate: data.endDate || null, link: data.link || null, linkText: data.linkText || null }
-    if (editing) {
-      setItems((prev) => prev.map((a) => a.id === editing.id ? { ...a, ...processed } : a))
-    } else {
-      setItems((prev) => [...prev, { id: `a${Date.now()}`, ...processed, createdAt: new Date().toISOString() }])
-    }
-    setDialogOpen(false)
-    setEditing(null)
+  const reload = async () => {
+    try {
+      const res = await fetch("/api/announcements")
+      const data = await res.json()
+      setItems(data.announcements || [])
+    } catch { toast.error("Failed to load announcements") }
   }
 
-  const handleDelete = () => { if (deleteId) { setItems((prev) => prev.filter((a) => a.id !== deleteId)); setDeleteId(null) } }
+  const onSubmit = async (data: any) => {
+    try {
+      const processed = { ...data, startDate: data.startDate || null, endDate: data.endDate || null, link: data.link || null, linkText: data.linkText || null }
+      const url = editing ? `/api/announcements/${editing.id}` : "/api/announcements"
+      const method = editing ? "PUT" : "POST"
+      const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(processed) })
+      if (!res.ok) throw new Error()
+      toast.success(editing ? "Announcement updated" : "Announcement created")
+      setDialogOpen(false)
+      setEditing(null)
+      reload()
+    } catch { toast.error("Failed to save announcement") }
+  }
+
+  const handleDelete = async () => {
+    if (!deleteId) return
+    try {
+      const res = await fetch(`/api/announcements/${deleteId}`, { method: "DELETE" })
+      if (!res.ok) throw new Error()
+      toast.success("Announcement deleted")
+      setDeleteId(null)
+      reload()
+    } catch { toast.error("Failed to delete announcement") }
+  }
 
   const filtered = items.filter((a) => !search || a.title.toLowerCase().includes(search.toLowerCase()) || a.content.toLowerCase().includes(search.toLowerCase()))
 

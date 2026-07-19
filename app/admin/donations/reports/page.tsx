@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Download, TrendingUp, Calendar, IndianRupee, PieChart as PieChartIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -12,30 +12,28 @@ import {
   PieChart, Pie, Cell, Legend,
 } from "recharts"
 
-const monthlyData = [
-  { month: "Jan", amount: 85000, count: 12 },
-  { month: "Feb", amount: 92000, count: 15 },
-  { month: "Mar", amount: 120000, count: 20 },
-  { month: "Apr", amount: 110000, count: 18 },
-  { month: "May", amount: 145000, count: 22 },
-  { month: "Jun", amount: 162000, count: 25 },
-  { month: "Jul", amount: 98000, count: 14 },
-]
-
-const categoryData = [
-  { name: "General", value: 45 },
-  { name: "Annadanam", value: 20 },
-  { name: "Renovation", value: 15 },
-  { name: "Go Seva", value: 10 },
-  { name: "Education", value: 10 },
-]
-
 const COLORS = ["#D4A843", "#7B1A2C", "#C4A882", "#2D2D2D", "#4A90D9"]
 
 export default function DonationReportsPage() {
+  const [monthlyData, setMonthlyData] = useState<{ month: string; amount: number; count: number }[]>([])
+  const [categoryData, setCategoryData] = useState<{ name: string; value: number }[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/donations/reports")
+      .then((r) => r.json())
+      .then((d) => {
+        const data = d.data || d
+        setMonthlyData(data.monthly || data.monthlyData || [])
+        setCategoryData(data.categories || data.categoryData || [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
   const totalRaised = monthlyData.reduce((s, m) => s + m.amount, 0)
   const totalDonations = monthlyData.reduce((s, m) => s + m.count, 0)
-  const avgDonation = Math.round(totalRaised / totalDonations)
+  const avgDonation = totalDonations > 0 ? Math.round(totalRaised / totalDonations) : 0
 
   return (
     <div className="space-y-6">
@@ -53,7 +51,7 @@ export default function DonationReportsPage() {
         <StatsCard label="Total Raised (YTD)" value={formatPrice(totalRaised)} icon={<IndianRupee className="h-5 w-5" />} variant="primary" trend={{ value: 28, isPositive: true, label: "vs last year" }} />
         <StatsCard label="Total Donations" value={totalDonations} icon={<TrendingUp className="h-5 w-5" />} variant="success" />
         <StatsCard label="Avg Donation" value={formatPrice(avgDonation)} icon={<IndianRupee className="h-5 w-5" />} />
-        <StatsCard label="This Month" value={formatPrice(monthlyData[monthlyData.length - 1].amount)} icon={<Calendar className="h-5 w-5" />} variant="warning" />
+        <StatsCard label="This Month" value={formatPrice(monthlyData.length > 0 ? monthlyData[monthlyData.length - 1].amount : 0)} icon={<Calendar className="h-5 w-5" />} variant="warning" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import toast from "react-hot-toast"
 import { motion } from "framer-motion"
 import { Plus, Edit3, Trash2, Search, Target, Calendar, IndianRupee } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -49,20 +50,25 @@ const campaignSchema = z.object({
 
 
 
-const sampleCampaigns: Campaign[] = [
-  { id: "cmp1", name: "Temple Renovation Fund", slug: "temple-renovation", description: "Restoring the ancient temple to its original glory", goalAmount: 5000000, collectedAmount: 3250000, startDate: "2026-01-01", endDate: "2026-12-31", category: "RENOVATION", isActive: true, isFeatured: true },
-  { id: "cmp2", name: "Annadana Scheme", slug: "annadana-scheme", description: "Daily food distribution to devotees and visitors", goalAmount: 1000000, collectedAmount: 450000, startDate: "2026-03-01", endDate: null, category: "ANNADANAM", isActive: true, isFeatured: true },
-  { id: "cmp3", name: "Gopura Construction", slug: "gopura-construction", description: "Building the new rajagopura at the temple entrance", goalAmount: 3000000, collectedAmount: 1200000, startDate: "2026-04-01", endDate: "2026-10-31", category: "RENOVATION", isActive: true, isFeatured: false },
-  { id: "cmp4", name: "Gou Seva", slug: "gou-seva", description: "Care and maintenance of temple cows", goalAmount: 500000, collectedAmount: 280000, startDate: "2026-02-01", endDate: null, category: "GO_SEVA", isActive: true, isFeatured: false },
-  { id: "cmp5", name: "Veda Patashala", slug: "veda-patashala", description: "Support for traditional Vedic education", goalAmount: 2000000, collectedAmount: 500000, startDate: "2026-05-01", endDate: "2026-12-31", category: "EDUCATION", isActive: false, isFeatured: false },
-]
+
 
 export default function CampaignsPage() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>(sampleCampaigns)
+  const [campaigns, setCampaigns] = useState<Campaign[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Campaign | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch("/api/donations/campaigns")
+      .then((r) => r.json())
+      .then((d) => {
+        setCampaigns(d.data || d || [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<any>({
     resolver: zodResolver(campaignSchema),
@@ -80,20 +86,45 @@ export default function CampaignsPage() {
     setDialogOpen(true)
   }
 
-  const onSubmit = (data: any) => {
-    if (editing) {
-      setCampaigns((prev) => prev.map((c) => c.id === editing.id ? { ...c, ...data, endDate: data.endDate || null } : c))
-    } else {
-      setCampaigns((prev) => [...prev, { id: `cmp${Date.now()}`, ...data, endDate: data.endDate || null, collectedAmount: 0 }])
+  const onSubmit = async (data: any) => {
+    try {
+      if (editing) {
+        const res = await fetch(`/api/donations/campaigns/${editing.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        })
+        if (!res.ok) throw new Error()
+        toast.success("Campaign updated")
+        setCampaigns((prev) => prev.map((c) => c.id === editing.id ? { ...c, ...data, endDate: data.endDate || null } : c))
+      } else {
+        const res = await fetch("/api/donations/campaigns", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        })
+        if (!res.ok) throw new Error()
+        const created = await res.json()
+        toast.success("Campaign created")
+        setCampaigns((prev) => [...prev, created.data || created])
+      }
+      setDialogOpen(false)
+      setEditing(null)
+    } catch {
+      toast.error("Failed to save campaign")
     }
-    setDialogOpen(false)
-    setEditing(null)
   }
 
-  const handleDelete = () => {
-    if (deleteId) {
+  const handleDelete = async () => {
+    if (!deleteId) return
+    try {
+      const res = await fetch(`/api/donations/campaigns/${deleteId}`, { method: "DELETE" })
+      if (!res.ok) throw new Error()
+      toast.success("Campaign deleted")
       setCampaigns((prev) => prev.filter((c) => c.id !== deleteId))
       setDeleteId(null)
+    } catch {
+      toast.error("Failed to delete campaign")
     }
   }
 

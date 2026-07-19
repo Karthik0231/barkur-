@@ -17,7 +17,7 @@ interface NavItem {
 
 const sectionConfig: { title: string; items: NavItem[] }[] = [
   {
-    title: "Main",
+    title: "nav.sectionMain",
     items: [
       { label: "nav.home", href: "/" },
       { label: "nav.festivals", href: "/festivals" },
@@ -26,7 +26,7 @@ const sectionConfig: { title: string; items: NavItem[] }[] = [
     ],
   },
   {
-    title: "About Temple",
+    title: "nav.aboutTemple",
     items: [
       {
         label: "nav.about",
@@ -43,7 +43,7 @@ const sectionConfig: { title: string; items: NavItem[] }[] = [
     ],
   },
   {
-    title: "Sevas",
+    title: "nav.sevas",
     items: [
       {
         label: "nav.sevas",
@@ -60,9 +60,9 @@ const sectionConfig: { title: string; items: NavItem[] }[] = [
 ]
 
 const socialLinks = [
-  { label: "Facebook", href: "#", icon: Globe },
-  { label: "Instagram", href: "#", icon: Camera },
-  { label: "YouTube", href: "#", icon: Video },
+  { label: "social.facebook", href: "#", icon: Globe },
+  { label: "social.instagram", href: "#", icon: Camera },
+  { label: "social.youtube", href: "#", icon: Video },
 ]
 
 const springTransition = {
@@ -182,6 +182,7 @@ function SubMenuItem({
 }
 
 export function MobileNav({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation()
   const pathname = usePathname()
   const drawerRef = useRef<HTMLDivElement>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
@@ -230,7 +231,7 @@ export function MobileNav({ onClose }: { onClose: () => void }) {
         }}
         role="dialog"
         aria-modal="true"
-        aria-label="Navigation menu"
+        aria-label={t("nav.navigationMenu")}
       >
         <div className="flex items-center justify-between px-5 pt-6 pb-4">
           <Link href="/" className="flex items-center gap-3" onClick={onClose}>
@@ -242,7 +243,7 @@ export function MobileNav({ onClose }: { onClose: () => void }) {
                 ಶ್ರೀ ಕಾಳಿಕಾಂಬಾ ದೇವಸ್ಥಾನ
               </span>
               <span className="block text-[10px] text-text-muted font-medium tracking-wider uppercase">
-                Sri Kalikamba Temple
+                {t("hero.templeName")}
               </span>
             </div>
           </Link>
@@ -250,7 +251,7 @@ export function MobileNav({ onClose }: { onClose: () => void }) {
             ref={closeRef}
             onClick={onClose}
             className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/5 text-text-muted hover:bg-primary/10 hover:text-primary transition-all duration-200"
-            aria-label="Close navigation menu"
+            aria-label={t("nav.closeMenu")}
           >
             <X className="w-5 h-5" />
           </button>
@@ -266,7 +267,7 @@ export function MobileNav({ onClose }: { onClose: () => void }) {
               animate="visible"
             >
               <h3 className="px-4 mb-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-primary/60">
-                {section.title}
+                {t(section.title)}
               </h3>
               <div className="space-y-0.5">
                 {section.items.map((item) => (
@@ -285,7 +286,7 @@ export function MobileNav({ onClose }: { onClose: () => void }) {
         <div className="border-t border-primary/10 px-5 pt-4 pb-6 space-y-4">
           <div className="flex items-center justify-between px-1">
             <span className="text-xs font-medium text-text-muted uppercase tracking-wider">
-              Language
+              {t("nav.language")}
             </span>
             <LanguageSwitcher />
           </div>
@@ -296,7 +297,7 @@ export function MobileNav({ onClose }: { onClose: () => void }) {
             className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-primary px-4 py-3.5 min-h-12 text-sm font-bold text-warm-white shadow-lg hover:shadow-xl active:scale-[0.98] transition-all duration-200"
           >
             <Sparkles className="w-4 h-4" />
-            <span>Book Seva</span>
+            <span>{t("nav.bookSeva")}</span>
           </Link>
 
           <div className="flex items-center justify-center gap-3 pt-1">
@@ -309,7 +310,7 @@ export function MobileNav({ onClose }: { onClose: () => void }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/5 text-text-muted hover:bg-primary/10 hover:text-primary transition-all duration-200"
-                  aria-label={social.label}
+                  aria-label={t(social.label)}
                 >
                   <Icon className="w-4 h-4" />
                 </a>

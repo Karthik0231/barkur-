@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus, Edit3, Trash2, Search, Star, StarOff, GripVertical, Image as ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { StatusBadge } from "@/components/admin/status-badge"
 import { ImageUpload, type ImageItem } from "@/components/admin/image-upload"
+import toast from "react-hot-toast"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog"
@@ -24,25 +25,34 @@ interface GalleryItem {
   createdAt: string
 }
 
-const sampleGallery: GalleryItem[] = [
-  { id: "g1", title: "Temple Main Entrance", image: "/placeholder.svg", category: "TEMPLE", isFeatured: true, isPublished: true, sortOrder: 1, createdAt: "2026-06-01" },
-  { id: "g2", title: "Maha Shivaratri Celebration", image: "/placeholder.svg", category: "FESTIVAL", isFeatured: true, isPublished: true, sortOrder: 2, createdAt: "2026-06-05" },
-  { id: "g3", title: "Daily Pooja Rituals", image: "/placeholder.svg", category: "POOJA", isFeatured: false, isPublished: true, sortOrder: 3, createdAt: "2026-06-10" },
-  { id: "g4", title: "Temple Gopura", image: "/placeholder.svg", category: "TEMPLE", isFeatured: false, isPublished: true, sortOrder: 4, createdAt: "2026-06-15" },
-  { id: "g5", title: "Navaratri Celebrations", image: "/placeholder.svg", category: "FESTIVAL", isFeatured: false, isPublished: false, sortOrder: 5, createdAt: "2026-06-20" },
-  { id: "g6", title: "Annadanam Seva", image: "/placeholder.svg", category: "EVENT", isFeatured: false, isPublished: true, sortOrder: 6, createdAt: "2026-06-25" },
-]
-
 const categories = ["TEMPLE", "FESTIVAL", "EVENT", "POOJA", "OTHER"]
 
 export default function GalleryPage() {
-  const [items, setItems] = useState<GalleryItem[]>(sampleGallery)
+  const [items, setItems] = useState<GalleryItem[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<GalleryItem | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [uploadImages, setUploadImages] = useState<ImageItem[]>([])
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const fetchGallery = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch("/api/gallery")
+      const json = await res.json()
+      const data = json.data ?? json ?? []
+      setItems(Array.isArray(data) ? data : [])
+    } catch {
+      toast.error("Failed to fetch gallery")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchGallery() }, [])
 
   const filtered = items.filter((item) => {
     const matchSearch = !search || item.title.toLowerCase().includes(search.toLowerCase())
@@ -50,19 +60,57 @@ export default function GalleryPage() {
     return matchSearch && matchCategory
   })
 
-  const toggleFeatured = (id: string) => {
-    setItems((prev) => prev.map((item) => item.id === id ? { ...item, isFeatured: !item.isFeatured } : item))
+  const toggleFeatured = async (id: string) => {
+    try {
+      const item = items.find((i) => i.id === id)
+      if (!item) return
+      const res = await fetch(`/api/gallery/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isFeatured: !item.isFeatured }) })
+      const json = await res.json()
+      if (!json.success) { toast.error(json.message); return }
+      toast.success(json.message)
+      fetchGallery()
+    } catch { toast.error("Failed to update") }
   }
 
-  const togglePublished = (id: string) => {
-    setItems((prev) => prev.map((item) => item.id === id ? { ...item, isPublished: !item.isPublished } : item))
+  const togglePublished = async (id: string) => {
+    try {
+      const item = items.find((i) => i.id === id)
+      if (!item) return
+      const res = await fetch(`/api/gallery/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isPublished: !item.isPublished }) })
+      const json = await res.json()
+      if (!json.success) { toast.error(json.message); return }
+      toast.success(json.message)
+      fetchGallery()
+    } catch { toast.error("Failed to update") }
   }
 
-  const handleDelete = () => {
-    if (deleteId) {
-      setItems((prev) => prev.filter((item) => item.id !== deleteId))
-      setDeleteId(null)
-    }
+  const handleDelete = async () => {
+    if (!deleteId) return
+    try {
+      const res = await fetch(`/api/gallery/${deleteId}`, { method: "DELETE" })
+      const json = await res.json()
+      if (!json.success) { toast.error(json.message); return }
+      toast.success(json.message)
+      fetchGallery()
+    } catch { toast.error("Failed to delete") }
+    setDeleteId(null)
+  }
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      Array.from(files).forEach((f) => formData.append("images", f))
+      const res = await fetch("/api/gallery", { method: "POST", body: formData })
+      const json = await res.json()
+      if (!json.success) { toast.error(json.message); return }
+      toast.success(json.message)
+      fetchGallery()
+    } catch { toast.error("Failed to upload") }
+    finally { setUploading(false) }
+    if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
   return (
@@ -72,9 +120,10 @@ export default function GalleryPage() {
           <h1 className="text-2xl font-bold font-heading text-text-primary">Gallery</h1>
           <p className="text-sm text-text-muted mt-1">Manage temple photos and media</p>
         </div>
-        <Button variant="primary" size="sm" iconLeft={<Plus className="h-4 w-4" />}>
+        <Button variant="primary" size="sm" iconLeft={<Plus className="h-4 w-4" />} onClick={() => fileInputRef.current?.click()} loading={uploading}>
           Add Images
         </Button>
+        <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} />
       </div>
 
       <div className="flex items-center gap-3">
@@ -88,7 +137,10 @@ export default function GalleryPage() {
         </select>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      {loading ? (
+        <div className="text-center py-12 text-text-muted">Loading...</div>
+      ) : (
+      <><div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         <AnimatePresence>
           {filtered.map((item) => (
             <motion.div
@@ -137,6 +189,7 @@ export default function GalleryPage() {
           <p className="text-sm text-text-muted/60 mt-1">Upload images to get started</p>
         </div>
       )}
+      </>)}
 
       <Dialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <DialogContent size="sm">

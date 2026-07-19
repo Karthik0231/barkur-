@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import toast from "react-hot-toast"
 import { motion } from "framer-motion"
 import { Plus, Edit3, Trash2, Search, Save, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -34,23 +35,27 @@ const categorySchema = z.object({
 
 
 
-const sampleCategories: CategoryItem[] = [
-  { id: "cat1", name: "Abhishekam", slug: "abhishekam", description: "Sacred bathing rituals", type: "SEVA", sortOrder: 1, isActive: true, sevasCount: 4, createdAt: "2026-01-15" },
-  { id: "cat2", name: "Homa", slug: "homa", description: "Fire offerings", type: "SEVA", sortOrder: 2, isActive: true, sevasCount: 6, createdAt: "2026-01-15" },
-  { id: "cat3", name: "Vrata", slug: "vrata", description: "Vows and observances", type: "SEVA", sortOrder: 3, isActive: true, sevasCount: 3, createdAt: "2026-01-20" },
-  { id: "cat4", name: "Nitya Pooja", slug: "nitya-pooja", description: "Daily worship rituals", type: "SEVA", sortOrder: 4, isActive: true, sevasCount: 2, createdAt: "2026-02-01" },
-  { id: "cat5", name: "Special Events", slug: "special-events", description: "Special occasion rituals", type: "SEVA", sortOrder: 5, isActive: true, sevasCount: 8, createdAt: "2026-02-10" },
-  { id: "cat6", name: "Annadanam", slug: "annadanam", description: "Food offerings", type: "SEVA", sortOrder: 6, isActive: false, sevasCount: 1, createdAt: "2026-03-01" },
-]
+
 
 const types = ["SEVA", "BLOG", "GALLERY", "FAQ"]
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<CategoryItem[]>(sampleCategories)
+  const [categories, setCategories] = useState<CategoryItem[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<any>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((d) => {
+        setCategories(d.data || d || [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
 
   const form = useForm({ defaultValues: { name: "", slug: "", description: "", type: "SEVA" } as any })
   const { register, handleSubmit, reset, formState: { errors } } = form
@@ -68,31 +73,45 @@ export default function CategoriesPage() {
     setDialogOpen(true)
   }
 
-  const onSubmit = (data: any) => {
-    if (editing) {
-      setCategories((prev) => prev.map((c) => c.id === editing.id ? { ...c, ...data, description: data.description || "" } : c))
-    } else {
-      const newCat: any = {
-        id: `cat${Date.now()}`,
-        sevasCount: 0,
-        isActive: true,
-        createdAt: new Date().toISOString().split("T")[0],
-        name: data.name,
-        slug: data.slug,
-        type: data.type,
-        description: data.description || "",
-        sortOrder: 0,
+  const onSubmit = async (data: any) => {
+    try {
+      if (editing) {
+        const res = await fetch(`/api/categories/${editing.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        })
+        if (!res.ok) throw new Error()
+        toast.success("Category updated")
+        setCategories((prev) => prev.map((c) => c.id === editing.id ? { ...c, ...data, description: data.description || "" } : c))
+      } else {
+        const res = await fetch("/api/categories", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        })
+        if (!res.ok) throw new Error()
+        const created = await res.json()
+        toast.success("Category created")
+        setCategories((prev) => [...prev, created.data || created])
       }
-      setCategories((prev) => [...prev, newCat])
+      setDialogOpen(false)
+      setEditing(null)
+    } catch {
+      toast.error("Failed to save category")
     }
-    setDialogOpen(false)
-    setEditing(null)
   }
 
-  const handleDelete = () => {
-    if (deleteId) {
+  const handleDelete = async () => {
+    if (!deleteId) return
+    try {
+      const res = await fetch(`/api/categories/${deleteId}`, { method: "DELETE" })
+      if (!res.ok) throw new Error()
+      toast.success("Category deleted")
       setCategories((prev) => prev.filter((c) => c.id !== deleteId))
       setDeleteId(null)
+    } catch {
+      toast.error("Failed to delete category")
     }
   }
 

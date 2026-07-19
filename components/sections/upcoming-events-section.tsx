@@ -1,47 +1,40 @@
 "use client"
 
-import { useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { motion, useInView } from "framer-motion"
 import { Calendar, MapPin, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n"
 
-const events = [
-  {
-    title: "Laksha Deepotsava",
-    date: "Dec 2024",
-    description:
-      "The temple radiates with the glow of a hundred thousand lamps, each diya a silent prayer offered by devotees during this spectacular festival of light.",
-    location: "Main Temple Premises",
-  },
-  {
-    title: "Annual Brahmotsava",
-    date: "Mar 2025",
-    description:
-      "The grandest of annual celebrations featuring sacred chariot processions, vedic recitations, and traditional performing arts that echo through the temple halls.",
-    location: "Temple Complex",
-  },
-  {
-    title: "Dasara Celebrations",
-    date: "Oct 2025",
-    description:
-      "Nine nights of divine splendor with special alankaras, homas, and cultural performances dedicated to the divine mother in her resplendent forms.",
-    location: "Main Shrine & Mandapa",
-  },
-  {
-    title: "Ugadi Festival",
-    date: "Mar 2025",
-    description:
-      "Welcoming the new year with traditional rituals, special poojas, and the preparation of panchanga — a sacred blend of six tastes symbolizing life's essence.",
-    location: "Temple Courtyard",
-  },
-]
+interface FestivalItem {
+  id: string
+  name: string
+  startDate: string | null
+  endDate: string | null
+  description: string | null
+  shortDescription?: string | null
+  image?: string | null
+}
 
 export function UpcomingEventsSection() {
   const { t } = useTranslation()
   const sectionRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: "-80px" })
+  const [events, setEvents] = useState<FestivalItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/festivals?isActive=true&limit=4")
+      .then((r) => r.json())
+      .then((d) => {
+        const list = d.data?.festivals || d.festivals || d || []
+        setEvents(Array.isArray(list) ? list : [])
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <section
@@ -58,19 +51,35 @@ export function UpcomingEventsSection() {
           className="flex flex-col items-center text-center mb-16"
         >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-dark-slate">
-            Upcoming Sacred Events
+            {t("home.upcomingEvents")}
           </h2>
           <p className="mt-3 text-base sm:text-lg text-dark-slate/50 max-w-xl">
-            Mark your calendar for divine occasions
+            {t("home.upcomingEventsSub")}
           </p>
           <div className="mt-4 h-0.5 w-20 rounded-full bg-gradient-to-r from-primary to-gold-500" />
         </motion.div>
 
         <div className="relative">
-          <TimelineLine isActive={isInView} />
+          {loading && (
+            <div className="flex justify-center py-16">
+              <span className="text-sm text-dark-slate/60">{t("common.loading")}</span>
+            </div>
+          )}
+          {error && (
+            <div className="flex justify-center py-16">
+              <span className="text-sm text-dark-slate/60">{t("common.error")}</span>
+            </div>
+          )}
+          {!loading && !error && events.length === 0 && (
+            <div className="flex justify-center py-16">
+              <span className="text-sm text-dark-slate/60">{t("common.noResults")}</span>
+            </div>
+          )}
 
-          {events.map((event, i) => (
-            <TimelineNode key={event.title} event={event} index={i} isInView={isInView} />
+          <TimelineLine isActive={isInView && !loading && !error && events.length > 0} />
+
+          {!loading && !error && events.map((event, i) => (
+            <TimelineNode key={event.id || event.name} event={event} index={i} isInView={isInView} />
           ))}
         </div>
 
@@ -81,10 +90,10 @@ export function UpcomingEventsSection() {
           className="flex justify-center mt-16"
         >
           <Link
-            href="/events"
+            href="/festivals"
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-primary to-maroon-700 text-warm-ivory font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 group"
           >
-            <span>View All Events</span>
+            <span>{t("home.viewAllEvents")}</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </motion.div>
@@ -105,12 +114,18 @@ function TimelineLine({ isActive }: { isActive: boolean }) {
   )
 }
 
+function formatFestivalDate(d: string | null): string {
+  if (!d) return ""
+  const date = new Date(d)
+  return date.toLocaleDateString("en-IN", { month: "short", year: "numeric" })
+}
+
 function TimelineNode({
   event,
   index,
   isInView,
 }: {
-  event: (typeof events)[number]
+  event: FestivalItem
   index: number
   isInView: boolean
 }) {
@@ -180,19 +195,15 @@ function TimelineNode({
             }}
           >
             <Calendar className="h-3 w-3" />
-            {event.date}
+            {formatFestivalDate(event.startDate)}
           </div>
           <div className={cn("clear-both", isLeft ? "md:text-right" : "")}>
             <h3 className="text-lg font-heading font-bold text-dark-slate mt-2">
-              {event.title}
+              {event.name}
             </h3>
             <p className="mt-2 text-sm text-dark-slate/60 leading-relaxed">
-              {event.description}
+              {event.shortDescription || event.description || ""}
             </p>
-            <div className="mt-3 flex items-center gap-1.5 text-xs text-dark-slate/40">
-              <MapPin className="h-3 w-3" />
-              <span>{event.location}</span>
-            </div>
           </div>
         </div>
       </motion.div>

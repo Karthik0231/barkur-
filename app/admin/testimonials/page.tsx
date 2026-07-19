@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Search, CheckCircle, XCircle, Star, Quote, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -23,22 +23,27 @@ interface Testimonial {
   createdAt: string
 }
 
-const sampleData: Testimonial[] = [
-  { id: "t1", name: "Ananya Sharma", email: "ananya@example.com", content: "The Rudra Abhishekam was a deeply spiritual experience. The priests were very knowledgeable and the entire ritual was conducted with utmost devotion. Truly blessed!", rating: 5, isApproved: true, isFeatured: true, role: "Devotee", createdAt: "2026-06-15T10:00:00Z" },
-  { id: "t2", name: "Ravi Kumar", email: "ravi@example.com", content: "I have been visiting Sri Kalikamba Temple for years. The peace and divine energy here is unmatched. Highly recommended for spiritual seekers.", rating: 5, isApproved: true, isFeatured: true, role: "Regular Visitor", createdAt: "2026-06-10T08:00:00Z" },
-  { id: "t3", name: "Priya Patel", email: "priya@example.com", content: "The online booking system made it very convenient to book sevas from abroad. The temple management is very responsive.", rating: 4, isApproved: true, isFeatured: false, role: "NRI Devotee", createdAt: "2026-05-20T14:00:00Z" },
-  { id: "t4", name: "Venkatesh Rao", email: "venkatesh@example.com", content: "Excellent temple facilities and very well-organized festivals. The Annadana seva is a noble initiative feeding hundreds daily.", rating: 5, isApproved: false, isFeatured: false, role: null, createdAt: "2026-06-25T09:00:00Z" },
-  { id: "t5", name: "Lakshmi Devi", email: "lakshmi@example.com", content: "Great atmosphere for meditation and prayer. The temple gopura is magnificent.", rating: 4, isApproved: false, isFeatured: false, role: "Devotee", createdAt: "2026-06-28T11:00:00Z" },
-]
+
 
 export default function TestimonialsPage() {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>(sampleData)
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [search, setSearch] = useState("")
+  const [loading, setLoading] = useState(true)
 
-  const toggleApproval = (id: string) => {
-    setTestimonials((prev) => prev.map((t) => t.id === id ? { ...t, isApproved: !t.isApproved } : t))
+  useEffect(() => {
+    fetch("/api/testimonials").then((r) => r.json()).then((json) => {
+      setTestimonials(Array.isArray(json) ? json : (json.data ?? []))
+    }).finally(() => setLoading(false))
+  }, [])
+
+  const toggleApproval = async (id: string) => {
     const t = testimonials.find((x) => x.id === id)
-    toast.success(`Testimonial ${t?.isApproved ? "unapproved" : "approved"}`)
+    if (!t) return
+    try {
+      await fetch(`/api/testimonials/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isApproved: !t.isApproved }) })
+      setTestimonials((prev) => prev.map((x) => x.id === id ? { ...x, isApproved: !x.isApproved } : x))
+      toast.success(`Testimonial ${t.isApproved ? "unapproved" : "approved"}`)
+    } catch { toast.error("Failed to toggle approval") }
   }
 
   const filtered = testimonials.filter((t) => !search || t.name.toLowerCase().includes(search.toLowerCase()) || t.content.toLowerCase().includes(search.toLowerCase()))
@@ -111,6 +116,7 @@ export default function TestimonialsPage() {
         <DataTable
           columns={columns}
           data={filtered}
+          loading={loading}
           keyExtractor={(item) => item.id}
           searchable searchQuery={search} onSearch={setSearch}
           searchPlaceholder="Search by name or content..."

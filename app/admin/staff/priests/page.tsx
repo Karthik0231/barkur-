@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Plus, Edit3, Trash2, Search, Phone, Mail, Calendar, BookOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ import {
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@/lib/zod-resolver"
 import { z } from "zod"
+import toast from "react-hot-toast"
 
 interface Priest {
   id: string
@@ -42,19 +43,19 @@ const priestSchema = z.object({
   isActive: z.boolean().optional(),
 })
 
-const samplePriests: Priest[] = [
-  { id: "p1", name: "Sri Srinivasa Bhat", title: "Head Priest", specialization: "Vedic Rituals, Abhishekam, Homa", experience: 25, phone: "+91 98765 43210", email: "srinivasa@temple.org", biography: "Senior priest with extensive experience in all major Vedic rituals.", qualifications: "Shastri, MA in Sanskrit", joinedAt: "2010-01-01", isActive: true },
-  { id: "p2", name: "Sri Ramanuja Acharya", title: "Priest", specialization: "Panchanga, Daily Pooja, Archana", experience: 15, phone: "+91 98765 43211", email: "ramanuja@temple.org", biography: "Expert in daily rituals and Panchanga calculations.", qualifications: "Agama Shastra, BA", joinedAt: "2015-06-01", isActive: true },
-  { id: "p3", name: "Sri Madhusudhan Pai", title: "Assistant Priest", specialization: "Homa, Havana, Special Poojas", experience: 8, phone: "+91 98765 43215", email: "madhusudhan@temple.org", biography: "Young priest specializing in fire rituals.", qualifications: "Veda Adhyayana", joinedAt: "2018-03-01", isActive: true },
-  { id: "p4", name: "Sri Narayana Hegde", title: "Retired Priest", specialization: "All Rituals", experience: 35, phone: "+91 98765 43216", email: "", biography: "Retired head priest, occasionally available for special ceremonies.", qualifications: "Shastri", joinedAt: "1985-01-01", isActive: false },
-]
-
 export default function PriestsPage() {
-  const [priests, setPriests] = useState<Priest[]>(samplePriests)
+  const [priests, setPriests] = useState<Priest[]>([])
   const [search, setSearch] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Priest | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/staff?type=PRIEST").then((r) => r.json()).then((json) => {
+      setPriests(Array.isArray(json) ? json : (json.data ?? []))
+    }).finally(() => setLoading(false))
+  }, [])
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: zodResolver(priestSchema),
@@ -72,17 +73,32 @@ export default function PriestsPage() {
     setDialogOpen(true)
   }
 
-  const onSubmit = (data: any) => {
-    if (editing) {
-      setPriests((prev) => prev.map((p) => p.id === editing.id ? { ...p, ...data } : p))
-    } else {
-      setPriests((prev) => [...prev, { id: `p${Date.now()}`, ...data }])
-    }
-    setDialogOpen(false)
-    setEditing(null)
+  const onSubmit = async (data: any) => {
+    try {
+      if (editing) {
+        await fetch(`/api/staff/${editing.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+        setPriests((prev) => prev.map((p) => p.id === editing.id ? { ...p, ...data } : p))
+        toast.success("Priest updated")
+      } else {
+        const res = await fetch("/api/staff", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+        const created = await res.json()
+        setPriests((prev) => [...prev, created.data ?? created])
+        toast.success("Priest created")
+      }
+      setDialogOpen(false)
+      setEditing(null)
+    } catch { toast.error("Operation failed") }
   }
 
-  const handleDelete = () => { if (deleteId) { setPriests((prev) => prev.filter((p) => p.id !== deleteId)); setDeleteId(null) } }
+  const handleDelete = async () => {
+    if (!deleteId) return
+    try {
+      await fetch(`/api/staff/${deleteId}`, { method: "DELETE" })
+      setPriests((prev) => prev.filter((p) => p.id !== deleteId))
+      toast.success("Priest deleted")
+      setDeleteId(null)
+    } catch { toast.error("Delete failed") }
+  }
 
   const filtered = priests.filter((p) => !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.specialization.toLowerCase().includes(search.toLowerCase()))
 

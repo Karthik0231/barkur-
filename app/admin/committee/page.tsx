@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import toast from "react-hot-toast"
 import { motion } from "framer-motion"
 import { Plus, Edit3, Trash2, Search, Phone, Mail, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -44,21 +45,34 @@ const memberSchema = z.object({
 
 const memberTypes = ["TRUSTEE", "MEMBER", "PRIEST", "STAFF", "VOLUNTEER"]
 
-const sampleMembers: CommitteeMember[] = [
-  { id: "cm1", name: "Sri Ramachandra Hegde", role: "President", type: "TRUSTEE", photo: "", biography: "Serving as the president of the temple trust for over 10 years.", email: "ramachandra@temple.org", phone: "+91 98765 43201", tenureStart: "2020-01-01", tenureEnd: "2025-12-31", isActive: true, sortOrder: 1 },
-  { id: "cm2", name: "Smt. Lakshmi Devi Shetty", role: "Vice President", type: "TRUSTEE", photo: "", biography: "Active member of the temple committee since 2015.", email: "lakshmi@temple.org", phone: "+91 98765 43202", tenureStart: "2020-01-01", tenureEnd: "2025-12-31", isActive: true, sortOrder: 2 },
-  { id: "cm3", name: "Sri Ganesh Pai", role: "Treasurer", type: "MEMBER", photo: "", biography: "Managing temple finances and donations.", email: "ganesh@temple.org", phone: "+91 98765 43203", tenureStart: "2021-01-01", tenureEnd: "2026-12-31", isActive: true, sortOrder: 3 },
-  { id: "cm4", name: "Sri Venkatesh Acharya", role: "Secretary", type: "MEMBER", photo: "", biography: "Handling day-to-day operations and administration.", email: "venkatesh@temple.org", phone: "+91 98765 43204", tenureStart: "2021-06-01", tenureEnd: null, isActive: true, sortOrder: 4 },
-  { id: "cm5", name: "Sri Madhava Bhat", role: "Member", type: "MEMBER", photo: "", biography: "Trust member since 2018.", email: "madhava@temple.org", phone: "+91 98765 43205", tenureStart: "2018-01-01", tenureEnd: "2024-12-31", isActive: false, sortOrder: 5 },
-]
-
 export default function CommitteePage() {
-  const [members, setMembers] = useState<CommitteeMember[]>(sampleMembers)
+  const [members, setMembers] = useState<CommitteeMember[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<CommitteeMember | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+
+  const fetchMembers = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch("/api/committee")
+      const json = await res.json()
+      if (json.success) {
+        const data = json.data
+        setMembers(data.committee ?? (Array.isArray(data) ? data : []))
+      } else {
+        toast.error(json.message || "Failed to fetch members")
+      }
+    } catch {
+      toast.error("Failed to fetch members")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchMembers() }, [])
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: zodResolver(memberSchema),
@@ -76,17 +90,37 @@ export default function CommitteePage() {
     setDialogOpen(true)
   }
 
-  const onSubmit = (data: any) => {
-    if (editing) {
-      setMembers((prev) => prev.map((m) => m.id === editing.id ? { ...m, ...data, tenureEnd: data.tenureEnd || null } : m))
-    } else {
-      setMembers((prev) => [...prev, { id: `cm${Date.now()}`, ...data, tenureEnd: data.tenureEnd || null, photo: "", sortOrder: prev.length + 1 }])
-    }
-    setDialogOpen(false)
-    setEditing(null)
+  const onSubmit = async (data: any) => {
+    try {
+      const payload = { ...data, tenureEnd: data.tenureEnd || null }
+      if (editing) {
+        const res = await fetch(`/api/committee/${editing.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+        const json = await res.json()
+        if (!json.success) { toast.error(json.message); return }
+        toast.success(json.message)
+      } else {
+        const res = await fetch("/api/committee", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+        const json = await res.json()
+        if (!json.success) { toast.error(json.message); return }
+        toast.success(json.message)
+      }
+      fetchMembers()
+      setDialogOpen(false)
+      setEditing(null)
+    } catch { toast.error("Failed to save member") }
   }
 
-  const handleDelete = () => { if (deleteId) { setMembers((prev) => prev.filter((m) => m.id !== deleteId)); setDeleteId(null) } }
+  const handleDelete = async () => {
+    if (!deleteId) return
+    try {
+      const res = await fetch(`/api/committee/${deleteId}`, { method: "DELETE" })
+      const json = await res.json()
+      if (!json.success) { toast.error(json.message); return }
+      toast.success(json.message)
+      fetchMembers()
+    } catch { toast.error("Failed to delete member") }
+    setDeleteId(null)
+  }
 
   const filtered = members.filter((m) => {
     const matchSearch = !search || m.name.toLowerCase().includes(search.toLowerCase()) || m.role.toLowerCase().includes(search.toLowerCase())
@@ -115,6 +149,9 @@ export default function CommitteePage() {
         </select>
       </div>
 
+      {loading ? (
+        <div className="text-center py-12 text-text-muted">Loading...</div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((member) => (
           <motion.div key={member.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-5 rounded-xl border border-border bg-warm-white dark:bg-bg-secondary hover:shadow-sm transition-all">
@@ -143,6 +180,7 @@ export default function CommitteePage() {
           </motion.div>
         ))}
       </div>
+      )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent size="md">

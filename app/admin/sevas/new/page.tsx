@@ -11,9 +11,8 @@ import {
   ArrowLeft,
   Plus,
   X,
-  Image as ImageIcon,
-  SlidersHorizontal,
 } from "lucide-react"
+import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
@@ -90,10 +89,24 @@ export default function NewSevaPage() {
 
   const onSubmit = async (data: any) => {
     setSaving(true)
-    await new Promise((r) => setTimeout(r, 1000))
-    console.log("Seva data:", { ...data, images, rules: rules.filter(Boolean), instructions: instructions.filter(Boolean) })
+    try {
+      const res = await fetch("/api/sevas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+          images,
+          rules: rules.filter(Boolean),
+          instructions: instructions.filter(Boolean),
+        }),
+      })
+      if (!res.ok) throw new Error()
+      toast.success("Seva created successfully")
+      router.push("/admin/sevas")
+    } catch {
+      toast.error("Failed to create seva")
+    }
     setSaving(false)
-    router.push("/admin/sevas")
   }
 
   const addRule = () => setRules((prev) => [...prev, ""])

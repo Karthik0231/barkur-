@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Search, Eye, CheckCircle, XCircle, Filter } from "lucide-react"
+import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -25,18 +26,38 @@ interface ShashwathaBooking {
 
 const types = ["NITYA_POOJA", "NAVARATRI", "SONARATHI"]
 
-const sampleData: ShashwathaBooking[] = [
-  { id: "sb1", bookingId: "SHA-2026-0021", devotee: "Ramesh Hegde", type: "NITYA_POOJA", seva: "Nitya Pooja", startDate: "2026-01-01", amount: 50000, status: "ACTIVE", approval: "APPROVED", isLifetime: false },
-  { id: "sb2", bookingId: "SHA-2026-0020", devotee: "Lakshmi Devi", type: "NAVARATRI", seva: "Navaratri Special", startDate: "2026-09-25", amount: 25000, status: "PENDING", approval: "PENDING", isLifetime: false },
-  { id: "sb3", bookingId: "SHA-2026-0019", devotee: "Venkatesh Rao", type: "SONARATHI", seva: "Sonarathi Seva", startDate: "2026-07-10", amount: 15000, status: "ACTIVE", approval: "APPROVED", isLifetime: true },
-  { id: "sb4", bookingId: "SHA-2026-0018", devotee: "Priya Shetty", type: "NITYA_POOJA", seva: "Nitya Pooja", startDate: "2026-03-15", amount: 50000, status: "ACTIVE", approval: "APPROVED", isLifetime: false },
-  { id: "sb5", bookingId: "SHA-2026-0017", devotee: "Ganesh Pai", type: "NAVARATRI", seva: "Navaratri Special", startDate: "2025-09-20", amount: 25000, status: "COMPLETED", approval: "APPROVED", isLifetime: false },
-]
+
 
 export default function ShashwathaPage() {
-  const [bookings] = useState<ShashwathaBooking[]>(sampleData)
+  const [bookings, setBookings] = useState<ShashwathaBooking[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState("")
+
+  useEffect(() => {
+    fetch("/api/shahsawatha")
+      .then((r) => r.json())
+      .then((d) => {
+        setBookings(d.data || d || [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  const handleApproval = async (id: string, status: "APPROVED" | "REJECTED") => {
+    try {
+      const res = await fetch(`/api/shahsawatha/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminApproval: status }),
+      })
+      if (!res.ok) throw new Error()
+      toast.success(`Booking ${status.toLowerCase()}`)
+      setBookings((prev) => prev.map((b) => b.id === id ? { ...b, approval: status } : b))
+    } catch {
+      toast.error("Failed to update approval")
+    }
+  }
 
   const filtered = bookings.filter((b) => {
     const matchSearch = !search || b.bookingId.toLowerCase().includes(search.toLowerCase()) || b.devotee.toLowerCase().includes(search.toLowerCase())
@@ -70,7 +91,7 @@ export default function ShashwathaPage() {
           keyExtractor={(item) => item.id}
           searchable searchQuery={search} onSearch={setSearch}
           searchPlaceholder="Search by ID or devotee..."
-          selectable emptyMessage="No shashwatha bookings found"
+          selectable loading={loading} emptyMessage="No shashwatha bookings found"
           filters={
             <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="h-9 px-3 text-sm rounded-lg border border-border bg-warm-white dark:bg-bg-secondary text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/20">
               <option value="">All Types</option>
@@ -81,8 +102,8 @@ export default function ShashwathaPage() {
             <div className="flex items-center gap-1">
               {item.approval === "PENDING" && (
                 <>
-                  <button className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-all"><CheckCircle className="h-4 w-4" /></button>
-                  <button className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-all"><XCircle className="h-4 w-4" /></button>
+                  <button onClick={() => handleApproval(item.id, "APPROVED")} className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-all"><CheckCircle className="h-4 w-4" /></button>
+                  <button onClick={() => handleApproval(item.id, "REJECTED")} className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-all"><XCircle className="h-4 w-4" /></button>
                 </>
               )}
               <button className="p-1.5 rounded-lg text-text-muted hover:text-secondary hover:bg-secondary/10 transition-all"><Eye className="h-4 w-4" /></button>

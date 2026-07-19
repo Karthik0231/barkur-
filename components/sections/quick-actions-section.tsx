@@ -13,26 +13,26 @@ export function QuickActionsSection() {
 
   const actions = [
     {
-      title: "Book Seva",
-      subtitle: "Reserve your sacred ritual",
+      title: t("nav.bookSeva"),
+      subtitle: t("home.bookSevaSub"),
       icon: Sparkles,
       href: "/sevas",
       gradient: "from-maroon-800 to-primary",
       accent: "text-maroon-800",
-      tag: "Popular"
+      tag: t("home.popular")
     },
     {
-      title: "Live Darshana",
-      subtitle: "Experience divinity",
+      title: t("home.liveDarshanaTitle"),
+      subtitle: t("home.liveDarshanaSub"),
       icon: Play,
       href: "/live",
       gradient: "from-dark-slate to-slate-700",
       accent: "text-dark-slate",
-      tag: "Live"
+      tag: t("home.live")
     },
     {
-      title: "Temple Calendar",
-      subtitle: "Festival & Events",
+      title: t("home.templeCalendarTitle"),
+      subtitle: t("home.templeCalendarSub"),
       icon: Calendar,
       href: "/calendar",
       gradient: "from-sand-500 to-sand-600",
@@ -40,13 +40,13 @@ export function QuickActionsSection() {
       tag: `${new Date().getDate()} ${new Date().toLocaleDateString("en-US", { month: "short" })}`
     },
     {
-      title: "Donate",
-      subtitle: "Support the temple",
+      title: t("home.donateTitle"),
+      subtitle: t("home.donateSub"),
       icon: Heart,
       href: "/donate",
       gradient: "from-gold-500 to-gold-600",
       accent: "text-gold-700",
-      tag: "Blessings"
+      tag: t("home.blessings")
     }
   ]
 
@@ -65,10 +65,10 @@ export function QuickActionsSection() {
           className="flex flex-col items-center text-center mb-10 sm:mb-12"
         >
           <span className="text-xs uppercase tracking-[0.15em] text-maroon-800 font-semibold mb-2">
-            Quick Access
+            {t("home.quickAccess")}
           </span>
           <h2 className="text-2xl sm:text-3xl font-heading font-bold text-dark-slate">
-            Quick Actions
+            {t("home.quickActionsTitle")}
           </h2>
           <div className="mt-3 h-px w-16 bg-gradient-to-r from-transparent via-gold-500/40 to-transparent" />
         </motion.div>
@@ -106,7 +106,7 @@ export function QuickActionsSection() {
                     </div>
 
                     <div className="flex items-center gap-1.5 text-xs font-medium text-text-muted/90 group-hover:text-primary transition-colors">
-                      <span>Explore</span>
+                      <span>{t("home.explore")}</span>
                       <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   </div>

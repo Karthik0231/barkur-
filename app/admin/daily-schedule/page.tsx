@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import toast from "react-hot-toast"
 import { motion } from "framer-motion"
 import { Plus, Edit3, Trash2, Search, Clock, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -39,23 +40,30 @@ const scheduleSchema = z.object({
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
-const sampleData: ScheduleItem[] = [
-  { id: "ds1", dayOfWeek: 0, title: "Suprabhata Seva", description: "Morning wake-up ritual for the deity", startTime: "05:00", endTime: "05:30", location: "Garbhagriha", isActive: true, sortOrder: 1 },
-  { id: "ds2", dayOfWeek: 0, title: "Mahamangala Aarathi", description: "Main morning pooja with aarathi", startTime: "12:00", endTime: "12:30", location: "Main Temple", isActive: true, sortOrder: 2 },
-  { id: "ds3", dayOfWeek: 0, title: "Evening Deepaaradhane", description: "Evening lamp lighting ceremony", startTime: "18:00", endTime: "18:30", location: "Main Temple", isActive: true, sortOrder: 3 },
-  { id: "ds4", dayOfWeek: 1, title: "Suprabhata Seva", description: "Morning wake-up ritual", startTime: "05:00", endTime: "05:30", location: "Garbhagriha", isActive: true, sortOrder: 1 },
-  { id: "ds5", dayOfWeek: 1, title: "Ushakala Pooja", description: "Early morning special pooja", startTime: "06:00", endTime: "07:00", location: "Main Temple", isActive: true, sortOrder: 2 },
-  { id: "ds6", dayOfWeek: 6, title: "Special Saturday Abhishekam", description: "Special abhishekam on Saturdays", startTime: "08:00", endTime: "10:00", location: "Main Temple", isActive: true, sortOrder: 3 },
-  { id: "ds7", dayOfWeek: 0, title: "Old Ritual (Inactive)", description: "No longer performed", startTime: "07:00", endTime: "08:00", location: "Side Shrine", isActive: false, sortOrder: 10 },
-]
-
 export default function DailySchedulePage() {
-  const [items, setItems] = useState<ScheduleItem[]>(sampleData)
+  const [items, setItems] = useState<ScheduleItem[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [dayFilter, setDayFilter] = useState<number | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<ScheduleItem | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+
+  const fetchSchedule = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch("/api/daily-schedule")
+      const json = await res.json()
+      const data = json.data ?? json ?? []
+      setItems(Array.isArray(data) ? data : [])
+    } catch {
+      toast.error("Failed to fetch schedule")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchSchedule() }, [])
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: zodResolver(scheduleSchema),
@@ -73,17 +81,37 @@ export default function DailySchedulePage() {
     setDialogOpen(true)
   }
 
-  const onSubmit = (data: any) => {
-    if (editing) {
-      setItems((prev) => prev.map((i) => i.id === editing.id ? { ...i, ...data } : i))
-    } else {
-      setItems((prev) => [...prev, { id: `ds${Date.now()}`, ...data, sortOrder: prev.length + 1 }])
-    }
-    setDialogOpen(false)
-    setEditing(null)
+  const onSubmit = async (data: any) => {
+    try {
+      const payload = { ...data, description: data.description || null, location: data.location || null }
+      if (editing) {
+        const res = await fetch(`/api/daily-schedule/${editing.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+        const json = await res.json()
+        if (!json.success) { toast.error(json.message); return }
+        toast.success(json.message)
+      } else {
+        const res = await fetch("/api/daily-schedule", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+        const json = await res.json()
+        if (!json.success) { toast.error(json.message); return }
+        toast.success(json.message)
+      }
+      fetchSchedule()
+      setDialogOpen(false)
+      setEditing(null)
+    } catch { toast.error("Failed to save schedule") }
   }
 
-  const handleDelete = () => { if (deleteId) { setItems((prev) => prev.filter((i) => i.id !== deleteId)); setDeleteId(null) } }
+  const handleDelete = async () => {
+    if (!deleteId) return
+    try {
+      const res = await fetch(`/api/daily-schedule/${deleteId}`, { method: "DELETE" })
+      const json = await res.json()
+      if (!json.success) { toast.error(json.message); return }
+      toast.success(json.message)
+      fetchSchedule()
+    } catch { toast.error("Failed to delete schedule") }
+    setDeleteId(null)
+  }
 
   const filtered = items.filter((i) => {
     const matchSearch = !search || i.title.toLowerCase().includes(search.toLowerCase())
@@ -118,7 +146,10 @@ export default function DailySchedulePage() {
         </select>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {loading ? (
+        <div className="text-center py-12 text-text-muted">Loading...</div>
+      ) : (
+      <><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {grouped.map(({ day, dayIndex, items: dayItems }) =>
           dayItems.length > 0 && (
             <Card key={dayIndex} className="p-4">
@@ -151,6 +182,7 @@ export default function DailySchedulePage() {
       </div>
 
       {filtered.length === 0 && <div className="text-center py-12 text-text-muted">No schedule items found</div>}
+      </>)}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent size="md">

@@ -10,12 +10,12 @@
  *   - A slim bottom dock for the four primary destinations
  *
  * Design tokens (unchanged from the temple system):
- *   Ink stone     #2A0408   base ground
- *   Deep maroon   #4A0E14   gradient depth
- *   Dusk indigo   #150A12   far depth / frame background
- *   Brass / gold  gold-200/300 (existing tokens) — rules, ribbons, kalasha
- *   Warm white    warm-white (existing token) — body copy
- *   Kumkum        #C1432B   single sharp ritual accent, used sparingly
+ * Ink stone     #2A0408   base ground
+ * Deep maroon   #4A0E14   gradient depth
+ * Dusk indigo   #150A12   far depth / frame background
+ * Brass / gold  gold-200/300 (existing tokens) — rules, ribbons, kalasha
+ * Warm white    warm-white (existing token) — body copy
+ * Kumkum        #C1432B   single sharp ritual accent, used sparingly
  *
  * Signature elements:
  *   1. RibbonLabel — a brass banner clipped into a pennant, used for every
@@ -47,9 +47,8 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "@/lib/i18n"
-import { fetchPanchanga, type PanchangaData } from "@/lib/panchanga"
-import { TEMPLE_TIMINGS } from "@/lib/constants"
 import bannerimage from "@/components/sections/image.png"
+import type { DailySchedule } from "@prisma/client"
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -133,30 +132,57 @@ function RibbonButton({
   )
 }
 
-const SEVA_TIMELINE = [
-  { icon: Sun, label: "Morning Puja", time: "8:00 AM" },
-  { icon: Flame, label: "Special Alankara", time: "1:00 AM" },
-  { icon: Moon, label: "Evening Aarti", time: "7:00 PM" },
-  { icon: Flame, label: "Special Puja", time: "7:50 PM" },
-  { icon: Flame, label: "Special Alankara", time: "12:00 AM" },
-  { icon: Moon, label: "Evening Aarti", time: "12:30 AM" },
-  { icon: Flame, label: "Special Alankara", time: "5:00 AM" },
-]
-
 const DOCK_ITEMS = [
-  { icon: HomeIcon, label: "Home", href: "/" },
-  { icon: PartyPopper, label: "Festivals", href: "/festivals" },
-  { icon: Calendar, label: "Panchanga", href: "/panchanga" },
-  { icon: Sparkles, label: "Sevas", href: "/sevas" },
+  { icon: HomeIcon, key: "nav.home", href: "/" },
+  { icon: PartyPopper, key: "nav.festivals", href: "/festivals" },
+  { icon: Calendar, key: "nav.panchanga", href: "/panchanga" },
+  { icon: Sparkles, key: "nav.sevas", href: "/sevas" },
 ]
 
-export function HeroSection() {
+interface PanchangaData {
+  tithi: string; nakshatra: string; yoga: string; karana: string
+  sunrise: string; sunset: string; rahuKala: { start: string; end: string }
+  yamaganda: { start: string; end: string }; gulika: { start: string; end: string }
+}
+
+export function HeroSection({ dailySchedules }: { dailySchedules: DailySchedule[] }) {
   const [panchanga, setPanchanga] = useState<PanchangaData | null>(null)
+  const [todaySchedules, setTodaySchedules] = useState<DailySchedule[]>([])
+  const [timings, setTimings] = useState({ morning: "6:00 AM - 1:30 PM", evening: "4:00 PM - 7:30 PM" })
   const { t } = useTranslation()
 
   useEffect(() => {
-    fetchPanchanga().then(setPanchanga)
+    fetch("/api/panchanga?today=true").then(r => r.json()).then(d => {
+      const p = d.data?.panchanga || d.panchanga || d
+      if (p.tithi) setPanchanga(p)
+    }).catch(() => {})
+    fetch("/api/settings?group=temple").then(r => r.json()).then(d => {
+      const s = d.data?.settings || d.settings || []
+      const morning = s.find((x: {key: string}) => x.key === "timings_morning")?.value
+      const evening = s.find((x: {key: string}) => x.key === "timings_evening")?.value
+      if (morning || evening) setTimings({ morning: morning || timings.morning, evening: evening || timings.evening })
+    }).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    const today = new Date()
+    const dayOfWeek = today.getDay() // 0 is Sunday, 1 is Monday...
+    const todaySched = dailySchedules.filter(s => s.dayOfWeek === dayOfWeek)
+    if (todaySched.length === 0) {
+      const defaultSched = dailySchedules.filter(s => s.dayOfWeek === 1) // Monday as fallback
+      setTodaySchedules(defaultSched)
+    } else {
+      setTodaySchedules(todaySched)
+    }
+  }, [dailySchedules])
+
+  const getIconForTitle = (title: string) => {
+    const lower = title.toLowerCase()
+    if (lower.includes("puja") || lower.includes("pooja")) return Flame
+    if (lower.includes("alankara")) return Sparkles
+    if (lower.includes("aarti") || lower.includes("arati")) return Heart
+    return Sun
+  }
 
   return (
     <section className="relative min-h-screen bg-[#150A12] pt-[44px] overflow-hidden">
@@ -193,22 +219,33 @@ export function HeroSection() {
         <div className="grid grid-cols-1 lg:grid-cols-[15rem_1fr_16rem] gap-8 lg:gap-6 w-full items-center">
           {/* LEFT RAIL — Seva Timeline */}
           <motion.aside {...fadeUp(0.1)} className="order-2 lg:order-1">
-            <RibbonLabel icon={Clock}>Seva Timeline</RibbonLabel>
+            <RibbonLabel icon={Clock}>{t("home.sevaTimeline")}</RibbonLabel>
             <div className="mt-3 bg-[#2A0408]/70 backdrop-blur-sm border border-gold-300/15 max-h-64 lg:max-h-[26rem] overflow-y-auto">
               <ul className="divide-y divide-gold-300/10">
-                {SEVA_TIMELINE.map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 px-4 py-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold-300/30 text-gold-300">
-                      <item.icon className="h-3.5 w-3.5" />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-xs font-medium text-warm-white/85 truncate">
-                        {item.label}
-                      </span>
-                      <span className="block text-[11px] text-gold-300/60 tabular-nums">{item.time}</span>
-                    </span>
+                {todaySchedules.length > 0 ? (
+                  todaySchedules.map((item, i) => {
+                    const Icon = getIconForTitle(item.title)
+                    return (
+                      <li key={item.id} className="flex items-center gap-3 px-4 py-3">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold-300/30 text-gold-300">
+                          <Icon className="h-3.5 w-3.5" />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-xs font-medium text-warm-white/85 truncate">
+                            {item.title}
+                          </span>
+                          <span className="block text-[11px] text-gold-300/60 tabular-nums">
+                            {item.startTime && item.endTime ? `${item.startTime} - ${item.endTime}` : item.startTime || item.endTime || ""}
+                          </span>
+                        </span>
+                      </li>
+                    )
+                  })
+                ) : (
+                  <li className="px-4 py-8 text-center text-sm text-warm-white/50">
+                    {t("home.noSevasToday")}
                   </li>
-                ))}
+                )}
               </ul>
             </div>
           </motion.aside>
@@ -218,7 +255,7 @@ export function HeroSection() {
             <motion.div {...fadeUp(0)} className="flex items-center gap-2.5 mb-5">
               <span className="h-1.5 w-1.5 rounded-full bg-[#C1432B]" />
               <span className="text-[11px] sm:text-xs text-gold-300/60 font-medium tracking-[0.28em] uppercase">
-                Barkur &middot; Udupi &middot; Karnataka
+                {t("common.barkurLocation")}
               </span>
             </motion.div>
 
@@ -237,9 +274,7 @@ export function HeroSection() {
               {...fadeUp(0.26)}
               className="mt-6 max-w-md text-base text-warm-white/60 font-light leading-relaxed"
             >
-              Since the 13th century, Sri Kalikamba Devi has been worshipped without
-              interruption in the temple town of Barkur — the same rites, at the same
-              hour, for eight hundred years.
+              {t("home.heroSubtitle")}
             </motion.p>
 
             <motion.div
@@ -247,16 +282,16 @@ export function HeroSection() {
               className="mt-8 flex flex-wrap items-center gap-3 justify-start lg:justify-center"
             >
               <RibbonButton href="/sevas" icon={Calendar} tone="solid">
-                Book a Seva
+                {t("hero.bookSeva")}
               </RibbonButton>
               <RibbonButton href="/donate" icon={Heart} tone="outline">
-                Donate
+                {t("hero.donate")}
               </RibbonButton>
-              <RibbonButton href="/live-darshana" tone="ghost" live>
-                Live Darshana
+              <RibbonButton href="/sevas" tone="ghost" live>
+                {t("hero.liveDarshana")}
               </RibbonButton>
-              <RibbonButton href="/live-darshana" icon={PlayCircle} tone="outline">
-                Live Darshana
+              <RibbonButton href="/donate" icon={PlayCircle} tone="outline">
+                {t("hero.donate")}
               </RibbonButton>
             </motion.div>
           </div>
@@ -264,25 +299,25 @@ export function HeroSection() {
           {/* RIGHT RAIL — Darshana Hours + Panchanga */}
           <motion.aside {...fadeUp(0.3)} className="order-3 space-y-4">
             <div>
-              <RibbonLabel icon={Clock}>Darshana Hours</RibbonLabel>
+              <RibbonLabel icon={Clock}>{t("home.darshanaHours")}</RibbonLabel>
               <div className="mt-3 border border-gold-300/15 bg-[#2A0408]/70 backdrop-blur-sm p-5">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <div className="flex items-center gap-1.5 text-gold-300/50 mb-1">
                       <Sun className="h-3 w-3" />
-                      <span className="text-[10px] tracking-[0.1em] uppercase">Morning</span>
+                      <span className="text-[10px] tracking-[0.1em] uppercase">{t("timings.morning")}</span>
                     </div>
                     <span className="font-heading text-sm text-warm-white/90 tabular-nums">
-                      {TEMPLE_TIMINGS.morning}
+                      {timings.morning}
                     </span>
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5 text-gold-300/50 mb-1">
                       <Moon className="h-3 w-3" />
-                      <span className="text-[10px] tracking-[0.1em] uppercase">Evening</span>
+                      <span className="text-[10px] tracking-[0.1em] uppercase">{t("timings.evening")}</span>
                     </div>
                     <span className="font-heading text-sm text-warm-white/90 tabular-nums">
-                      {TEMPLE_TIMINGS.evening}
+                      {timings.evening}
                     </span>
                   </div>
                 </div>
@@ -290,7 +325,7 @@ export function HeroSection() {
             </div>
 
             <div>
-              <RibbonLabel icon={Calendar}>Today&apos;s Panchanga</RibbonLabel>
+              <RibbonLabel icon={Calendar}>{t("home.todaysPanchanga")}</RibbonLabel>
               <div className="mt-3 border border-gold-300/15 bg-[#2A0408]/70 backdrop-blur-sm p-5">
                 {!panchanga ? (
                   <div className="space-y-2">
@@ -301,11 +336,11 @@ export function HeroSection() {
                 ) : (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-warm-white/40">Tithi</span>
+                      <span className="text-xs text-warm-white/40">{t("home.tithi")}</span>
                       <span className="text-xs font-medium text-warm-white/85">{panchanga.tithi}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-warm-white/40">Nakshatra</span>
+                      <span className="text-xs text-warm-white/40">{t("home.nakshatra")}</span>
                       <span className="text-xs font-medium text-warm-white/85">{panchanga.nakshatra}</span>
                     </div>
                   </div>
@@ -314,7 +349,7 @@ export function HeroSection() {
                   href="/panchanga"
                   className="inline-flex items-center gap-1.5 text-xs text-gold-300 hover:text-gold-200 transition-colors mt-4 group"
                 >
-                  View full Panchanga
+                  {t("home.viewFullPanchanga")}
                   <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               </div>
@@ -336,7 +371,7 @@ export function HeroSection() {
                 className="flex flex-col items-center gap-1 py-3 text-warm-white/60 hover:text-gold-300 transition-colors"
               >
                 <item.icon className="h-4 w-4" />
-                <span className="text-[10px] tracking-[0.08em] uppercase">{item.label}</span>
+                <span className="text-[10px] tracking-[0.08em] uppercase">{t(item.key)}</span>
               </Link>
             </li>
           ))}

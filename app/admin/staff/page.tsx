@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Plus, Edit3, Trash2, Search, Phone, Mail, Calendar, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ import {
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@/lib/zod-resolver"
 import { z } from "zod"
+import toast from "react-hot-toast"
 
 interface StaffMember {
   id: string
@@ -44,21 +45,22 @@ const staffSchema = z.object({
 
 const staffTypes = ["PRIEST", "STAFF", "VOLUNTEER", "OTHER"]
 
-const sampleStaff: StaffMember[] = [
-  { id: "s1", name: "Sri Srinivasa Bhat", role: "Head Priest", designation: "Chief Priest", type: "PRIEST", photo: "", biography: "Senior priest with 25 years of experience in Vedic rituals.", email: "srinivasa@temple.org", phone: "+91 98765 43210", joinedAt: "2010-01-01", isActive: true, sortOrder: 1 },
-  { id: "s2", name: "Sri Ramanuja Acharya", role: "Priest", designation: "Priest", type: "PRIEST", photo: "", biography: "Expert in Panchanga and daily rituals.", email: "ramanuja@temple.org", phone: "+91 98765 43211", joinedAt: "2015-06-01", isActive: true, sortOrder: 2 },
-  { id: "s3", name: "Smt. Gauri Pai", role: "Office Manager", designation: "Administrative Officer", type: "STAFF", photo: "", biography: "Managing temple office operations.", email: "gauri@temple.org", phone: "+91 98765 43212", joinedAt: "2018-03-15", isActive: true, sortOrder: 3 },
-  { id: "s4", name: "Sri Manjunath Shetty", role: "Volunteer Coordinator", designation: "Volunteer", type: "VOLUNTEER", photo: "", biography: "Coordinating volunteer activities and events.", email: "manjunath@temple.org", phone: "+91 98765 43213", joinedAt: "2020-01-01", isActive: true, sortOrder: 4 },
-  { id: "s5", name: "Sri Krishna Murthy", role: "Maintenance", designation: "Caretaker", type: "STAFF", photo: "", biography: "Looking after temple maintenance.", email: "", phone: "+91 98765 43214", joinedAt: "2012-04-01", isActive: false, sortOrder: 5 },
-]
+
 
 export default function StaffPage() {
-  const [staff, setStaff] = useState<StaffMember[]>(sampleStaff)
+  const [staff, setStaff] = useState<StaffMember[]>([])
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<StaffMember | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/staff").then((r) => r.json()).then((json) => {
+      setStaff(Array.isArray(json) ? json : (json.data ?? []))
+    }).finally(() => setLoading(false))
+  }, [])
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: zodResolver(staffSchema),
@@ -76,17 +78,32 @@ export default function StaffPage() {
     setDialogOpen(true)
   }
 
-  const onSubmit = (data: any) => {
-    if (editing) {
-      setStaff((prev) => prev.map((m) => m.id === editing.id ? { ...m, ...data } : m))
-    } else {
-      setStaff((prev) => [...prev, { id: `s${Date.now()}`, ...data, photo: "", sortOrder: prev.length + 1 }])
-    }
-    setDialogOpen(false)
-    setEditing(null)
+  const onSubmit = async (data: any) => {
+    try {
+      if (editing) {
+        await fetch(`/api/staff/${editing.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+        setStaff((prev) => prev.map((m) => m.id === editing.id ? { ...m, ...data } : m))
+        toast.success("Staff updated")
+      } else {
+        const res = await fetch("/api/staff", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+        const created = await res.json()
+        setStaff((prev) => [...prev, created.data ?? created])
+        toast.success("Staff created")
+      }
+      setDialogOpen(false)
+      setEditing(null)
+    } catch { toast.error("Operation failed") }
   }
 
-  const handleDelete = () => { if (deleteId) { setStaff((prev) => prev.filter((m) => m.id !== deleteId)); setDeleteId(null) } }
+  const handleDelete = async () => {
+    if (!deleteId) return
+    try {
+      await fetch(`/api/staff/${deleteId}`, { method: "DELETE" })
+      setStaff((prev) => prev.filter((m) => m.id !== deleteId))
+      toast.success("Staff deleted")
+      setDeleteId(null)
+    } catch { toast.error("Delete failed") }
+  }
 
   const filtered = staff.filter((m) => {
     const matchSearch = !search || m.name.toLowerCase().includes(search.toLowerCase()) || m.designation.toLowerCase().includes(search.toLowerCase())

@@ -34,11 +34,14 @@ export default function AdminLayout({
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
+  console.log("Admin Layout status:", status, "session:", session);
+
   useEffect(() => {
     setMounted(true)
   }, [])
 
   useEffect(() => {
+    console.log("Status changed:", status);
     if (status === "unauthenticated") {
       router.push("/login")
     }

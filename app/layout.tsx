@@ -2,11 +2,6 @@ import type { Metadata, Viewport } from "next"
 import { Inter, Playfair_Display, Cormorant_Garamond } from "next/font/google"
 import "./globals.css"
 import { Providers } from "@/providers"
-import { TopInfoBar } from "@/components/top-info-bar"
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
-import { BackToTop } from "@/components/back-to-top"
-import { WhatsAppFloat } from "@/components/whatsapp-float"
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -86,14 +81,7 @@ export default function RootLayout({
     <html lang="kn" dir="ltr" className={`${inter.variable} ${playfair.variable} ${cormorant.variable}`} suppressHydrationWarning>
       <body className="bg-warm-ivory text-dark-slate font-sans antialiased">
         <Providers>
-          <div className="flex flex-col min-h-screen">
-            <TopInfoBar />
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-            <BackToTop />
-            <WhatsAppFloat />
-          </div>
+          {children}
         </Providers>
       </body>
     </html>

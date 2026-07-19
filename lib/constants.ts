@@ -9,17 +9,18 @@ export const TEMPLE_TIMINGS = {
 } as const
 
 export const SOCIAL_LINKS = {
-  instagram: "https://instagram.com/shrikalikambatemple",
+  instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL || "https://instagram.com/shrikalikambatemple",
+  facebook: process.env.NEXT_PUBLIC_FACEBOOK_URL || "",
+  youtube: process.env.NEXT_PUBLIC_YOUTUBE_URL || "",
 } as const
 
 export const NAV_ITEMS = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
   { label: "Sevas", href: "/sevas" },
-  { label: "Donations", href: "/donations" },
+  { label: "Donate", href: "/donate" },
   { label: "Gallery", href: "/gallery" },
-  { label: "Events", href: "/events" },
-  { label: "Blog", href: "/blog" },
+  { label: "Festivals", href: "/festivals" },
   { label: "Contact", href: "/contact" },
 ] as const
 

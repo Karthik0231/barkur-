@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Search, Plus, Eye, Download, TrendingUp, IndianRupee, Users, HandHeart } from "lucide-react"
@@ -27,20 +27,22 @@ interface Donation {
   createdAt: string
 }
 
-const sampleDonations: Donation[] = [
-  { id: "1", donationId: "DON-2026-0101", donorName: "Ramesh Hegde", donorEmail: "ramesh@example.com", donorPhone: "+91 98765 43210", amount: 50000, category: "GENERAL", campaignName: "Temple Renovation", isAnonymous: false, isRecurring: true, status: "PAID", createdAt: "2026-07-01" },
-  { id: "2", donationId: "DON-2026-0100", donorName: "Anonymous", donorEmail: "", donorPhone: "", amount: 25000, category: "ANNADANAM", campaignName: "Annadana Scheme", isAnonymous: true, isRecurring: false, status: "PAID", createdAt: "2026-06-30" },
-  { id: "3", donationId: "DON-2026-0099", donorName: "Shankar Bhat", donorEmail: "shankar@example.com", donorPhone: "+91 87654 32109", amount: 10000, category: "RENOVATION", campaignName: "Temple Renovation", isAnonymous: false, isRecurring: false, status: "PAID", createdAt: "2026-06-28" },
-  { id: "4", donationId: "DON-2026-0098", donorName: "Priya Shetty", donorEmail: "priya@example.com", donorPhone: "+91 76543 21098", amount: 5000, category: "FESTIVAL", campaignName: null, isAnonymous: false, isRecurring: false, status: "PAID", createdAt: "2026-06-25" },
-  { id: "5", donationId: "DON-2026-0097", donorName: "Gururaj Pai", donorEmail: "guru@example.com", donorPhone: "+91 65432 10987", amount: 15000, category: "GO_SEVA", campaignName: "Gou Seva", isAnonymous: false, isRecurring: true, status: "PAID", createdAt: "2026-06-20" },
-  { id: "6", donationId: "DON-2026-0096", donorName: "Latha Rao", donorEmail: "latha@example.com", donorPhone: "+91 54321 09876", amount: 2000, category: "EDUCATION", campaignName: null, isAnonymous: false, isRecurring: false, status: "PENDING", createdAt: "2026-06-18" },
-  { id: "7", donationId: "DON-2026-0095", donorName: "Venkatesh Murthy", donorEmail: "venkat@example.com", donorPhone: "+91 43210 98765", amount: 75000, category: "GENERAL", campaignName: "Temple Renovation", isAnonymous: false, isRecurring: true, status: "PAID", createdAt: "2026-06-15" },
-  { id: "8", donationId: "DON-2026-0094", donorName: "Anonymous", donorEmail: "", donorPhone: "", amount: 30000, category: "RENOVATION", campaignName: "Gopura Construction", isAnonymous: true, isRecurring: false, status: "PAID", createdAt: "2026-06-10" },
-]
+
 
 export default function DonationsPage() {
-  const [donations] = useState<Donation[]>(sampleDonations)
+  const [donations, setDonations] = useState<Donation[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
+
+  useEffect(() => {
+    fetch("/api/donations")
+      .then((r) => r.json())
+      .then((d) => {
+        setDonations(d.data || d || [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
 
   const totalAmount = donations.reduce((sum, d) => sum + d.amount, 0)
   const paidAmount = donations.filter((d) => d.status === "PAID").reduce((sum, d) => sum + d.amount, 0)
@@ -136,6 +138,7 @@ export default function DonationsPage() {
           onSearch={setSearch}
           searchPlaceholder="Search by donor name or ID..."
           selectable
+          loading={loading}
           emptyMessage="No donations found"
         />
       </Card>

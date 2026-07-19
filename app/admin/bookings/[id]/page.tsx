@@ -37,32 +37,7 @@ interface BookingDetail {
   auditLogs: { id: string; action: string; createdAt: string; user: string }[]
 }
 
-const mockBooking: BookingDetail = {
-  id: "1",
-  bookingId: "SEVA-2026-0042",
-  bookingStatus: "PENDING",
-  paymentStatus: "PAID",
-  adminApproval: "PENDING",
-  totalAmount: 2500,
-  discountAmount: null,
-  finalAmount: 2500,
-  quantity: 2,
-  preferredDate: "2026-07-05",
-  preferredTime: "09:00 AM",
-  remarks: "Family of 4 attending",
-  specialInstructions: "Need special prasadam",
-  cancellationReason: null,
-  createdAt: "2026-07-01T10:30:00Z",
-  updatedAt: "2026-07-01T10:30:00Z",
-  seva: { name: "Rudra Abhishekam", category: "Abhishekam", duration: 60 },
-  devotee: { name: "Ananya Sharma", phone: "+91 98765 43210", email: "ananya@example.com", address: "123, MG Road, Bangalore, Karnataka - 560001", gotra: "Bharadwaja", nakshatra: "Uttara Phalguni", rashi: "Simha" },
-  payment: { razorpayPaymentId: "pay_9xH8kM3nR2vL6p", amount: 2500, status: "PAID", method: "UPI", paidAt: "2026-07-01T10:31:00Z" },
-  certificates: [{ id: "cert1", certificateNumber: "CERT-2026-0042", type: "SEVA", issuedAt: null }],
-  auditLogs: [
-    { id: "log1", action: "Booking Created", createdAt: "2026-07-01T10:30:00Z", user: "Ananya Sharma" },
-    { id: "log2", action: "Payment Received", createdAt: "2026-07-01T10:31:00Z", user: "System" },
-  ],
-}
+
 
 export default function BookingDetailPage() {
   const router = useRouter()
@@ -73,11 +48,16 @@ export default function BookingDetailPage() {
   const [processing, setProcessing] = useState(false)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setBooking(mockBooking)
-      setLoading(false)
-    }, 500)
-    return () => clearTimeout(timer)
+    fetch(`/api/bookings/${params.id}`)
+      .then((r) => {
+        if (!r.ok) throw new Error("not found")
+        return r.json()
+      })
+      .then((d) => {
+        setBooking(d.data || d)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
   }, [params.id])
 
   const handleApprove = async () => {

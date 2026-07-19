@@ -15,7 +15,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const body = await request.json()
     const updateData: Record<string, unknown> = {}
-    const allowed = ["dayOfWeek", "title", "description", "startTime", "endTime", "location", "isActive", "sortOrder"]
+    const allowed = ["dayOfWeek", "title", "description", "startTime", "endTime", "isActive", "sortOrder"]
     for (const key of allowed) {
       if (body[key] !== undefined) updateData[key] = body[key]
     }

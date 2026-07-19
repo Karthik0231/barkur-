@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { StatsCard } from "@/components/admin/stats-card"
 import { StatusBadge } from "@/components/admin/status-badge"
+import toast from "react-hot-toast"
 import {
   BarChart,
   Bar,
@@ -36,37 +37,6 @@ import {
   ResponsiveContainer,
 } from "recharts"
 
-const revenueData = [
-  { day: "Mon", revenue: 24500, bookings: 12 },
-  { day: "Tue", revenue: 18200, bookings: 8 },
-  { day: "Wed", revenue: 32100, bookings: 15 },
-  { day: "Thu", revenue: 27800, bookings: 11 },
-  { day: "Fri", revenue: 45300, bookings: 20 },
-  { day: "Sat", revenue: 52300, bookings: 24 },
-  { day: "Sun", revenue: 61200, bookings: 28 },
-]
-
-const recentBookings = [
-  { id: "SEVA-2026-0042", devotee: "Ananya Sharma", seva: "Rudra Abhishekam", date: "2026-07-05", amount: 2500, status: "PENDING", payment: "PAID" },
-  { id: "SEVA-2026-0041", devotee: "Ravi Kumar", seva: "Maha Mrityunjaya Homa", date: "2026-07-04", amount: 5000, status: "CONFIRMED", payment: "PAID" },
-  { id: "SEVA-2026-0040", devotee: "Priya Patel", seva: "Sathyanarayana Vrata", date: "2026-07-03", amount: 1500, status: "COMPLETED", payment: "PAID" },
-  { id: "SEVA-2026-0039", devotee: "Venkatesh Rao", seva: "Shathachandi Homa", date: "2026-07-02", amount: 7500, status: "PENDING", payment: "PENDING" },
-  { id: "SEVA-2026-0038", devotee: "Lakshmi Devi", seva: "Kumbhabhishekam", date: "2026-07-01", amount: 3500, status: "CONFIRMED", payment: "PAID" },
-]
-
-const upcomingFestivals = [
-  { name: "Maha Shivaratri", date: "Feb 15, 2026", daysLeft: 12 },
-  { name: "Ugadi", date: "Mar 22, 2026", daysLeft: 47 },
-  { name: "Sri Rama Navami", date: "Mar 30, 2026", daysLeft: 55 },
-  { name: "Vishu", date: "Apr 14, 2026", daysLeft: 70 },
-]
-
-const pendingApprovals = [
-  { id: "SEVA-2026-0042", devotee: "Ananya Sharma", seva: "Rudra Abhishekam", requestedBy: "Online", date: "2h ago" },
-  { id: "SEVA-2026-0039", devotee: "Venkatesh Rao", seva: "Shathachandi Homa", requestedBy: "Phone", date: "5h ago" },
-  { id: "HALL-2026-0012", devotee: "Suresh Shetty", seva: "Wedding Hall", requestedBy: "Online", date: "1d ago" },
-]
-
 const quickActions = [
   { label: "New Seva", href: "/admin/sevas/new", icon: Plus, color: "bg-primary text-warm-white" },
   { label: "New User", href: "/admin/users", icon: Users, color: "bg-secondary text-dark-slate" },
@@ -76,7 +46,54 @@ const quickActions = [
 
 export default function AdminDashboard() {
   const [mounted, setMounted] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({ totalBookings: 0, revenue: 0, activeSevas: 0, pendingApprovalsCount: 0, todayVisitors: 0 })
+  const [revenueData, setRevenueData] = useState<{ day: string; revenue: number; bookings: number }[]>([])
+  const [recentBookings, setRecentBookings] = useState<any[]>([])
+  const [upcomingFestivals, setUpcomingFestivals] = useState<any[]>([])
+  const [pendingApprovals, setPendingApprovals] = useState<any[]>([])
+
   useEffect(() => setMounted(true), [])
+
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const [statsRes, bookingsRes, festivalsRes, pendingRes] = await Promise.all([
+          fetch("/api/admin/stats"),
+          fetch("/api/bookings?limit=5"),
+          fetch("/api/festivals?upcoming=true"),
+          fetch("/api/bookings?status=PENDING"),
+        ])
+
+        const sj = await statsRes.json()
+        const s = sj.data || sj
+        setStats({
+          totalBookings: s.totalBookings ?? 0,
+          revenue: s.revenue ?? 0,
+          activeSevas: s.activeSevas ?? 0,
+          pendingApprovalsCount: s.pendingApprovalsCount ?? s.pendingApprovals ?? 0,
+          todayVisitors: s.todayVisitors ?? 0,
+        })
+        if (s.revenueChart) setRevenueData(s.revenueChart)
+
+        const bj = await bookingsRes.json()
+        const bd = bj.data || bj
+        setRecentBookings(Array.isArray(bd) ? bd : bd.bookings || [])
+
+        const fj = await festivalsRes.json()
+        const fd = fj.data || fj
+        setUpcomingFestivals(Array.isArray(fd) ? fd : fd.festivals || [])
+
+        const pj = await pendingRes.json()
+        const pd = pj.data || pj
+        setPendingApprovals(Array.isArray(pd) ? pd : pd.bookings || [])
+      } catch {
+        toast.error("Failed to load dashboard data")
+      } finally {
+        setLoading(false)
+      }
+    })()
+  }, [])
 
   if (!mounted) return null
 
@@ -104,34 +121,34 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <StatsCard
           label="Total Bookings"
-          value="1,284"
+          value={stats.totalBookings.toLocaleString("en-IN")}
           icon={<CalendarCheck className="h-5 w-5" />}
           trend={{ value: 12.5, isPositive: true, label: "vs last month" }}
         />
         <StatsCard
           label="Revenue (₹)"
-          value="2,84,500"
+          value={stats.revenue.toLocaleString("en-IN")}
           icon={<IndianRupee className="h-5 w-5" />}
           trend={{ value: 8.2, isPositive: true, label: "vs last month" }}
           variant="primary"
         />
         <StatsCard
           label="Active Sevas"
-          value="24"
+          value={String(stats.activeSevas)}
           icon={<Flower2 className="h-5 w-5" />}
           trend={{ value: 4, isPositive: true, label: "this month" }}
           variant="success"
         />
         <StatsCard
           label="Pending Approvals"
-          value="7"
+          value={String(stats.pendingApprovalsCount)}
           icon={<Clock className="h-5 w-5" />}
           trend={{ value: 2, isPositive: false, label: "overdue" }}
           variant="warning"
         />
         <StatsCard
           label="Today's Visitors"
-          value="156"
+          value={String(stats.todayVisitors)}
           icon={<Users className="h-5 w-5" />}
           trend={{ value: 23, isPositive: true, label: "vs yesterday" }}
           variant="default"

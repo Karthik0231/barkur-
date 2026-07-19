@@ -4,9 +4,18 @@ import { useEffect, useRef, useState } from "react"
 import { motion, useInView } from "framer-motion"
 import { Clock, Sun, Moon, Sunrise, Sunset, Timer, Calendar } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { TEMPLE_TIMINGS } from "@/lib/constants"
 import { useTranslation } from "@/lib/i18n"
-import { fetchPanchanga, type PanchangaData } from "@/lib/panchanga"
+
+interface PanchangaData {
+  tithi: string; nakshatra: string; yoga: string; karana: string
+  sunrise: string; sunset: string; moonrise: string; moonset: string
+  rahuKala: { start: string; end: string }
+  yamaganda: { start: string; end: string }
+  gulika: { start: string; end: string }
+  amritaKala: { start: string; end: string }
+  abhijitMuhurta: { start: string; end: string }
+  isEkadashi: boolean; isAmavasya: boolean; isPournami: boolean
+}
 
 function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
@@ -27,9 +36,18 @@ export function TimingsSection() {
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: "-80px" })
   const [panchanga, setPanchanga] = useState<PanchangaData | null>(null)
+  const [timings, setTimings] = useState({ morning: "6:00 AM - 1:30 PM", evening: "4:00 PM - 7:30 PM" })
 
   useEffect(() => {
-    fetchPanchanga().then(setPanchanga)
+    fetch("/api/panchanga?today=true").then(r => r.json()).then(d => {
+      if (d.data?.panchanga) setPanchanga(d.data.panchanga)
+    }).catch(() => {})
+    fetch("/api/settings?group=temple").then(r => r.json()).then(d => {
+      const s = d.data?.settings || d.settings || []
+      const morning = s.find((x: {key: string}) => x.key === "timings_morning")?.value
+      const evening = s.find((x: {key: string}) => x.key === "timings_evening")?.value
+      if (morning || evening) setTimings({ morning: morning || timings.morning, evening: evening || timings.evening })
+    }).catch(() => {})
   }, [])
 
   const todayName = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
@@ -57,7 +75,7 @@ export function TimingsSection() {
             {t("timings.templeTimings")} & {t("timings.todayPanchanga")}
           </h2>
           <p className="mt-3 text-base sm:text-lg text-dark-slate/50 max-w-xl">
-            Daily schedule and today&apos;s auspicious celestial details
+            {t("timings.scheduleSubtitle")}
           </p>
           <div className="mt-3 h-1 w-24 rounded-full bg-gradient-to-r from-primary to-gold-500" />
         </motion.div>
@@ -77,7 +95,7 @@ export function TimingsSection() {
                     <Clock className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-heading font-bold text-dark-slate">Today&apos;s Schedule</h3>
+                    <h3 className="text-lg font-heading font-bold text-dark-slate">{t("timings.todaySchedule")}</h3>
                     <p className="text-xs text-dark-slate/50">{todayName}</p>
                   </div>
                 </div>
@@ -89,7 +107,7 @@ export function TimingsSection() {
                     </div>
                     <div>
                       <p className="text-xs text-dark-slate/50 font-medium uppercase tracking-wider">{t("timings.morning")}</p>
-                      <p className="text-lg font-heading font-bold text-dark-slate">{TEMPLE_TIMINGS.morning}</p>
+                      <p className="text-lg font-heading font-bold text-dark-slate">{timings.morning}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4 p-4 rounded-xl bg-maroon-50/50 border border-maroon-200/20 mt-3">
@@ -98,7 +116,7 @@ export function TimingsSection() {
                     </div>
                     <div>
                       <p className="text-xs text-dark-slate/50 font-medium uppercase tracking-wider">{t("timings.evening")}</p>
-                      <p className="text-lg font-heading font-bold text-dark-slate">{TEMPLE_TIMINGS.evening}</p>
+                      <p className="text-lg font-heading font-bold text-dark-slate">{timings.evening}</p>
                     </div>
                   </div>
                 </div>
@@ -107,7 +125,7 @@ export function TimingsSection() {
                   <div className="mt-4 p-3 rounded-xl bg-gradient-to-r from-gold-100/50 to-amber-50/50 border border-gold-200/40 text-center">
                     <div className="inline-flex items-center gap-1.5 text-sm font-medium text-gold-700">
                       <Calendar className="h-3.5 w-3.5" />
-                      Today is {specialDay} - Special poojas
+                      {t("timings.todayIs")} {specialDay}{t("timings.specialPoojas")}
                     </div>
                   </div>
                 )}
@@ -130,30 +148,30 @@ export function TimingsSection() {
                   </div>
                   <div>
                     <h3 className="text-lg font-heading font-bold text-dark-slate">{t("timings.todayPanchanga")}</h3>
-                    <p className="text-xs text-dark-slate/50">Hindu calendar details</p>
+                    <p className="text-xs text-dark-slate/50">{t("timings.calendarDetails")}</p>
                   </div>
                 </div>
 
                 <div className="divide-y divide-border/30">
-                  <InfoRow icon={Timer} label="Tithi" value={panchanga?.tithi ?? "—"} />
-                  <InfoRow icon={Sunrise} label="Nakshatra" value={panchanga?.nakshatra ?? "—"} />
-                  <InfoRow icon={Sunrise} label="Yoga" value={panchanga?.yoga ?? "—"} />
-                  <InfoRow icon={Timer} label="Karana" value={panchanga?.karana ?? "—"} />
-                  <InfoRow icon={Sunrise} label="Sunrise" value={panchanga?.sunrise ?? "—"} />
-                  <InfoRow icon={Sunset} label="Sunset" value={panchanga?.sunset ?? "—"} />
+                  <InfoRow icon={Timer} label={t("timings.tithi")} value={panchanga?.tithi ?? "—"} />
+                  <InfoRow icon={Sunrise} label={t("timings.nakshatra")} value={panchanga?.nakshatra ?? "—"} />
+                  <InfoRow icon={Sunrise} label={t("timings.yoga")} value={panchanga?.yoga ?? "—"} />
+                  <InfoRow icon={Timer} label={t("timings.karana")} value={panchanga?.karana ?? "—"} />
+                  <InfoRow icon={Sunrise} label={t("timings.sunrise")} value={panchanga?.sunrise ?? "—"} />
+                  <InfoRow icon={Sunset} label={t("timings.sunset")} value={panchanga?.sunset ?? "—"} />
                 </div>
 
                 <div className="mt-4 grid grid-cols-3 gap-2">
                   <div className="p-2.5 rounded-lg bg-red-50/70 border border-red-200/30 text-center">
-                    <p className="text-[10px] uppercase tracking-wider text-red-500 font-semibold">Rahu Kala</p>
+                    <p className="text-[10px] uppercase tracking-wider text-red-500 font-semibold">{t("timings.rahuKala")}</p>
                     <p className="text-xs font-medium text-dark-slate">{panchanga?.rahuKala.start ?? "—"} - {panchanga?.rahuKala.end ?? "—"}</p>
                   </div>
                   <div className="p-2.5 rounded-lg bg-amber-50/70 border border-amber-200/30 text-center">
-                    <p className="text-[10px] uppercase tracking-wider text-amber-600 font-semibold">Yamaganda</p>
+                    <p className="text-[10px] uppercase tracking-wider text-amber-600 font-semibold">{t("timings.yamaganda")}</p>
                     <p className="text-xs font-medium text-dark-slate">{panchanga?.yamaganda.start ?? "—"} - {panchanga?.yamaganda.end ?? "—"}</p>
                   </div>
                   <div className="p-2.5 rounded-lg bg-maroon-50/50 border border-maroon-200/20 text-center">
-                    <p className="text-[10px] uppercase tracking-wider text-dark-slate/50 font-semibold">Gulika</p>
+                    <p className="text-[10px] uppercase tracking-wider text-dark-slate/50 font-semibold">{t("timings.gulika")}</p>
                     <p className="text-xs font-medium text-dark-slate">{panchanga?.gulika.start ?? "—"} - {panchanga?.gulika.end ?? "—"}</p>
                   </div>
                 </div>

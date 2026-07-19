@@ -5,6 +5,7 @@ import { AlertTriangle, RefreshCw, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { useTranslation } from "@/lib/i18n"
 
 export default function AdminError({
   error,
@@ -13,6 +14,7 @@ export default function AdminError({
   error: Error & { digest?: string }
   unstable_retry: () => void
 }) {
+  const { t } = useTranslation()
   useEffect(() => {
     console.error("Admin error:", error)
   }, [error])
@@ -24,23 +26,23 @@ export default function AdminError({
           <AlertTriangle className="h-6 w-6 text-red-600" />
         </div>
         <h2 className="text-xl font-bold font-heading text-text-primary mb-2">
-          Something went wrong
+          {t("common.error")}
         </h2>
         <p className="text-sm text-text-muted mb-2">
-          An unexpected error occurred in the admin panel.
+          {t("admin.unexpectedError")}
         </p>
         {error.digest && (
           <p className="text-xs text-text-muted/60 mb-4 font-mono">
-            Error ID: {error.digest}
+            {t("admin.errorId")} {error.digest}
           </p>
         )}
         <div className="flex items-center justify-center gap-3">
           <Button variant="outline" size="sm" onClick={() => unstable_retry()} iconLeft={<RefreshCw className="h-4 w-4" />}>
-            Try Again
+            {t("admin.tryAgain")}
           </Button>
           <Link href="/admin">
             <Button variant="primary" size="sm" iconLeft={<ArrowLeft className="h-4 w-4" />}>
-              Back to Dashboard
+              {t("admin.backToDashboard")}
             </Button>
           </Link>
         </div>

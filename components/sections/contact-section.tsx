@@ -61,10 +61,10 @@ export function ContactSection() {
           className="flex flex-col items-center text-center mb-14"
         >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-dark-slate">
-            Visit & Connect
+            {t("contact.visitConnect")}
           </h2>
           <p className="mt-3 text-base sm:text-lg text-dark-slate/50 max-w-xl">
-            We would love to hear from you. Reach out for queries, seva bookings, or feedback.
+            {t("contact.subtitle")}
           </p>
           <div className="mt-3 h-1 w-24 rounded-full bg-gradient-to-r from-primary to-gold-500" />
         </motion.div>
@@ -76,30 +76,30 @@ export function ContactSection() {
             transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="h-full rounded-2xl border border-border bg-white p-6 sm:p-8 shadow-premium">
-              <h3 className="text-xl font-heading font-bold text-dark-slate mb-6">Get in Touch</h3>
+              <h3 className="text-xl font-heading font-bold text-dark-slate mb-6">{t("contact.getInTouch")}</h3>
 
               <div className="divide-y divide-border/30">
                 <ContactInfo
                   icon={MapPin}
-                  label="Temple Address"
+                  label={t("contact.templeAddress")}
                   value={TEMPLE_ADDRESS}
                 />
                 <ContactInfo
                   icon={Phone}
-                  label="Phone"
+                  label={t("home.phoneLabel")}
                   value={TEMPLE_PHONE}
                   href={`tel:${TEMPLE_PHONE}`}
                 />
                 <ContactInfo
                   icon={Mail}
-                  label="Email"
+                  label={t("home.emailLabel")}
                   value={TEMPLE_EMAIL}
                   href={`mailto:${TEMPLE_EMAIL}`}
                 />
                 <ContactInfo
                   icon={Clock}
                   label={t("timings.templeTimings")}
-                  value={`Morning: ${TEMPLE_TIMINGS.morning} | Evening: ${TEMPLE_TIMINGS.evening}`}
+                  value={`${t("timings.morning")}: ${TEMPLE_TIMINGS.morning} | ${t("timings.evening")}: ${TEMPLE_TIMINGS.evening}`}
                 />
               </div>
 
@@ -112,14 +112,14 @@ export function ContactSection() {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
                     <MapPin className="h-8 w-8 text-gold-500 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-dark-slate/80">Barkur, Udupi District</p>
-                    <p className="text-xs text-dark-slate/50">Karnataka, India</p>
+                    <p className="text-sm font-medium text-dark-slate/80">{t("contact.barkurLocation")}</p>
+                    <p className="text-xs text-dark-slate/50">{t("contact.karnatakaIndia")}</p>
                     <p className="mt-2 text-[10px] text-dark-slate/40">13.47°N, 74.75°E</p>
                   </div>
                 </div>
                 <div className="absolute bottom-2 left-2 right-2 flex items-center justify-center gap-1 text-[10px] text-dark-slate/40">
                   <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse-soft" />
-                  <span>Temple Location</span>
+                  <span>{t("contact.templeLocation")}</span>
                 </div>
               </div>
             </div>
@@ -131,13 +131,13 @@ export function ContactSection() {
             transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="h-full rounded-2xl border border-border bg-white p-6 sm:p-8 shadow-premium">
-              <h3 className="text-xl font-heading font-bold text-dark-slate mb-6">Send a Message</h3>
+              <h3 className="text-xl font-heading font-bold text-dark-slate mb-6">{t("contact.sendMessage")}</h3>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-dark-slate">Your Name</label>
+                  <label className="text-sm font-medium text-dark-slate">{t("contact.yourName")}</label>
                   <input
-                    placeholder="Enter your full name"
+                    placeholder={t("contact.namePlaceholder")}
                     value={formData.name}
                     onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                     required
@@ -150,10 +150,10 @@ export function ContactSection() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-dark-slate">Email Address</label>
+                  <label className="text-sm font-medium text-dark-slate">{t("contact.emailAddress")}</label>
                   <input
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder={t("contact.emailPlaceholder")}
                     value={formData.email}
                     onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                     required
@@ -166,9 +166,9 @@ export function ContactSection() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-dark-slate">Message</label>
+                  <label className="text-sm font-medium text-dark-slate">{t("contact.messageLabel")}</label>
                   <textarea
-                    placeholder="Write your message..."
+                    placeholder={t("contact.messagePlaceholder")}
                     value={formData.message}
                     onChange={(e) => setFormData((prev) => ({ ...prev, message: e.target.value }))}
                     required
@@ -197,17 +197,17 @@ export function ContactSection() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
-                      Sending...
+                      {t("contact.sending")}
                     </span>
                   ) : status === "success" ? (
                     <>
                       <CheckCircle className="h-4 w-4" />
-                      Message Sent!
+                      {t("contact.messageSent")}
                     </>
                   ) : (
                     <>
                       <Send className="h-4 w-4" />
-                      Send Message
+                      {t("contact.sendMessageButton")}
                     </>
                   )}
                 </button>
@@ -220,7 +220,7 @@ export function ContactSection() {
                       exit={{ opacity: 0, y: -8 }}
                       className="text-sm text-leaf-500 text-center font-medium"
                     >
-                      Thank you! We will get back to you soon.
+                      {t("contact.thankYou")}
                     </motion.p>
                   )}
                 </AnimatePresence>

@@ -1,79 +1,26 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState, useEffect } from "react"
 import Link from "next/link"
 import { motion, useInView } from "framer-motion"
 import { ArrowRight, Bell, Info, CalendarDays } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useTranslation } from "@/lib/i18n"
 
-const announcements: {
+interface AnnouncementItem {
   title: string
   date: string
   urgency: "high" | "medium" | "low"
   description: string
-}[] = [
-  {
-    title: "Navaratri Mahotsava 2026 Schedule Released",
-    date: "2 days ago",
-    urgency: "high",
-    description: "Full schedule for the upcoming Navaratri celebrations is now available. Book your sevas early.",
-  },
-  {
-    title: "Temple Renovation Phase II Complete",
-    date: "1 week ago",
-    urgency: "medium",
-    description: "The second phase of temple renovation including gopuram restoration has been completed.",
-  },
-  {
-    title: "Daily Abhishekam Timings Updated",
-    date: "2 weeks ago",
-    urgency: "low",
-    description: "Morning abhishekam timings have been updated to 7:00 AM during the winter season.",
-  },
-  {
-    title: "Annual Dasara Celebration Details",
-    date: "3 weeks ago",
-    urgency: "medium",
-    description: "Special arrangements for Dasara celebration including cultural programs and prasadam.",
-  },
-  {
-    title: "New Annadanam Scheme Launched",
-    date: "1 month ago",
-    urgency: "low",
-    description: "Sponsor daily annadanam for devotees. Check our donation campaigns for more details.",
-  },
-]
+}
 
-const newsItems = [
-  {
-    title: "Temple Wins Heritage Award",
-    excerpt: "Sri Kalikamba Temple has been recognized for outstanding preservation of traditional architecture and cultural heritage.",
-    date: "Mar 15, 2026",
-    image: "from-emerald-400 to-teal-500",
-    category: "Award",
-  },
-  {
-    title: "Digital Seva Booking Launched",
-    excerpt: "Devotees can now book sevas online through the new temple website. Hassle-free and instant confirmation.",
-    date: "Feb 28, 2026",
-    image: "from-blue-400 to-indigo-500",
-    category: "Technology",
-  },
-  {
-    title: "Annual Rathotsava a Grand Success",
-    excerpt: "Thousands of devotees participated in the annual chariot festival with great devotion and enthusiasm.",
-    date: "Feb 10, 2026",
-    image: "from-amber-400 to-orange-500",
-    category: "Festival",
-  },
-  {
-    title: "New Veda Patashala Inaugurated",
-    excerpt: "Temple trust inaugurates a new Vedic school to preserve and promote traditional Vedic education.",
-    date: "Jan 20, 2026",
-    image: "from-rose-400 to-pink-500",
-    category: "Education",
-  },
-]
+interface NewsItem {
+  title: string
+  excerpt: string
+  date: string
+  image?: string
+  category?: string
+}
 
 const urgencyColors: Record<"high" | "medium" | "low", string> = {
   high: "bg-red-500",
@@ -82,8 +29,27 @@ const urgencyColors: Record<"high" | "medium" | "low", string> = {
 }
 
 export function NewsSection() {
+  const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: "-80px" })
+  const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([])
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/announcements?isActive=true&limit=4").then((r) => r.json()),
+      fetch("/api/news?isPublished=true&limit=4").then((r) => r.json()),
+    ])
+      .then(([a, n]) => {
+        const aList = a.data?.announcements || a.data || a || []
+        const nList = n.data?.news || n.data || n || []
+        setAnnouncements(Array.isArray(aList) ? aList : [])
+        setNewsItems(Array.isArray(nList) ? nList : [])
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <section ref={ref} className="relative py-20 sm:py-28 overflow-hidden bg-gradient-to-b from-gold-50/20 to-warm-ivory">
@@ -95,14 +61,20 @@ export function NewsSection() {
           className="flex flex-col items-center text-center mb-14"
         >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-dark-slate">
-            Latest News & Announcements
+            {t("news.latestNews")}
           </h2>
           <p className="mt-3 text-base sm:text-lg text-dark-slate/50 max-w-xl">
-            Stay informed with temple updates and spiritual insights
+            {t("news.subtitle")}
           </p>
           <div className="mt-3 h-1 w-24 rounded-full bg-gradient-to-r from-primary to-gold-500" />
         </motion.div>
 
+        {loading && (
+          <div className="flex justify-center py-16">
+            <span className="text-sm text-dark-slate/60">{t("common.loading")}</span>
+          </div>
+        )}
+        {!loading && (
         <div className="grid lg:grid-cols-2 gap-8">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -111,7 +83,7 @@ export function NewsSection() {
           >
             <div className="flex items-center gap-2 mb-5">
               <Bell className="h-5 w-5 text-gold-500" />
-              <h3 className="text-lg font-heading font-bold text-dark-slate">Announcements</h3>
+              <h3 className="text-lg font-heading font-bold text-dark-slate">{t("nav.announcements")}</h3>
             </div>
             <div className="space-y-3">
               {announcements.map((item, index) => (
@@ -154,7 +126,7 @@ export function NewsSection() {
                 href="/announcements"
                 className="group inline-flex items-center gap-1.5 text-sm font-medium text-gold-600 hover:text-gold-700 transition-colors"
               >
-                View All Announcements
+                {t("news.viewAllAnnouncements")}
                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
@@ -167,7 +139,7 @@ export function NewsSection() {
           >
             <div className="flex items-center gap-2 mb-5">
               <Info className="h-5 w-5 text-gold-500" />
-              <h3 className="text-lg font-heading font-bold text-dark-slate">News</h3>
+              <h3 className="text-lg font-heading font-bold text-dark-slate">{t("nav.news")}</h3>
             </div>
             <div className="space-y-4">
               {newsItems.map((item, index) => (
@@ -210,12 +182,13 @@ export function NewsSection() {
                 href="/news"
                 className="group inline-flex items-center gap-1.5 text-sm font-medium text-gold-600 hover:text-gold-700 transition-colors"
               >
-                View All News
+                {t("news.viewAllNews")}
                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
           </motion.div>
         </div>
+        )}
       </div>
     </section>
   )

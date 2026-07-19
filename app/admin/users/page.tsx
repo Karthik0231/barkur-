@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Plus, Edit3, Trash2, Search, Shield, Ban, CheckCircle, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { StatusBadge } from "@/components/admin/status-badge"
 import { DataTable, type Column } from "@/components/admin/data-table"
 import { formatDateTime } from "@/lib/utils"
+import toast from "react-hot-toast"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog"
@@ -40,22 +41,21 @@ const userSchema = z.object({
 
 const ROLES = ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER", "ACCOUNTANT", "RECEPTION", "VOLUNTEER"]
 
-const sampleUsers: AdminUser[] = [
-  { id: "u1", name: "Karthik Sharma", email: "karthik@temple.org", phone: "+91 98765 43210", role: "SUPER_ADMIN", isActive: true, lastLogin: "2026-07-02T08:30:00Z", createdAt: "2026-01-01" },
-  { id: "u2", name: "Priya Rao", email: "priya@temple.org", phone: "+91 87654 32109", role: "ADMIN", isActive: true, lastLogin: "2026-07-01T14:20:00Z", createdAt: "2026-01-15" },
-  { id: "u3", name: "Suresh Bhat", email: "suresh@temple.org", phone: "+91 76543 21098", role: "TEMPLE_MANAGER", isActive: true, lastLogin: "2026-06-30T10:00:00Z", createdAt: "2026-02-01" },
-  { id: "u4", name: "Latha Hegde", email: "latha@temple.org", phone: "+91 65432 10987", role: "ACCOUNTANT", isActive: true, lastLogin: "2026-07-02T09:15:00Z", createdAt: "2026-02-15" },
-  { id: "u5", name: "Ramesh Pai", email: "ramesh@temple.org", phone: "+91 54321 09876", role: "RECEPTION", isActive: true, lastLogin: "2026-06-28T16:45:00Z", createdAt: "2026-03-01" },
-  { id: "u6", name: "Ananya Shetty", email: "ananya@temple.org", phone: "+91 43210 98765", role: "VOLUNTEER", isActive: false, lastLogin: null, createdAt: "2026-03-15" },
-  { id: "u7", name: "Venkatesh Murthy", email: "venkat@temple.org", phone: "+91 32109 87654", role: "ADMIN", isActive: true, lastLogin: "2026-06-25T11:30:00Z", createdAt: "2026-04-01" },
-]
+
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<AdminUser[]>(sampleUsers)
+  const [users, setUsers] = useState<AdminUser[]>([])
   const [search, setSearch] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<AdminUser | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/users").then((r) => r.json()).then((json) => {
+      setUsers(Array.isArray(json) ? json : (json.data ?? []))
+    }).finally(() => setLoading(false))
+  }, [])
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<any>({
     resolver: zodResolver(userSchema),
@@ -73,25 +73,43 @@ export default function UsersPage() {
     setDialogOpen(true)
   }
 
-  const onSubmit = (data: any) => {
-    if (editing) {
-      setUsers((prev) => prev.map((u) => u.id === editing.id ? { ...u, ...data, password: undefined } : u))
-    } else {
-      setUsers((prev) => [...prev, { id: `u${Date.now()}`, ...data, isActive: true, lastLogin: null, createdAt: new Date().toISOString().split("T")[0] }])
-    }
-    setDialogOpen(false)
-    setEditing(null)
+  const onSubmit = async (data: any) => {
+    try {
+      if (editing) {
+        const { password, ...rest } = data
+        const body = password ? data : rest
+        await fetch(`/api/users/${editing.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+        setUsers((prev) => prev.map((u) => u.id === editing.id ? { ...u, ...body } : u))
+        toast.success("User updated")
+      } else {
+        const res = await fetch("/api/users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+        const created = await res.json()
+        setUsers((prev) => [...prev, created.data ?? created])
+        toast.success("User created")
+      }
+      setDialogOpen(false)
+      setEditing(null)
+    } catch { toast.error("Operation failed") }
   }
 
-  const toggleActive = (id: string) => {
-    setUsers((prev) => prev.map((u) => u.id === id ? { ...u, isActive: !u.isActive } : u))
+  const toggleActive = async (id: string) => {
+    const user = users.find((u) => u.id === id)
+    if (!user) return
+    try {
+      await fetch(`/api/users/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isActive: !user.isActive }) })
+      setUsers((prev) => prev.map((u) => u.id === id ? { ...u, isActive: !u.isActive } : u))
+      toast.success(`User ${user.isActive ? "deactivated" : "activated"}`)
+    } catch { toast.error("Failed to toggle status") }
   }
 
-  const handleDelete = () => {
-    if (deleteId) {
+  const handleDelete = async () => {
+    if (!deleteId) return
+    try {
+      await fetch(`/api/users/${deleteId}`, { method: "DELETE" })
       setUsers((prev) => prev.filter((u) => u.id !== deleteId))
+      toast.success("User deleted")
       setDeleteId(null)
-    }
+    } catch { toast.error("Delete failed") }
   }
 
   const filtered = users.filter((u) => !search || u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()))
@@ -160,6 +178,7 @@ export default function UsersPage() {
         <DataTable
           columns={columns}
           data={filtered}
+          loading={loading}
           keyExtractor={(item) => item.id}
           searchable
           searchQuery={search}

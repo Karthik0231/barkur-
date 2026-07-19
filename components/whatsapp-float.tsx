@@ -4,8 +4,10 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { MessageCircle } from "lucide-react"
 import { TEMPLE_PHONE } from "@/lib/constants"
+import { useTranslation } from "@/lib/i18n"
 
 export function WhatsAppFloat() {
+  const { t } = useTranslation()
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -32,10 +34,10 @@ export function WhatsAppFloat() {
           exit={{ opacity: 0, scale: 0.5, y: 20 }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
           className="group fixed bottom-6 right-6 z-50 flex items-center gap-2"
-          aria-label="Chat with us on WhatsApp"
+          aria-label={t("common.chatWithUsWhatsApp")}
         >
           <span className="pointer-events-none absolute right-full mr-3 rounded-lg bg-slate-900/90 px-3 py-1.5 text-xs text-white opacity-0 shadow-lg backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100 dark:bg-white/10">
-            Chat with us
+            {t("common.chatWithUs")}
           </span>
           <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/30 transition-transform hover:scale-105 active:scale-95">
             <motion.div

@@ -1,33 +1,6 @@
 import { auth } from "@/lib/auth"
 import { successResponse, errorResponse, getAuthUser, checkRole } from "@/lib/api-utils"
-
-// Mock user data for now (no DB)
-const mockUsers = [
-  {
-    id: "1",
-    name: "Test User",
-    email: "test@example.com",
-    phone: "+91 9876543210",
-    role: "DEVOTEE",
-    isActive: true,
-    image: null,
-    lastLogin: new Date(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: "2",
-    name: "Admin User",
-    email: "admin@example.com",
-    phone: "+91 9876543211",
-    role: "ADMIN",
-    isActive: true,
-    image: null,
-    lastLogin: new Date(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-]
+import { prisma } from "@/lib/prisma"
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -37,8 +10,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const found = mockUsers.find(u => u.id === id)
-    if (!found) return errorResponse("User not found", 404)
+    const found = await prisma.user.findUnique({ where: { id } })
+    if (!found || found.deletedAt) return errorResponse("User not found", 404)
     return successResponse(found)
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to fetch user", 500)
@@ -53,14 +26,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const existing = mockUsers.find(u => u.id === id)
-    if (!existing) return errorResponse("User not found", 404)
+    const existing = await prisma.user.findUnique({ where: { id } })
+    if (!existing || existing.deletedAt) return errorResponse("User not found", 404)
 
     const body = await request.json()
-    const updated = {
-      ...existing,
-      ...body,
-    }
+    const updated = await prisma.user.update({
+      where: { id },
+      data: { ...body, updatedBy: currentUser.id },
+    })
 
     return successResponse(updated, "User updated successfully")
   } catch (error) {
@@ -78,8 +51,13 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     const { id } = await params
     if (id === currentUser.id) return errorResponse("Cannot delete yourself", 400)
 
-    const existing = mockUsers.find(u => u.id === id)
-    if (!existing) return errorResponse("User not found", 404)
+    const existing = await prisma.user.findUnique({ where: { id } })
+    if (!existing || existing.deletedAt) return errorResponse("User not found", 404)
+
+    await prisma.user.update({
+      where: { id },
+      data: { deletedAt: new Date(), updatedBy: currentUser.id },
+    })
 
     return successResponse(null, "User deleted successfully")
   } catch (error) {
