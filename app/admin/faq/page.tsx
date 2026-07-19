@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Plus, Edit3, Trash2, Search, GripVertical, ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ import {
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@/lib/zod-resolver"
 import { z } from "zod"
+import toast from "react-hot-toast"
 
 interface FAQItem {
   id: string
@@ -31,25 +32,25 @@ const faqSchema = z.object({
   isPublished: z.boolean().optional(),
 })
 
-const sampleFAQs: FAQItem[] = [
-  { id: "faq1", question: "What are the temple timings?", answer: "The temple is open from 6:00 AM to 1:30 PM in the morning and 4:00 PM to 7:30 PM in the evening.", category: "General", isPublished: true, sortOrder: 1 },
-  { id: "faq2", question: "How can I book a seva online?", answer: "You can book sevas online through our website by visiting the Sevas page, selecting your preferred seva, and completing the booking form.", category: "Sevas", isPublished: true, sortOrder: 2 },
-  { id: "faq3", question: "What is the cancellation policy for bookings?", answer: "Cancellations made 48 hours before the scheduled date are eligible for a full refund. Cancellations within 24 hours may incur a 25% fee.", category: "Bookings", isPublished: true, sortOrder: 3 },
-  { id: "faq4", question: "Can I make donations online?", answer: "Yes, you can make donations online through our website. We accept UPI, Net Banking, and Credit/Debit cards.", category: "Donations", isPublished: true, sortOrder: 4 },
-  { id: "faq5", question: "How do I reach the temple?", answer: "The temple is located in Barkur, Udupi District, Karnataka. It is about 15 km from Udupi city and well-connected by road.", category: "General", isPublished: true, sortOrder: 5 },
-  { id: "faq6", question: "Is there accommodation available near the temple?", answer: "Yes, there are several guest houses and hotels available near the temple. Contact the temple office for recommendations.", category: "General", isPublished: false, sortOrder: 6 },
-]
+
 
 const categories = ["General", "Sevas", "Bookings", "Donations", "Hall Booking", "Temple"]
 
 export default function FAQPage() {
-  const [faqs, setFaqs] = useState<FAQItem[]>(sampleFAQs)
+  const [faqs, setFaqs] = useState<FAQItem[]>([])
   const [search, setSearch] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("")
   const [expanded, setExpanded] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<FAQItem | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/faq").then((r) => r.json()).then((json) => {
+      setFaqs(Array.isArray(json) ? json : (json.data ?? []))
+    }).finally(() => setLoading(false))
+  }, [])
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: zodResolver(faqSchema),
@@ -67,17 +68,32 @@ export default function FAQPage() {
     setDialogOpen(true)
   }
 
-  const onSubmit = (data: any) => {
-    if (editing) {
-      setFaqs((prev) => prev.map((f) => f.id === editing.id ? { ...f, ...data } : f))
-    } else {
-      setFaqs((prev) => [...prev, { id: `faq${Date.now()}`, ...data, sortOrder: prev.length + 1 }])
-    }
-    setDialogOpen(false)
-    setEditing(null)
+  const onSubmit = async (data: any) => {
+    try {
+      if (editing) {
+        await fetch(`/api/faq/${editing.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+        setFaqs((prev) => prev.map((f) => f.id === editing.id ? { ...f, ...data } : f))
+        toast.success("FAQ updated")
+      } else {
+        const res = await fetch("/api/faq", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+        const created = await res.json()
+        setFaqs((prev) => [...prev, created.data ?? created])
+        toast.success("FAQ created")
+      }
+      setDialogOpen(false)
+      setEditing(null)
+    } catch { toast.error("Operation failed") }
   }
 
-  const handleDelete = () => { if (deleteId) { setFaqs((prev) => prev.filter((f) => f.id !== deleteId)); setDeleteId(null) } }
+  const handleDelete = async () => {
+    if (!deleteId) return
+    try {
+      await fetch(`/api/faq/${deleteId}`, { method: "DELETE" })
+      setFaqs((prev) => prev.filter((f) => f.id !== deleteId))
+      toast.success("FAQ deleted")
+      setDeleteId(null)
+    } catch { toast.error("Delete failed") }
+  }
 
   const filtered = faqs.filter((f) => {
     const matchSearch = !search || f.question.toLowerCase().includes(search.toLowerCase()) || f.answer.toLowerCase().includes(search.toLowerCase())

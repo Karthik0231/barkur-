@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
+import { useTranslation } from "@/lib/i18n"
 import { Landmark, MessageCircle, MapPin, Phone, Mail, Clock } from "lucide-react"
 import { FaInstagram, FaFacebook, FaYoutube, FaWhatsapp } from "react-icons/fa"
 import {
@@ -11,24 +12,25 @@ import {
   TEMPLE_EMAIL,
   TEMPLE_ADDRESS,
   TEMPLE_TIMINGS,
+  SOCIAL_LINKS,
 } from "@/lib/constants"
 import { NewsletterForm } from "@/components/newsletter-form"
 
 const QUICK_LINKS = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-  { label: "Sevas", href: "/sevas" },
-  { label: "Gallery", href: "/gallery" },
-  { label: "Contact", href: "/contact" },
-  { label: "Donate", href: "/donate" },
+  { labelKey: "nav.home", href: "/" },
+  { labelKey: "nav.about", href: "/about" },
+  { labelKey: "nav.sevas", href: "/sevas" },
+  { labelKey: "nav.gallery", href: "/gallery" },
+  { labelKey: "nav.contact", href: "/contact" },
+  { labelKey: "nav.donate", href: "/donate" },
 ]
 
 const SEVAS_LINKS = [
-  { label: "Daily Sevas", href: "/sevas" },
-  { label: "Special Sevas", href: "/special-sevas" },
-  { label: "Shashwatha Sevas", href: "/shashwatha-sevas" },
-  { label: "Homas", href: "/homas" },
-  { label: "Festivals", href: "/festivals" },
+  { labelKey: "nav.dailySevas", href: "/sevas" },
+  { labelKey: "nav.specialSevas", href: "/special-sevas" },
+  { labelKey: "nav.shashwathaSevas", href: "/shashwatha-sevas" },
+  { labelKey: "nav.homas", href: "/homas" },
+  { labelKey: "nav.festivals", href: "/festivals" },
 ]
 
 function FooterColumn({
@@ -51,6 +53,7 @@ function FooterColumn({
 }
 
 export function Footer() {
+  const { t } = useTranslation()
   return (
     <footer className="relative overflow-hidden border-t border-white/10 bg-gradient-to-b from-slate-900 via-slate-900 to-rose-950">
       {/* Decorative top border */}
@@ -73,46 +76,53 @@ export function Footer() {
                 <p className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">
                   {TEMPLE_NAME}
                 </p>
-                <p className="text-xs text-white/50">Barkur, Udupi</p>
+                <p className="text-xs text-white/50">{t('footer.barkurLocation')}</p>
               </div>
             </Link>
 
             <p className="mt-4 text-sm leading-relaxed text-white/60">
-              A sacred shrine dedicated to Sri Kalikamba Devi, serving devotees with
-              divine grace and traditional rituals since time immemorial.
+              {t('footer.brandDescription')}
             </p>
 
             {/* Social Icons */}
             <div className="mt-6 flex items-center gap-3">
               <a
-                href="https://instagram.com/shrikalikambatemple"
+                href={SOCIAL_LINKS.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/60 transition-all hover:bg-rose-500/20 hover:text-rose-400"
-                aria-label="Follow us on Instagram"
+                aria-label={t('footer.followInstagram')}
               >
                 <FaInstagram className="h-4 w-4" />
               </a>
+              {SOCIAL_LINKS.facebook && (
               <a
-                href="#"
+                href={SOCIAL_LINKS.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/60 transition-all hover:bg-blue-500/20 hover:text-blue-400"
-                aria-label="Follow us on Facebook"
+                aria-label={t('footer.followFacebook')}
               >
                 <FaFacebook className="h-4 w-4" />
               </a>
+              )}
+              {SOCIAL_LINKS.youtube && (
               <a
-                href="#"
+                href={SOCIAL_LINKS.youtube}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/60 transition-all hover:bg-red-500/20 hover:text-red-400"
-                aria-label="Subscribe on YouTube"
+                aria-label={t('footer.subscribeYoutube')}
               >
                 <FaYoutube className="h-4 w-4" />
               </a>
+              )}
               <a
                 href={`https://wa.me/${TEMPLE_PHONE.replace(/[\s\-]/g, "").replace(/^\+/, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/60 transition-all hover:bg-emerald-500/20 hover:text-emerald-400"
-                aria-label="Chat on WhatsApp"
+                aria-label={t('footer.chatWhatsapp')}
               >
                 <FaWhatsapp className="h-4 w-4" />
               </a>
@@ -122,7 +132,7 @@ export function Footer() {
           {/* Column 2: Quick Links */}
           <FooterColumn delay={0.1}>
             <h3 className="mb-4 text-sm font-semibold tracking-wider text-amber-400 uppercase">
-              Quick Links
+              {t('footer.quickLinks')}
             </h3>
             <ul className="space-y-2.5">
               {QUICK_LINKS.map((link) => (
@@ -131,7 +141,7 @@ export function Footer() {
                     href={link.href}
                     className="text-sm text-white/60 transition-colors hover:text-amber-400"
                   >
-                    {link.label}
+                    {t(link.labelKey)}
                   </Link>
                 </li>
               ))}
@@ -141,7 +151,7 @@ export function Footer() {
           {/* Column 3: Sevas */}
           <FooterColumn delay={0.2}>
             <h3 className="mb-4 text-sm font-semibold tracking-wider text-amber-400 uppercase">
-              Sevas
+              {t('footer.sevas')}
             </h3>
             <ul className="space-y-2.5">
               {SEVAS_LINKS.map((link) => (
@@ -150,7 +160,7 @@ export function Footer() {
                     href={link.href}
                     className="text-sm text-white/60 transition-colors hover:text-amber-400"
                   >
-                    {link.label}
+                    {t(link.labelKey)}
                   </Link>
                 </li>
               ))}
@@ -160,7 +170,7 @@ export function Footer() {
           {/* Column 4: Contact */}
           <FooterColumn delay={0.3}>
             <h3 className="mb-4 text-sm font-semibold tracking-wider text-amber-400 uppercase">
-              Contact
+              {t('footer.contact')}
             </h3>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
@@ -188,8 +198,8 @@ export function Footer() {
               <li className="flex items-start gap-3">
                 <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-400/70" />
                 <div className="text-sm text-white/60">
-                  <p>Morning: {TEMPLE_TIMINGS.morning}</p>
-                  <p>Evening: {TEMPLE_TIMINGS.evening}</p>
+                  <p>{t('timings.morning')}: {TEMPLE_TIMINGS.morning}</p>
+                  <p>{t('timings.evening')}: {TEMPLE_TIMINGS.evening}</p>
                 </div>
               </li>
             </ul>
@@ -206,10 +216,10 @@ export function Footer() {
         >
           <div className="mx-auto max-w-xl text-center">
             <h3 className="text-lg font-semibold text-white">
-              Stay Connected
+              {t('footer.stayConnected')}
             </h3>
             <p className="mt-1 text-sm text-white/50">
-              Subscribe to receive temple updates, event notifications, and spiritual insights.
+              {t('footer.newsletterDesc')}
             </p>
             <div className="mt-4">
               <NewsletterForm />
@@ -221,26 +231,26 @@ export function Footer() {
         <div className="mt-12 border-t border-white/10 pt-6">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <p className="text-xs text-white/40">
-              &copy; {new Date().getFullYear()} {TEMPLE_NAME}. All rights reserved.
+              &copy; {new Date().getFullYear()} {TEMPLE_NAME}. {t('footer.copyright')}
             </p>
             <div className="flex items-center gap-4">
               <Link
-                href="/privacy"
+                href="/privacy-policy"
                 className="text-xs text-white/40 transition-colors hover:text-white/60"
               >
-                Privacy Policy
+                {t('nav.privacy')}
               </Link>
               <Link
                 href="/terms"
                 className="text-xs text-white/40 transition-colors hover:text-white/60"
               >
-                Terms of Service
+                {t('nav.terms')}
               </Link>
               <Link
-                href="/refund"
+                href="/refund-policy"
                 className="text-xs text-white/40 transition-colors hover:text-white/60"
               >
-                Refund Policy
+                {t('nav.refund')}
               </Link>
             </div>
           </div>

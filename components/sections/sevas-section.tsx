@@ -1,37 +1,43 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState, useEffect } from "react"
 import Link from "next/link"
 import { motion, useInView } from "framer-motion"
 import { Sun, Infinity, Sparkles, Flame, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n"
 
-const categories = [
+interface CategoryItem {
+  id?: string
+  name: string
+  title?: string
+  description?: string
+  icon?: React.ElementType
+}
+
+const fallbackIcons = [Sun, Infinity, Sparkles, Flame] as const
+
+const fallbackCategories = [
   {
-    title: "Daily Sevas",
-    icon: Sun,
+    name: "Daily Sevas",
     description: "Regular worship services including Nitya Pooja, Abhishekam, and Archana",
     gradient: "from-amber-500/20 to-orange-600/20",
     iconBg: "from-amber-500 to-orange-600",
   },
   {
-    title: "Shashwatha Sevas",
-    icon: Infinity,
+    name: "Shashwatha Sevas",
     description: "Perpetual offerings for lifelong blessings and divine protection",
     gradient: "from-gold-500/20 to-amber-600/20",
     iconBg: "from-gold-500 to-amber-600",
   },
   {
-    title: "Special Sevas",
-    icon: Sparkles,
+    name: "Special Sevas",
     description: "Unique ceremonies for special occasions and festivals",
     gradient: "from-purple-500/20 to-violet-600/20",
     iconBg: "from-purple-500 to-violet-600",
   },
   {
-    title: "Homas",
-    icon: Flame,
+    name: "Homas",
     description: "Sacred fire rituals for purification, prosperity, and spiritual growth",
     gradient: "from-red-500/20 to-rose-600/20",
     iconBg: "from-red-500 to-rose-600",
@@ -42,6 +48,19 @@ export function SevasSection() {
   const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: "-80px" })
+  const [categories, setCategories] = useState<CategoryItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/sevas/categories?isActive=true")
+      .then((r) => r.json())
+      .then((d) => {
+        const list = d.data?.categories || d.data || d || []
+        setCategories(Array.isArray(list) && list.length > 0 ? list : fallbackCategories)
+      })
+      .catch(() => setCategories(fallbackCategories))
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <section ref={ref} className="relative py-24 overflow-hidden bg-gradient-to-b from-warm-ivory to-gold-50/30">
@@ -65,12 +84,19 @@ export function SevasSection() {
           </div>
         </motion.div>
 
+        {loading && (
+          <div className="flex justify-center py-16">
+            <span className="text-sm text-dark-slate/60">{t("common.loading")}</span>
+          </div>
+        )}
+        {!loading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {categories.map((category, index) => {
-            const Icon = category.icon
+            const Icon = fallbackIcons[index % fallbackIcons.length]
+            const fc = fallbackCategories[index % fallbackCategories.length]
             return (
               <motion.div
-                key={category.title}
+                key={category.id || category.title || category.name || index}
                 initial={{ opacity: 0, y: 40 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, delay: index * 0.12, ease: [0.16, 1, 0.3, 1] }}
@@ -81,28 +107,28 @@ export function SevasSection() {
 
                   <div className={cn(
                     "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
-                    category.gradient
+                    fc.gradient
                   )} />
 
                   <div className="relative p-8 text-center">
                     <div className={cn(
                       "mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3",
-                      category.iconBg
+                      fc.iconBg
                     )}>
                       <Icon className="h-7 w-7 text-white" />
                     </div>
 
                     <h3 className="text-xl font-heading font-bold text-dark-slate group-hover:text-primary transition-colors">
-                      {category.title}
+                      {category.title || category.name}
                     </h3>
 
                     <p className="mt-3 text-sm text-dark-slate/60 leading-relaxed">
-                      {category.description}
+                      {category.description || ""}
                     </p>
 
                     <div className="mt-8">
                       <Link
-                        href="/sevas/book"
+                        href="/sevas"
                         className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary to-maroon-700 text-white text-sm font-medium transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:scale-[1.02] active:scale-[0.98]"
                       >
                         {t("sevas.bookNow")}
@@ -115,6 +141,7 @@ export function SevasSection() {
             )
           })}
         </div>
+        )}
 
         <motion.div
           initial={{ opacity: 0 }}

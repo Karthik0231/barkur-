@@ -1,41 +1,38 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState, useEffect } from "react"
 import Link from "next/link"
 import { motion, useInView } from "framer-motion"
 import { Calendar, MapPin, Sparkles, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useTranslation } from "@/lib/i18n"
 
-const events = [
-  {
-    title: "Navaratri Special Pooja",
-    month: "Sep 2026",
-    description: "Nine nights of divine celebrations with special alankaras, homas, and cultural performances dedicated to the divine mother.",
-    icon: Sparkles,
-  },
-  {
-    title: "Deepotsava",
-    month: "Oct 2026",
-    description: "Grand lamp festival illuminating the temple with thousands of diyas, accompanied by vedic chants and special rituals.",
-    icon: Calendar,
-  },
-  {
-    title: "Annual Brahmotsava",
-    month: "Nov 2026",
-    description: "The most significant annual festival featuring chariot processions, vedic recitations, and traditional performing arts.",
-    icon: MapPin,
-  },
-  {
-    title: "Makara Sankranthi",
-    month: "Jan 2027",
-    description: "Harvest festival celebrated with special poojas, traditional offerings, and community feasting at the temple premises.",
-    icon: Calendar,
-  },
-]
+interface EventItem {
+  title: string
+  month: string
+  description: string
+  icon?: React.ElementType
+}
+
+const fallbackIcons = [Sparkles, Calendar, MapPin, Calendar] as const
 
 export function EventsSection() {
+  const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: "-80px" })
+  const [events, setEvents] = useState<EventItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/events?upcoming=true&limit=4")
+      .then((r) => r.json())
+      .then((d) => {
+        const list = d.data?.events || d.data || d || []
+        setEvents(Array.isArray(list) ? list : [])
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <section ref={ref} className="relative py-24 overflow-hidden bg-gradient-to-b from-gold-50/20 to-warm-ivory">
@@ -49,20 +46,31 @@ export function EventsSection() {
           className="flex flex-col items-center text-center mb-16"
         >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-dark-slate">
-            Upcoming Events
+            {t("events.upcomingEvents")}
           </h2>
           <p className="mt-3 text-base sm:text-lg text-dark-slate/50 max-w-xl">
-            Mark your calendar for divine occasions
+            {t("events.upcomingEventsSub")}
           </p>
           <div className="mt-4 h-0.5 w-20 rounded-full bg-gradient-to-r from-primary to-gold-500" />
         </motion.div>
 
+        {loading && (
+          <div className="flex justify-center py-16">
+            <span className="text-sm text-dark-slate/60">{t("common.loading")}</span>
+          </div>
+        )}
+        {!loading && events.length === 0 && (
+          <div className="flex justify-center py-16">
+            <span className="text-sm text-dark-slate/60">{t("common.noResults")}</span>
+          </div>
+        )}
+        {!loading && events.length > 0 && (
         <div className="relative">
           <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-0.5 -translate-x-1/2 bg-gradient-to-b from-gold-300/50 via-gold-500 to-gold-300/50" />
 
           {events.map((event, i) => {
             const isLeft = i % 2 === 0
-            const Icon = event.icon
+            const Icon = event.icon || fallbackIcons[i % fallbackIcons.length]
 
             return (
               <div key={event.title} className="relative flex items-start mb-16 last:mb-0">
@@ -95,13 +103,13 @@ export function EventsSection() {
                     <p className="mt-2 text-sm text-dark-slate/60 leading-relaxed">{event.description}</p>
                     <div className="mt-4 pt-4 border-t border-border/30">
                       <Link
-                        href="/events"
+                        href="/festivals"
                         className={cn(
                           "inline-flex items-center gap-1.5 text-sm font-medium text-gold-600 hover:text-gold-700 transition-colors group",
                           isLeft && "md:flex-row-reverse",
                         )}
                       >
-                        <span>Learn More</span>
+                        <span>{t("common.learnMore")}</span>
                         <ArrowRight className={cn(
                           "h-3.5 w-3.5 transition-transform",
                           isLeft ? "group-hover:-translate-x-1" : "group-hover:translate-x-1",
@@ -114,6 +122,7 @@ export function EventsSection() {
             )
           })}
         </div>
+        )}
       </div>
     </section>
   )

@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { motion, useInView } from "framer-motion"
 import { Heart, ArrowRight, Landmark } from "lucide-react"
@@ -8,36 +8,24 @@ import { useTranslation } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
+interface CampaignItem {
+  id: string
+  name: string
+  description: string | null
+  shortDescription?: string | null
+  goalAmount: number
+  collectedAmount: number
+  slug?: string
+}
+
+const campaignIcons = [Landmark, Heart, Heart]
+
 function formatInLakhs(amount: number) {
   if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(1)}Cr`
   if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`
   if (amount >= 1000) return `₹${(amount / 1000).toFixed(1)}K`
   return `₹${amount}`
 }
-
-const causes = [
-    {
-      title: "Temple Renovation",
-      description: "Preserve the 800-year-old heritage of our sacred temple",
-      icon: Landmark,
-      goal: 10000000,
-      collected: 5200000,
-    },
-  {
-    title: "Daily Anna Dana",
-    description: "Provide free meals to devotees visiting the temple",
-    icon: Heart,
-    goal: 2500000,
-    collected: 1800000,
-  },
-  {
-    title: "Festival Sponsorship",
-    description: "Support grand celebrations and traditional rituals",
-    icon: Heart,
-    goal: 5000000,
-    collected: 2150000,
-  },
-]
 
 function AnimatedProgressBar({
   collected,
@@ -67,14 +55,15 @@ function CauseCard({
   index,
   large,
 }: {
-  cause: (typeof causes)[number]
+  cause: CampaignItem
   index: number
   large?: boolean
 }) {
+  const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: "-80px" })
-  const percentage = Math.min((cause.collected / cause.goal) * 100, 100)
-  const Icon = cause.icon
+  const percentage = Math.min((cause.collectedAmount / cause.goalAmount) * 100, 100)
+  const Icon = campaignIcons[index % campaignIcons.length]
 
   return (
     <motion.div
@@ -96,17 +85,17 @@ function CauseCard({
             <Icon className="w-8 h-8 text-primary" />
           </div>
           <div className="flex-1">
-            <h3
-              className={cn(
-                "font-heading text-text-primary leading-tight",
-                large ? "text-2xl md:text-3xl" : "text-xl md:text-2xl",
-              )}
-            >
-              {cause.title}
-            </h3>
-            <p className="mt-3 text-text-muted leading-relaxed">
-              {cause.description}
-            </p>
+              <h3
+                className={cn(
+                  "font-heading text-text-primary leading-tight",
+                  large ? "text-2xl md:text-3xl" : "text-xl md:text-2xl",
+                )}
+              >
+                {cause.name}
+              </h3>
+              <p className="mt-3 text-text-muted leading-relaxed">
+                {cause.shortDescription || cause.description || ""}
+              </p>
           </div>
         </div>
 
@@ -114,23 +103,23 @@ function CauseCard({
           <div className="flex items-end justify-between mb-3">
             <div className="flex items-baseline gap-2">
               <span className="font-heading text-3xl text-primary tracking-tight">
-                {formatInLakhs(cause.collected)}
+                {formatInLakhs(cause.collectedAmount)}
               </span>
-              <span className="text-sm text-text-muted">raised</span>
+              <span className="text-sm text-text-muted">{t("donate.raised")}</span>
             </div>
             <span className="text-sm font-medium text-primary">
               {percentage.toFixed(0)}%
             </span>
           </div>
           <AnimatedProgressBar
-            collected={cause.collected}
-            goal={cause.goal}
+            collected={cause.collectedAmount}
+            goal={cause.goalAmount}
             isInView={isInView}
           />
           <div className="mt-3 flex items-center justify-between text-sm text-text-muted">
-            <span>Goal: {formatInLakhs(cause.goal)}</span>
+            <span>{t("donate.goal")}: {formatInLakhs(cause.goalAmount)}</span>
             {percentage < 100 && (
-              <span>₹{(cause.goal - cause.collected).toLocaleString("en-IN")} remaining</span>
+              <span>{t("donate.remaining")} ₹{(cause.goalAmount - cause.collectedAmount).toLocaleString("en-IN")}</span>
             )}
           </div>
         </div>
@@ -140,12 +129,12 @@ function CauseCard({
             href="/donate"
             className="inline-flex items-center gap-2 text-primary font-medium hover:text-primary-light transition-colors group/link"
           >
-            Donate Now
+            {t("donate.donateNow")}
             <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover/link:translate-x-1" />
           </Link>
           <Button variant="outline" size="sm" asChild>
-            <Link href={"/donate/" + cause.title.toLowerCase().replace(/\s+/g, "-")}>
-              Learn More
+            <Link href={"/donate/" + (cause.name || "").toLowerCase().replace(/\s+/g, "-")}>
+              {t("common.learnMore")}
             </Link>
           </Button>
         </div>
@@ -158,6 +147,20 @@ export function DonationsSection() {
   const { t } = useTranslation()
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: "-80px" })
+  const [causes, setCauses] = useState<CampaignItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/donations/campaigns?isActive=true&limit=3")
+      .then((r) => r.json())
+      .then((d) => {
+        const list = d.data?.campaigns || d.campaigns || d || []
+        setCauses(Array.isArray(list) ? list : [])
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <section
@@ -177,26 +180,43 @@ export function DonationsSection() {
           className="flex flex-col items-center text-center mb-16 sm:mb-20"
         >
           <span className="text-xs uppercase tracking-[0.2em] text-primary font-medium">
-            Support Us
+            {t("donate.supportTemple")}
           </span>
           <h2 className="section-heading text-text-primary mt-3">
-            {t("donate.supportTemple") || "Support the Temple"}
+            {t("donate.supportTemple")}
           </h2>
           <p className="mt-6 max-w-2xl text-lg text-text-muted">
-            Your generous donations help us preserve our heritage, serve devotees, and conduct sacred rituals with devotion.
+            {t("home.supportTempleSub")}
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <CauseCard cause={causes[0]} index={0} large />
+        {loading && (
+          <div className="flex justify-center py-16">
+            <span className="text-sm text-text-muted">{t("common.loading")}</span>
           </div>
-          <div className="flex flex-col gap-8">
-            {causes.slice(1).map((cause, index) => (
-              <CauseCard key={cause.title} cause={cause} index={index + 1} />
-            ))}
+        )}
+        {error && (
+          <div className="flex justify-center py-16">
+            <span className="text-sm text-text-muted">{t("common.error")}</span>
           </div>
-        </div>
+        )}
+        {!loading && !error && causes.length === 0 && (
+          <div className="flex justify-center py-16">
+            <span className="text-sm text-text-muted">{t("common.noResults")}</span>
+          </div>
+        )}
+        {!loading && !error && causes.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <CauseCard cause={causes[0]} index={0} large />
+            </div>
+            <div className="flex flex-col gap-8">
+              {causes.slice(1).map((cause, index) => (
+                <CauseCard key={cause.id} cause={cause} index={index + 1} />
+              ))}
+            </div>
+          </div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -206,7 +226,7 @@ export function DonationsSection() {
         >
           <Button variant="primary" size="lg" asChild>
             <Link href="/donate">
-              View All Campaigns
+              {t("home.viewAllCampaigns")}
               <ArrowRight className="w-5 h-5 ml-2" />
             </Link>
           </Button>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Plus, Edit3, Trash2, Search, Calendar, MapPin, ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { StatusBadge } from "@/components/admin/status-badge"
 import { RichEditor } from "@/components/admin/rich-editor"
+import toast from "react-hot-toast"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog"
@@ -42,23 +43,25 @@ const festivalSchema = z.object({
   isFeatured: z.boolean().optional(),
 })
 
-const sampleFestivals: Festival[] = [
-  { id: "f1", name: "Maha Shivaratri", slug: "maha-shivaratri", description: "The Great Night of Lord Shiva - one of the most significant Hindu festivals.", startDate: "2026-02-15", endDate: "2026-02-15", isMultiDay: false, category: "MAJOR", isActive: true, isFeatured: true, rituals: ["Rudra Abhishekam", "Night-long Jagaran", "Maha Mrityunjaya Homa"], image: "" },
-  { id: "f2", name: "Ugadi", slug: "ugadi", description: "Kannada New Year celebration marking the beginning of a new Hindu lunar calendar year.", startDate: "2026-03-22", endDate: "2026-03-22", isMultiDay: false, category: "MAJOR", isActive: true, isFeatured: true, rituals: ["Panchanga Sravanam", "Special Pooja", "Ugadi Pachadi"], image: "" },
-  { id: "f3", name: "Sri Rama Navami", slug: "sri-rama-navami", description: "Celebration of Lord Rama's birth with special poojas and recitals.", startDate: "2026-03-30", endDate: "2026-03-30", isMultiDay: false, category: "MAJOR", isActive: true, isFeatured: true, rituals: ["Rama Nama Smarane", "Akhandapatha", "Special Abhishekam"], image: "" },
-  { id: "f4", name: "Navaratri", slug: "navaratri", description: "Nine nights of divine worship dedicated to Goddess Durga.", startDate: "2026-09-25", endDate: "2026-10-04", isMultiDay: true, category: "MAJOR", isActive: true, isFeatured: true, rituals: ["Durga Pooja", "Kumari Pooja", "Lalitha Sahasranama Parayana", "Saraswathi Pooja"], image: "" },
-  { id: "f5", name: "Deepavali", slug: "deepavali", description: "Festival of lights celebrating the victory of light over darkness.", startDate: "2026-10-28", endDate: "2026-10-30", isMultiDay: true, category: "MAJOR", isActive: true, isFeatured: true, rituals: ["Lakshmi Pooja", "Deepa Pooja", "Special Abhishekam"], image: "" },
-  { id: "f6", name: "Karthika Masotsava", slug: "karthika-masotsava", description: "Month-long celebration in the month of Karthika.", startDate: "2026-11-05", endDate: "2026-12-04", isMultiDay: true, category: "MONTHLY", isActive: true, isFeatured: false, rituals: ["Deepa Pooja", "Special Abhishekam"], image: "" },
-  { id: "f7", name: "Annual Brahmotsava", slug: "annual-brahmotsava", description: "Annual temple festival with grand processions and cultural programs.", startDate: "2026-04-10", endDate: "2026-04-17", isMultiDay: true, category: "BRAHMOTSAVA", isActive: false, isFeatured: false, rituals: ["Dwajarohana", "Vahana Seva", "Therottsava", "Avabhritha"], image: "" },
-]
-
 export default function FestivalsPage() {
-  const [festivals, setFestivals] = useState<Festival[]>(sampleFestivals)
+  const [festivals, setFestivals] = useState<Festival[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [expanded, setExpanded] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Festival | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const res = await fetch("/api/festivals")
+        const data = await res.json()
+        setFestivals(data.festivals || [])
+      } catch { toast.error("Failed to load festivals") }
+      finally { setLoading(false) }
+    })()
+  }, [])
 
   const { register, handleSubmit, reset, formState: { errors }, setValue, watch } = useForm({
     resolver: zodResolver(festivalSchema),
@@ -76,18 +79,36 @@ export default function FestivalsPage() {
     setDialogOpen(true)
   }
 
-  const onSubmit = (data: any) => {
-    if (editing) {
-      setFestivals((prev) => prev.map((f) => f.id === editing.id ? { ...f, ...data } : f))
-    } else {
-      setFestivals((prev) => [...prev, { id: `f${Date.now()}`, ...data, isMultiDay: data.startDate !== data.endDate, rituals: [], image: "" }])
-    }
-    setDialogOpen(false)
-    setEditing(null)
+  const reload = async () => {
+    try {
+      const res = await fetch("/api/festivals")
+      const data = await res.json()
+      setFestivals(data.festivals || [])
+    } catch { toast.error("Failed to load festivals") }
   }
 
-  const handleDelete = () => {
-    if (deleteId) { setFestivals((prev) => prev.filter((f) => f.id !== deleteId)); setDeleteId(null) }
+  const onSubmit = async (data: any) => {
+    try {
+      const url = editing ? `/api/festivals/${editing.id}` : "/api/festivals"
+      const method = editing ? "PUT" : "POST"
+      const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+      if (!res.ok) throw new Error()
+      toast.success(editing ? "Festival updated" : "Festival created")
+      setDialogOpen(false)
+      setEditing(null)
+      reload()
+    } catch { toast.error("Failed to save festival") }
+  }
+
+  const handleDelete = async () => {
+    if (!deleteId) return
+    try {
+      const res = await fetch(`/api/festivals/${deleteId}`, { method: "DELETE" })
+      if (!res.ok) throw new Error()
+      toast.success("Festival deleted")
+      setDeleteId(null)
+      reload()
+    } catch { toast.error("Failed to delete festival") }
   }
 
   const filtered = festivals.filter((f) => !search || f.name.toLowerCase().includes(search.toLowerCase()))

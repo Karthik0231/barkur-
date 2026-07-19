@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState, useEffect } from "react"
 import { motion, useInView } from "framer-motion"
 import { Clock, MapPin, Phone, Mail, ArrowRight, Compass } from "lucide-react"
 import { useTranslation } from "@/lib/i18n"
@@ -8,43 +8,53 @@ import {
   TEMPLE_ADDRESS,
   TEMPLE_PHONE,
   TEMPLE_EMAIL,
-  TEMPLE_TIMINGS,
 } from "@/lib/constants"
-
-const cards = [
-  {
-    icon: Clock,
-    title: "Opening Hours",
-    lines: [
-      { label: "Morning", value: TEMPLE_TIMINGS.morning },
-      { label: "Evening", value: TEMPLE_TIMINGS.evening },
-    ],
-  },
-  {
-    icon: MapPin,
-    title: "Location",
-    lines: [
-      { label: "Address", value: TEMPLE_ADDRESS },
-    ],
-    action: {
-      label: "Get Directions",
-      href: "https://maps.google.com/?q=Sri+Kalikamba+Temple+Barkur",
-    },
-  },
-  {
-    icon: Phone,
-    title: "Contact",
-    lines: [
-      { label: "Phone", value: TEMPLE_PHONE, href: `tel:${TEMPLE_PHONE}` },
-      { label: "Email", value: TEMPLE_EMAIL, href: `mailto:${TEMPLE_EMAIL}` },
-    ],
-  },
-]
 
 export function VisitSection() {
   const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: "-80px" })
+  const [morning, setMorning] = useState("6:00 AM - 1:30 PM")
+  const [evening, setEvening] = useState("4:00 PM - 7:30 PM")
+
+  useEffect(() => {
+    fetch("/api/settings?group=temple").then(r => r.json()).then(d => {
+      const s = d.data?.settings || d.settings || []
+      const m = s.find((x: {key: string}) => x.key === "timings_morning")?.value
+      const e = s.find((x: {key: string}) => x.key === "timings_evening")?.value
+      if (m) setMorning(m); if (e) setEvening(e)
+    }).catch(() => {})
+  }, [])
+
+  const cards = [
+    {
+      icon: Clock,
+      title: t("home.openingHours"),
+      lines: [
+        { label: t("timings.morning"), value: morning },
+        { label: t("timings.evening"), value: evening },
+      ],
+    },
+    {
+      icon: MapPin,
+      title: t("home.locationCard"),
+      lines: [
+        { label: t("home.addressLabel"), value: TEMPLE_ADDRESS },
+      ],
+      action: {
+        label: t("home.getDirections"),
+        href: "https://maps.google.com/?q=Sri+Kalikamba+Temple+Barkur",
+      },
+    },
+    {
+      icon: Phone,
+      title: t("home.contactCard"),
+      lines: [
+        { label: t("home.phoneLabel"), value: TEMPLE_PHONE, href: `tel:${TEMPLE_PHONE}` },
+        { label: t("home.emailLabel"), value: TEMPLE_EMAIL, href: `mailto:${TEMPLE_EMAIL}` },
+      ],
+    },
+  ]
 
   return (
     <section ref={ref} className="relative py-24 sm:py-32 overflow-hidden bg-gradient-to-b from-warm-ivory to-gold-50/30">
@@ -58,7 +68,7 @@ export function VisitSection() {
           className="flex flex-col items-center text-center mb-16"
         >
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-script font-semibold text-dark-slate leading-tight">
-            Visit the Temple
+            {t("home.visitTemple")}
           </h2>
           <div className="mt-4 h-0.5 w-16 rounded-full bg-gradient-to-r from-gold-400 to-gold-600" />
         </motion.div>
@@ -90,7 +100,7 @@ export function VisitSection() {
       className="inline-flex items-center gap-2 rounded-full bg-white/95 px-5 py-2.5 text-sm font-medium text-dark-slate shadow-lg backdrop-blur transition-all hover:scale-105 hover:bg-white"
     >
       <MapPin className="h-4 w-4 text-gold-600" />
-      Open in Google Maps
+      {t("home.openInGoogleMaps")}
       <ArrowRight className="h-4 w-4" />
     </a>
   </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Search, Eye, Download, Filter, ArrowUpDown } from "lucide-react"
@@ -27,22 +27,24 @@ interface Booking {
   createdAt: string
 }
 
-const sampleBookings: Booking[] = [
-  { id: "1", bookingId: "SEVA-2026-0042", devoteeName: "Ananya Sharma", seva: "Rudra Abhishekam", date: "2026-07-05", amount: 2500, bookingStatus: "PENDING", paymentStatus: "PAID", adminApproval: "PENDING", phone: "+91 98765 43210", email: "ananya@example.com", quantity: 2, createdAt: "2026-07-01" },
-  { id: "2", bookingId: "SEVA-2026-0041", devoteeName: "Ravi Kumar", seva: "Maha Mrityunjaya Homa", date: "2026-07-04", amount: 5000, bookingStatus: "CONFIRMED", paymentStatus: "PAID", adminApproval: "APPROVED", phone: "+91 87654 32109", email: "ravi@example.com", quantity: 1, createdAt: "2026-06-30" },
-  { id: "3", bookingId: "SEVA-2026-0040", devoteeName: "Priya Patel", seva: "Sathyanarayana Vrata", date: "2026-07-03", amount: 1500, bookingStatus: "COMPLETED", paymentStatus: "PAID", adminApproval: "APPROVED", phone: "+91 76543 21098", email: "priya@example.com", quantity: 3, createdAt: "2026-06-28" },
-  { id: "4", bookingId: "SEVA-2026-0039", devoteeName: "Venkatesh Rao", seva: "Shathachandi Homa", date: "2026-07-02", amount: 7500, bookingStatus: "PENDING", paymentStatus: "PENDING", adminApproval: "PENDING", phone: "+91 65432 10987", email: "venkatesh@example.com", quantity: 1, createdAt: "2026-06-25" },
-  { id: "5", bookingId: "SEVA-2026-0038", devoteeName: "Lakshmi Devi", seva: "Kumbhabhishekam", date: "2026-07-01", amount: 3500, bookingStatus: "CONFIRMED", paymentStatus: "PAID", adminApproval: "APPROVED", phone: "+91 54321 09876", email: "lakshmi@example.com", quantity: 4, createdAt: "2026-06-20" },
-  { id: "6", bookingId: "SEVA-2026-0037", devoteeName: "Suresh Shetty", seva: "Annadanam Seva", date: "2026-06-30", amount: 2000, bookingStatus: "CANCELLED", paymentStatus: "REFUNDED", adminApproval: "REJECTED", phone: "+91 43210 98765", email: "suresh@example.com", quantity: 10, createdAt: "2026-06-18" },
-  { id: "7", bookingId: "SEVA-2026-0036", devoteeName: "Meera Nair", seva: "Sarpa Samskara", date: "2026-07-10", amount: 10000, bookingStatus: "PENDING", paymentStatus: "PAID", adminApproval: "PENDING", phone: "+91 32109 87654", email: "meera@example.com", quantity: 1, createdAt: "2026-06-15" },
-  { id: "8", bookingId: "HALL-2026-0012", devoteeName: "Ganesh Iyer", seva: "Wedding Hall", date: "2026-07-15", amount: 25000, bookingStatus: "PENDING", paymentStatus: "PENDING", adminApproval: "PENDING", phone: "+91 21098 76543", email: "ganesh@example.com", quantity: 1, createdAt: "2026-06-10" },
-]
+
 
 export default function BookingsPage() {
-  const [bookings] = useState<Booking[]>(sampleBookings)
+  const [bookings, setBookings] = useState<Booking[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
   const [paymentFilter, setPaymentFilter] = useState("")
+
+  useEffect(() => {
+    fetch("/api/bookings")
+      .then((r) => r.json())
+      .then((d) => {
+        setBookings(d.data || d || [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
 
   const filtered = bookings.filter((b) => {
     const matchSearch = !search || b.bookingId.toLowerCase().includes(search.toLowerCase()) || b.devoteeName.toLowerCase().includes(search.toLowerCase())
@@ -131,7 +133,7 @@ export default function BookingsPage() {
           onSearch={setSearch}
           searchPlaceholder="Search by booking ID or devotee name..."
           selectable
-          loading={false}
+          loading={loading}
           emptyMessage="No bookings found"
           filters={
             <>

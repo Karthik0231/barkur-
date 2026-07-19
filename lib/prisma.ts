@@ -1,23 +1,29 @@
-// Mock Prisma client for now (no DB set up)
-const noop = () => Promise.resolve(null)
-export const prisma = {
-  user: {
-    findUnique: noop,
-    findFirst: noop,
-    findMany: noop,
-    create: noop,
-    update: noop,
-    count: noop,
-  },
-  templeSetting: {
-    findMany: noop,
-    upsert: noop,
-  },
-  panchanga: {
-    findUnique: noop,
-    create: noop,
-  },
-  auditLog: {
-    create: noop,
-  },
-} as any
+import "dotenv/config";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
+const { Pool } = pg;
+
+declare global {
+  // eslint-disable-next-line no-var
+  var prisma: PrismaClient | undefined;
+}
+
+// Create PostgreSQL pool
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL environment variable is not set");
+}
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+
+export const prisma =
+  global.prisma ||
+  new PrismaClient({
+    adapter,
+    log: ["error", "warn"],
+  });
+
+if (process.env.NODE_ENV !== "production") {
+  global.prisma = prisma;
+}

@@ -1,6 +1,6 @@
-"use client"
+﻿"use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Search, Download, Filter, Calendar, User, Activity } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { DataTable, type Column } from "@/components/admin/data-table"
 import { formatDateTime } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
+import toast from "react-hot-toast"
 
 interface AuditLog {
   id: string
@@ -22,17 +23,6 @@ interface AuditLog {
   createdAt: string
 }
 
-const sampleLogs: AuditLog[] = [
-  { id: "log1", action: "CREATE", entity: "Booking", entityId: "SEVA-2026-0042", user: "Karthik Sharma", userId: "u1", metadata: "Created booking for Rudra Abhishekam", ipAddress: "192.168.1.100", createdAt: "2026-07-02T10:30:00Z" },
-  { id: "log2", action: "UPDATE", entity: "Seva", entityId: "s1", user: "Priya Rao", userId: "u2", metadata: "Updated price for Rudra Abhishekam", ipAddress: "192.168.1.101", createdAt: "2026-07-02T09:15:00Z" },
-  { id: "log3", action: "APPROVE", entity: "Booking", entityId: "SEVA-2026-0041", user: "Karthik Sharma", userId: "u1", metadata: "Approved booking for Ravi Kumar", ipAddress: "192.168.1.100", createdAt: "2026-07-01T14:20:00Z" },
-  { id: "log4", action: "DELETE", entity: "Category", entityId: "cat_old", user: "Priya Rao", userId: "u2", metadata: "Deleted old category", ipAddress: "192.168.1.101", createdAt: "2026-07-01T11:00:00Z" },
-  { id: "log5", action: "LOGIN", entity: "Session", entityId: "u3", user: "Suresh Bhat", userId: "u3", metadata: "User login", ipAddress: "192.168.1.200", createdAt: "2026-06-30T10:00:00Z" },
-  { id: "log6", action: "CREATE", entity: "User", entityId: "u7", user: "Karthik Sharma", userId: "u1", metadata: "Created user Venkatesh Murthy", ipAddress: "192.168.1.100", createdAt: "2026-06-28T16:30:00Z" },
-  { id: "log7", action: "UPDATE", entity: "Settings", entityId: "temple_name", user: "Priya Rao", userId: "u2", metadata: "Updated temple name", ipAddress: "192.168.1.101", createdAt: "2026-06-25T09:45:00Z" },
-  { id: "log8", action: "PAYMENT", entity: "Payment", entityId: "pay_9xH8kM3n", user: "System", userId: "system", metadata: "Payment of ₹2500 received", ipAddress: "", createdAt: "2026-06-20T15:10:00Z" },
-]
-
 const actionColors: Record<string, string> = {
   CREATE: "emerald",
   UPDATE: "blue",
@@ -45,9 +35,21 @@ const actionColors: Record<string, string> = {
 }
 
 export default function AuditLogsPage() {
-  const [logs] = useState<AuditLog[]>(sampleLogs)
+  const [logs, setLogs] = useState<AuditLog[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [actionFilter, setActionFilter] = useState("")
+
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const res = await fetch("/api/audit-logs")
+        const data = await res.json()
+        setLogs(data.auditLogs || data.logs || [])
+      } catch { toast.error("Failed to load audit logs") }
+      finally { setLoading(false) }
+    })()
+  }, [])
 
   const filtered = logs.filter((log) => {
     const matchSearch = !search || log.user.toLowerCase().includes(search.toLowerCase()) || log.entity.toLowerCase().includes(search.toLowerCase()) || log.entityId.toLowerCase().includes(search.toLowerCase())

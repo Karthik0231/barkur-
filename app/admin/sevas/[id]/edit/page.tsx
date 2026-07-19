@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@/lib/zod-resolver"
 import { z } from "zod"
 import { Save, ArrowLeft } from "lucide-react"
+import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
@@ -41,24 +42,7 @@ const categories = [
   { id: "cat6", name: "Seva" },
 ]
 
-// Mock data - replace with API call
-const getSeva = (id: string) => ({
-  id,
-  name: "Rudra Abhishekam",
-  slug: "rudra-abhishekam",
-  categoryId: "cat1",
-  shortDescription: "A powerful Vedic ritual for purification",
-  description: "<p>Rudra Abhishekam is a sacred Vedic ritual performed to Lord Shiva...</p>",
-  price: 2500,
-  originalPrice: 3000,
-  duration: 60,
-  maxDevotees: 5,
-  minDevotees: 1,
-  bookingNotice: 24,
-  requiresApproval: false,
-  isActive: true,
-  isSpecial: true,
-})
+
 
 export default function EditSevaPage() {
   const router = useRouter()
@@ -82,25 +66,41 @@ export default function EditSevaPage() {
   })
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const data = getSeva(params.id as string)
-      if (data) {
-        reset(data)
+    fetch(`/api/sevas/${params.id}`)
+      .then((r) => {
+        if (!r.ok) throw new Error("not found")
+        return r.json()
+      })
+      .then((d) => {
+        reset(d.data || d)
         setLoading(false)
-      } else {
+      })
+      .catch(() => {
         setNotFound(true)
         setLoading(false)
-      }
-    }, 500)
-    return () => clearTimeout(timer)
+      })
   }, [params.id, reset])
 
   const onSubmit = async (data: any) => {
     setSaving(true)
-    await new Promise((r) => setTimeout(r, 1000))
-    console.log("Updated seva:", { ...data, id: params.id, images, rules, instructions })
+    try {
+      const res = await fetch(`/api/sevas/${params.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+          images,
+          rules,
+          instructions,
+        }),
+      })
+      if (!res.ok) throw new Error()
+      toast.success("Seva updated successfully")
+      router.push("/admin/sevas")
+    } catch {
+      toast.error("Failed to update seva")
+    }
     setSaving(false)
-    router.push("/admin/sevas")
   }
 
   if (loading) return <PageSkeleton />

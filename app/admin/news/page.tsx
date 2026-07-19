@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import toast from "react-hot-toast"
 import { motion } from "framer-motion"
 import { Plus, Edit3, Trash2, Search, Eye, Calendar, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -40,24 +41,37 @@ const newsSchema = z.object({
   isUrgent: z.boolean().optional(),
 })
 
-const sampleNews: NewsItem[] = [
-  { id: "n1", title: "Annual Brahmotsava Scheduled for April 2026", slug: "annual-brahmotsava-2026", excerpt: "The annual Brahmotsava will be held from April 10th to 17th.", content: "<p>The annual Brahmotsava...</p>", category: "Events", isPublished: true, isUrgent: false, publishedAt: "2026-03-15T10:00:00Z", createdAt: "2026-03-14T08:00:00Z", author: "Admin" },
-  { id: "n2", title: "New Seva Booking System Launched", slug: "new-seva-booking-system", excerpt: "Online booking system now live for all temple sevas.", content: "<p>We are pleased to announce...</p>", category: "Updates", isPublished: true, isUrgent: false, publishedAt: "2026-02-20T09:00:00Z", createdAt: "2026-02-19T14:00:00Z", author: "Admin" },
-  { id: "n3", title: "Temple Renovation Update - Gopura Construction", slug: "temple-renovation-update-gopura", excerpt: "Gopura construction progress update.", content: "<p>The construction of the new Rajagopura...</p>", category: "Updates", isPublished: true, isUrgent: false, publishedAt: "2026-04-01T11:00:00Z", createdAt: "2026-03-30T16:00:00Z", author: "Admin" },
-  { id: "n4", title: "IMPORTANT: Temple Timings Changed for Summer", slug: "summer-timings-2026", excerpt: "Summer temple timings effective from April 1st.", content: "<p>Please note the revised timings...</p>", category: "Announcements", isPublished: true, isUrgent: true, publishedAt: "2026-03-28T06:00:00Z", createdAt: "2026-03-27T10:00:00Z", author: "Admin" },
-  { id: "n5", title: "Veda Classes Registration Open", slug: "veda-classes-registration", excerpt: "Register for Vedic learning classes.", content: "<p>We are happy to announce...</p>", category: "Events", isPublished: false, isUrgent: false, publishedAt: null, createdAt: "2026-05-01T08:00:00Z", author: "Admin" },
-]
-
 const categories = ["Events", "Updates", "Announcements", "Spiritual", "General"]
 
 export default function NewsPage() {
-  const [news, setNews] = useState<NewsItem[]>(sampleNews)
+  const [news, setNews] = useState<NewsItem[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<NewsItem | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [editorContent, setEditorContent] = useState("")
+
+  const fetchNews = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch("/api/news")
+      const json = await res.json()
+      if (json.success) {
+        const data = json.data
+        setNews(data.news ?? (Array.isArray(data) ? data : []))
+      } else {
+        toast.error(json.message || "Failed to fetch news")
+      }
+    } catch {
+      toast.error("Failed to fetch news")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchNews() }, [])
 
   const { register, handleSubmit, reset, formState: { errors }, setValue } = useForm({
     resolver: zodResolver(newsSchema),
@@ -77,17 +91,37 @@ export default function NewsPage() {
     setDialogOpen(true)
   }
 
-  const onSubmit = (data: any) => {
-    if (editing) {
-      setNews((prev) => prev.map((n) => n.id === editing.id ? { ...n, ...data, content: editorContent } : n))
-    } else {
-      setNews((prev) => [...prev, { id: `n${Date.now()}`, ...data, content: editorContent, publishedAt: data.isPublished ? new Date().toISOString() : null, createdAt: new Date().toISOString(), author: "Admin" }])
-    }
-    setDialogOpen(false)
-    setEditing(null)
+  const onSubmit = async (data: any) => {
+    try {
+      const payload = { ...data, content: editorContent }
+      if (editing) {
+        const res = await fetch(`/api/news/${editing.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+        const json = await res.json()
+        if (!json.success) { toast.error(json.message); return }
+        toast.success(json.message)
+      } else {
+        const res = await fetch("/api/news", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+        const json = await res.json()
+        if (!json.success) { toast.error(json.message); return }
+        toast.success(json.message)
+      }
+      fetchNews()
+      setDialogOpen(false)
+      setEditing(null)
+    } catch { toast.error("Failed to save news") }
   }
 
-  const handleDelete = () => { if (deleteId) { setNews((prev) => prev.filter((n) => n.id !== deleteId)); setDeleteId(null) } }
+  const handleDelete = async () => {
+    if (!deleteId) return
+    try {
+      const res = await fetch(`/api/news/${deleteId}`, { method: "DELETE" })
+      const json = await res.json()
+      if (!json.success) { toast.error(json.message); return }
+      toast.success(json.message)
+      fetchNews()
+    } catch { toast.error("Failed to delete news") }
+    setDeleteId(null)
+  }
 
   const filtered = news.filter((n) => {
     const matchSearch = !search || n.title.toLowerCase().includes(search.toLowerCase())
@@ -116,6 +150,9 @@ export default function NewsPage() {
         </select>
       </div>
 
+      {loading ? (
+        <div className="text-center py-12 text-text-muted">Loading...</div>
+      ) : (
       <div className="space-y-3">
         {filtered.map((item) => (
           <motion.div key={item.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start gap-4 p-4 rounded-xl border border-border bg-warm-white dark:bg-bg-secondary hover:shadow-sm transition-all">
@@ -141,6 +178,7 @@ export default function NewsPage() {
         ))}
         {filtered.length === 0 && <div className="text-center py-12 text-text-muted">No news articles found</div>}
       </div>
+      )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent size="xl">

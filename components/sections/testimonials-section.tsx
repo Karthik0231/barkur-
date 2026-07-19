@@ -5,31 +5,20 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Quote } from "lucide-react"
 import { useTranslation } from "@/lib/i18n"
 
-const testimonials = [
-  {
-    name: "Ananya Sharma",
-    location: "Bengaluru",
-    text: "Visiting Sri Kalikamba Temple was a deeply spiritual experience. The peace and divine energy of this sacred place is beyond words.",
-    gradient: "from-maroon-800 to-primary",
-  },
-  {
-    name: "Ravi Kumar",
-    location: "Udupi",
-    text: "Our family has been coming here for generations. The temple's rich heritage and the priests' devotion make every visit special.",
-    gradient: "from-gold-700 to-secondary",
-  },
-  {
-    name: "Priya Bhat",
-    location: "Mumbai",
-    text: "The Abhishekam ceremony was the most beautiful ritual I have ever witnessed. Truly a divine experience that touched my soul.",
-    gradient: "from-primary-dark to-maroon-900",
-  },
-  {
-    name: "Dr. Srinivas Murthy",
-    location: "Manipal",
-    text: "Having studied the temple's history, the architectural grandeur and spiritual significance make this one of the most important shrines in coastal Karnataka.",
-    gradient: "from-sand-700 to-sand-600",
-  },
+interface TestimonialItem {
+  id: string
+  name: string
+  content: string
+  location?: string | null
+  rating?: number | null
+  isFeatured?: boolean
+}
+
+const gradients = [
+  "from-maroon-800 to-primary",
+  "from-gold-700 to-secondary",
+  "from-primary-dark to-maroon-900",
+  "from-sand-700 to-sand-600",
 ]
 
 const slideVariants = {
@@ -49,10 +38,24 @@ const slideVariants = {
 
 export function TestimonialsSection() {
   const { t } = useTranslation()
+  const [testimonials, setTestimonials] = useState<TestimonialItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [current, setCurrent] = useState(0)
   const [direction, setDirection] = useState(1)
   const [paused, setPaused] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    fetch("/api/testimonials?isApproved=true&limit=6")
+      .then((r) => r.json())
+      .then((d) => {
+        const list = d.data?.testimonials || d.testimonials || d || []
+        setTestimonials(Array.isArray(list) ? list : [])
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false))
+  }, [])
 
   const goTo = useCallback((index: number) => {
     setDirection(index > current ? 1 : -1)
@@ -61,16 +64,16 @@ export function TestimonialsSection() {
 
   const next = useCallback(() => {
     setDirection(1)
-    setCurrent((prev) => (prev + 1) % testimonials.length)
-  }, [])
+    setCurrent((prev) => (prev + 1) % (testimonials.length || 1))
+  }, [testimonials.length])
 
   useEffect(() => {
-    if (paused) return
+    if (paused || testimonials.length === 0) return
     intervalRef.current = setInterval(next, 5000)
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
-  }, [paused, next])
+  }, [paused, next, testimonials.length])
 
   const tData = testimonials[current]
 
@@ -87,7 +90,7 @@ export function TestimonialsSection() {
           className="flex flex-col items-center text-center mb-16"
         >
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-script font-semibold text-dark-slate leading-tight">
-            Devotees Speak
+            {t("home.devoteesSpeak")}
           </h2>
           <div className="mt-4 h-0.5 w-16 rounded-full bg-gradient-to-r from-gold-400 to-gold-600" />
         </motion.div>
@@ -98,64 +101,83 @@ export function TestimonialsSection() {
           onMouseLeave={() => setPaused(false)}
         >
           <div className="min-h-[400px] sm:min-h-[420px] flex items-center">
-            <AnimatePresence mode="wait" custom={direction}>
-              <motion.div
-                key={current}
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full"
-              >
-                <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12 lg:gap-16">
-                  <div className="shrink-0">
-                    <div className={`relative w-52 h-52 sm:w-60 sm:h-60 lg:w-72 lg:h-72 rounded-full bg-gradient-to-br ${tData.gradient} shadow-2xl`}>
-                      <div className="absolute inset-2 rounded-full bg-white/10 backdrop-blur-[2px]" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-white/80 text-center">
-                          <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-white/20 flex items-center justify-center">
-                            <span className="text-2xl sm:text-3xl font-script font-semibold">
-                              {tData.name.split(" ").map((n) => n[0]).join("")}
-                            </span>
+            {loading && (
+              <div className="w-full text-center">
+                <span className="text-sm text-dark-slate/60">{t("common.loading")}</span>
+              </div>
+            )}
+            {error && (
+              <div className="w-full text-center">
+                <span className="text-sm text-dark-slate/60">{t("common.error")}</span>
+              </div>
+            )}
+            {!loading && !error && (!tData || testimonials.length === 0) && (
+              <div className="w-full text-center">
+                <span className="text-sm text-dark-slate/60">{t("common.noResults")}</span>
+              </div>
+            )}
+            {!loading && !error && tData && (
+              <AnimatePresence mode="wait" custom={direction}>
+                <motion.div
+                  key={current}
+                  custom={direction}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full"
+                >
+                  <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12 lg:gap-16">
+                    <div className="shrink-0">
+                      <div className={`relative w-52 h-52 sm:w-60 sm:h-60 lg:w-72 lg:h-72 rounded-full bg-gradient-to-br ${gradients[current % gradients.length]} shadow-2xl`}>
+                        <div className="absolute inset-2 rounded-full bg-white/10 backdrop-blur-[2px]" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-white/80 text-center">
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-white/20 flex items-center justify-center">
+                              <span className="text-2xl sm:text-3xl font-script font-semibold">
+                                {(tData.name || "").split(" ").map((n) => n[0]).join("")}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex-1 relative">
-                    <Quote
-                      className="absolute -top-8 -left-4 text-gold-400/15"
-                      size={120}
-                      strokeWidth={1}
-                    />
-                    <blockquote className="relative z-10">
-                      <p className="text-xl sm:text-2xl lg:text-3xl font-script leading-relaxed text-dark-slate/85">
-                        &ldquo;{tData.text}&rdquo;
-                      </p>
-                    </blockquote>
-                    <div className="mt-6 flex items-center gap-3">
-                      <div className="h-px w-8 bg-gold-400/40" />
-                      <div>
-                        <p className="text-base font-medium text-dark-slate">{tData.name}</p>
-                        <p className="text-sm text-dark-slate/50">{tData.location}</p>
+                    <div className="flex-1 relative">
+                      <Quote
+                        className="absolute -top-8 -left-4 text-gold-400/15"
+                        size={120}
+                        strokeWidth={1}
+                      />
+                      <blockquote className="relative z-10">
+                        <p className="text-xl sm:text-2xl lg:text-3xl font-script leading-relaxed text-dark-slate/85">
+                          &ldquo;{tData.content || ""}&rdquo;
+                        </p>
+                      </blockquote>
+                      <div className="mt-6 flex items-center gap-3">
+                        <div className="h-px w-8 bg-gold-400/40" />
+                        <div>
+                          <p className="text-base font-medium text-dark-slate">{tData.name}</p>
+                          {tData.location && (
+                            <p className="text-sm text-dark-slate/50">{tData.location}</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
+                </motion.div>
+              </AnimatePresence>
+            )}
           </div>
 
           <div className="flex justify-center gap-3 mt-10">
-            {testimonials.map((_, i) => (
+            {!loading && !error && testimonials.length > 0 && testimonials.map((_, i) => (
               <button
                 key={i}
                 onClick={() => goTo(i)}
                 className="group relative flex items-center justify-center"
-                aria-label={`Go to testimonial ${i + 1}`}
+                aria-label={`${t("common.goTo")} ${i + 1}`}
               >
                 <motion.div
                   className={`rounded-full transition-all duration-300 ${

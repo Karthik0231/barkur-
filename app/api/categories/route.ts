@@ -7,10 +7,10 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const { page, limit, skip } = paginationHelper(searchParams)
-    const type = searchParams.get("type")
+    const category = searchParams.get("type")
 
     const where: Record<string, unknown> = { deletedAt: null }
-    if (type) where.type = type
+    if (category) where.name = { contains: category, mode: "insensitive" }
 
     const [categories, total] = await Promise.all([
       prisma.sevaCategory.findMany({

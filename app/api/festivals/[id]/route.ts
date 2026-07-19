@@ -29,9 +29,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const body = await request.json()
     const updateData: Record<string, unknown> = { updatedBy: user.id }
-    const allowed = ["name", "slug", "description", "shortDescription", "significance", "rituals", "imageUrl", "isActive", "isFeatured", "category"]
+    const allowed = ["name", "slug", "description", "shortDescription", "significance", "rituals", "image", "isActive", "isFeatured", "category"]
     for (const key of allowed) {
-      if (body[key] !== undefined) updateData[key] = key === "imageUrl" ? body.image : body[key]
+      if (body[key] !== undefined) updateData[key] = body[key]
     }
     if (body.startDate) updateData.startDate = new Date(body.startDate)
     if (body.endDate !== undefined) updateData.endDate = body.endDate ? new Date(body.endDate) : null

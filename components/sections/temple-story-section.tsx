@@ -35,52 +35,39 @@
  */
 
 import { motion, useInView } from "framer-motion"
-import { useRef } from "react"
+import { useRef, useState, useEffect } from "react"
 import { Landmark, Waves, Sparkles as SparklesIcon, Sunrise, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { useTranslation } from "@/lib/i18n"
 
-const milestones = [
-  {
-    year: "1200",
-    era: "CE",
-    label: "Temple Establishment",
-    description:
-      "The sacred shrine of Sri Kalikamba Devi was consecrated on the banks of the Haladi River, becoming a beacon of spiritual solace for generations.",
-    lift: "high",
-  },
-  {
-    year: "1500",
-    era: "CE",
-    label: "Chola Renovations",
-    description:
-      "Under the patronage of the Chola dynasty, the temple saw its first major expansion with the addition of the ornate gopuram and pillared mandapa.",
-    lift: "low",
-  },
-  {
-    year: "1800",
-    era: "CE",
-    label: "Vijayanagara Patronage",
-    description:
-      "The Vijayanagara rulers enriched the temple with intricate carvings, a sprawling temple tank, and endowments that sustained daily rituals.",
-    lift: "high",
-  },
-  {
-    year: "2024",
-    era: "CE",
-    label: "Temple Restoration",
-    description:
-      "A comprehensive restoration revived the temple's ancient grandeur, preserving its architectural heritage for centuries to come.",
-    lift: "low",
-  },
-] as const
+interface MilestoneItem {
+  year: string
+  era: string
+  label: string
+  description: string
+  lift: "high" | "low"
+}
 
-const FACTS = [
-  { icon: Landmark, label: "Founded", value: "1200 CE", sub: "13th century" },
-  { icon: Waves, label: "Site", value: "Haladi River", sub: "Barkur, Udupi" },
-  { icon: SparklesIcon, label: "Presiding Deity", value: "Sri Kalikamba Devi", sub: "Shakti tradition" },
-  { icon: Sunrise, label: "Daily Rites", value: "7 Sevas", sub: "dawn to midnight" },
-] as const
+interface FactItem {
+  icon: React.ElementType
+  label: string
+  value: string
+  sub: string
+}
+
+const fallbackMilestones: MilestoneItem[] = [
+  { year: "1200", era: "CE", label: "Temple Establishment", description: "The sacred shrine of Sri Kalikamba Devi was consecrated on the banks of the Haladi River, becoming a beacon of spiritual solace for generations.", lift: "high" },
+  { year: "1500", era: "CE", label: "Chola Renovations", description: "Under the patronage of the Chola dynasty, the temple saw its first major expansion with the addition of the ornate gopuram and pillared mandapa.", lift: "low" },
+  { year: "1800", era: "CE", label: "Vijayanagara Patronage", description: "The Vijayanagara rulers enriched the temple with intricate carvings, a sprawling temple tank, and endowments that sustained daily rituals.", lift: "high" },
+  { year: "2024", era: "CE", label: "Temple Restoration", description: "A comprehensive restoration revived the temple's ancient grandeur, preserving its architectural heritage for centuries to come.", lift: "low" },
+]
+
+const fallbackFacts: FactItem[] = [
+  { icon: Landmark, label: "foundedLabel", value: "1200 CE", sub: "13th century" },
+  { icon: Waves, label: "siteLabel", value: "Haladi River", sub: "Barkur, Udupi" },
+  { icon: SparklesIcon, label: "presidingDeityLabel", value: "Sri Kalikamba Devi", sub: "Shakti tradition" },
+  { icon: Sunrise, label: "dailyRitesLabel", value: "7 Sevas", sub: "dawn to midnight" },
+]
 
 /** Brass banner clipped into a pennant — identical silhouette to Hero/Panchanga. */
 function RibbonLabel({
@@ -182,6 +169,25 @@ export function TempleStorySection() {
   const sectionRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: "-80px" })
   const { t } = useTranslation()
+  const [milestones, setMilestones] = useState<MilestoneItem[]>(fallbackMilestones)
+  const [facts, setFacts] = useState<FactItem[]>(fallbackFacts)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/page-content?page=about&section=history")
+      .then((r) => r.json())
+      .then((d) => {
+        const data = d.data || d
+        if (data?.milestones) {
+          setMilestones(Array.isArray(data.milestones) ? data.milestones : fallbackMilestones)
+        }
+        if (data?.facts) {
+          setFacts(Array.isArray(data.facts) ? data.facts : fallbackFacts)
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <section
@@ -211,19 +217,19 @@ export function TempleStorySection() {
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="max-w-2xl"
         >
-          <RibbonLabel icon={Landmark}>Our Heritage</RibbonLabel>
+          <RibbonLabel icon={Landmark}>{t("home.ourHeritage")}</RibbonLabel>
 
           <div className="flex items-start gap-4 sm:gap-6 mt-5 mb-5">
             <h2 className="font-heading text-3xl sm:text-4xl lg:text-[2.75rem] font-bold leading-[1.05] text-dark-slate">
-              A Sacred Legacy,
+              {t("home.sacredLegacy")}
               <br />
-              Carved in Time
+              {t("home.sacredLegacyLine2")}
             </h2>
 
             {/* since-date marker — the section's one kumkum accent, matching Panchanga's single-accent rule */}
             <div className="hidden sm:flex flex-col items-center pt-1.5 shrink-0">
               <span className="text-[10px] tracking-[0.3em] uppercase whitespace-nowrap text-gold-600 font-semibold">
-                Est.
+                {t("home.established")}
               </span>
               <span className="w-1.5 h-1.5 rotate-45 my-1.5 bg-[#C1432B]" />
               <span className="font-heading text-sm tracking-wide whitespace-nowrap text-[#5B0E16]">
@@ -233,20 +239,23 @@ export function TempleStorySection() {
           </div>
 
           <p className="text-sm sm:text-base leading-relaxed font-light text-dark-slate/60">
-            Nestled in the historic town of Barkur, Sri Kalikamba Temple has stood as a
-            testament to faith, artistry, and unbroken tradition for over eight centuries —
-            the same rites, at the same hour, preserved through successive eras of
-            patronage and care.
+            {t("home.templeHistory")}
           </p>
         </motion.div>
 
-        {/* Fact plaques — grounds the section in real "about" content, brass family shared with Panchanga */}
+        {loading && (
+          <div className="flex justify-center py-16">
+            <span className="text-sm text-dark-slate/60">{t("common.loading")}</span>
+          </div>
+        )}
+        {!loading && (
+        <>
         <div className="mt-8 sm:mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {FACTS.map((f, i) => (
+          {facts.map((f, i) => (
             <RivetPlate
               key={f.label}
-              icon={f.icon}
-              label={f.label}
+              icon={fallbackFacts[i % fallbackFacts.length].icon}
+              label={t(`home.${f.label}`)}
               value={f.value}
               sub={f.sub}
               delay={0.15 + i * 0.08}
@@ -320,7 +329,8 @@ export function TempleStorySection() {
             ))}
           </div>
         </div>
-
+        </>
+        )}
         {/* Closing link — same construction as Panchanga's "View Full Panchanga" line */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -332,7 +342,7 @@ export function TempleStorySection() {
             href="/about"
             className="inline-flex items-center gap-1.5 text-xs font-medium text-gold-700 hover:text-gold-600 transition-colors duration-200 group/link"
           >
-            Read the Full History
+            {t("home.readFullHistory")}
             <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover/link:translate-x-1" />
           </Link>
         </motion.div>

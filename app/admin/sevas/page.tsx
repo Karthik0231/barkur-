@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
   Plus,
@@ -24,6 +24,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import toast from "react-hot-toast"
 
 interface Seva {
   id: string
@@ -45,23 +46,25 @@ interface Seva {
   createdAt: string
 }
 
-const sampleSevas: Seva[] = [
-  { id: "1", name: "Rudra Abhishekam", slug: "rudra-abhishekam", category: "Abhishekam", categoryId: "cat1", price: 2500, originalPrice: 3000, duration: 60, maxDevotees: 5, minDevotees: 1, isActive: true, isSpecial: true, isShashwatha: false, requiresApproval: false, bookingNotice: 24, sortOrder: 1, createdAt: "2026-06-01" },
-  { id: "2", name: "Sathyanarayana Vrata", slug: "sathyanarayana-vrata", category: "Vrata", categoryId: "cat2", price: 1500, originalPrice: null, duration: 120, maxDevotees: 10, minDevotees: 2, isActive: true, isSpecial: false, isShashwatha: false, requiresApproval: false, bookingNotice: 48, sortOrder: 2, createdAt: "2026-06-02" },
-  { id: "3", name: "Maha Mrityunjaya Homa", slug: "maha-mrityunjaya-homa", category: "Homa", categoryId: "cat3", price: 5000, originalPrice: 6000, duration: 90, maxDevotees: 3, minDevotees: 1, isActive: true, isSpecial: true, isShashwatha: false, requiresApproval: true, bookingNotice: 72, sortOrder: 3, createdAt: "2026-06-03" },
-  { id: "4", name: "Shathachandi Homa", slug: "shathachandi-homa", category: "Homa", categoryId: "cat3", price: 7500, originalPrice: null, duration: 180, maxDevotees: 2, minDevotees: 1, isActive: true, isSpecial: true, isShashwatha: false, requiresApproval: true, bookingNotice: 168, sortOrder: 4, createdAt: "2026-06-04" },
-  { id: "5", name: "Kumbhabhishekam", slug: "kumbhabhishekam", category: "Abhishekam", categoryId: "cat1", price: 3500, originalPrice: 4000, duration: 45, maxDevotees: 5, minDevotees: 1, isActive: false, isSpecial: false, isShashwatha: false, requiresApproval: false, bookingNotice: 24, sortOrder: 5, createdAt: "2026-06-05" },
-  { id: "6", name: "Nitya Pooja", slug: "nitya-pooja", category: "Nitya", categoryId: "cat4", price: 500, originalPrice: null, duration: 30, maxDevotees: 20, minDevotees: 1, isActive: true, isSpecial: false, isShashwatha: true, requiresApproval: false, bookingNotice: 0, sortOrder: 6, createdAt: "2026-06-06" },
-  { id: "7", name: "Sarpa Samskara", slug: "sarpa-samskara", category: "Special", categoryId: "cat5", price: 10000, originalPrice: 12500, duration: 240, maxDevotees: 1, minDevotees: 1, isActive: true, isSpecial: true, isShashwatha: false, requiresApproval: true, bookingNotice: 336, sortOrder: 7, createdAt: "2026-06-07" },
-  { id: "8", name: "Annadanam Seva", slug: "annadanam-seva", category: "Seva", categoryId: "cat6", price: 2000, originalPrice: null, duration: null, maxDevotees: 100, minDevotees: 10, isActive: true, isSpecial: false, isShashwatha: false, requiresApproval: false, bookingNotice: 48, sortOrder: 8, createdAt: "2026-06-08" },
-]
+
 
 export default function SevasPage() {
-  const [sevas, setSevas] = useState<Seva[]>(sampleSevas)
+  const [sevas, setSevas] = useState<Seva[]>([])
+  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
   const [deleteDialog, setDeleteDialog] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch("/api/sevas")
+      .then((r) => r.json())
+      .then((d) => {
+        setSevas(d.data || d || [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
 
   const categories = [...new Set(sevas.map((s) => s.category))]
 
@@ -78,15 +81,35 @@ export default function SevasPage() {
     return matchesSearch && matchesCategory && matchesStatus
   })
 
-  const handleDelete = (id: string) => {
-    setSevas((prev) => prev.filter((s) => s.id !== id))
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await fetch(`/api/sevas/${id}`, { method: "DELETE" })
+      if (!res.ok) throw new Error()
+      setSevas((prev) => prev.filter((s) => s.id !== id))
+      toast.success("Seva deleted")
+    } catch {
+      toast.error("Failed to delete seva")
+    }
     setDeleteDialog(null)
   }
 
-  const handleToggleStatus = (id: string) => {
-    setSevas((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, isActive: !s.isActive } : s)),
-    )
+  const handleToggleStatus = async (id: string) => {
+    const target = sevas.find((s) => s.id === id)
+    if (!target) return
+    try {
+      const res = await fetch(`/api/sevas/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !target.isActive }),
+      })
+      if (!res.ok) throw new Error()
+      setSevas((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, isActive: !s.isActive } : s)),
+      )
+      toast.success(`Seva ${target.isActive ? "deactivated" : "activated"}`)
+    } catch {
+      toast.error("Failed to update status")
+    }
   }
 
   const columns: Column<Seva>[] = [
@@ -195,6 +218,7 @@ export default function SevasPage() {
           searchQuery={searchQuery}
           onSearch={setSearchQuery}
           selectable
+          loading={loading}
           exportable
           onExport={() => console.log("Export sevas")}
           emptyMessage="No sevas found matching your criteria"

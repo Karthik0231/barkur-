@@ -1,42 +1,18 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState, useEffect } from "react"
 import { motion, useInView } from "framer-motion"
 import { Star, ThumbsUp, Quote } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useTranslation } from "@/lib/i18n"
 
-const reviews = [
-  {
-    name: "Aarav Mehta",
-    rating: 5,
-    text: "One of the most peaceful temples I have ever visited. The architecture is magnificent and the atmosphere is filled with positive energy. A must-visit spiritual destination in Udupi.",
-    date: "2 weeks ago",
-    source: "Google",
-  },
-  {
-    name: "Sneha Kulkarni",
-    rating: 5,
-    text: "The temple management has done an excellent job with the online seva booking system. Very convenient for devotees living outside Karnataka. The priests are very knowledgeable.",
-    date: "1 month ago",
-    source: "Google",
-  },
-  {
-    name: "Vikram Pai",
-    rating: 5,
-    text: "Visited during Navaratri and was blown away by the celebrations. The temple was beautifully decorated and the cultural programs were top-notch. Will visit again next year!",
-    date: "3 months ago",
-    source: "Google",
-  },
-  {
-    name: "Rohini Desai",
-    rating: 4,
-    text: "A beautiful ancient temple with a rich history. The gopuram architecture is stunning. The temple tank is well maintained. Wish they had more parking space though.",
-    date: "2 months ago",
-    source: "Google",
-  },
-]
-
-const averageRating = reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
+interface ReviewItem {
+  name: string
+  rating: number
+  text: string
+  date: string
+  source?: string
+}
 
 function ReviewStars({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
   return (
@@ -55,8 +31,26 @@ function ReviewStars({ rating, size = "sm" }: { rating: number; size?: "sm" | "m
 }
 
 export function ReviewsSection() {
+  const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: "-80px" })
+  const [reviews, setReviews] = useState<ReviewItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/testimonials?isApproved=true&limit=6")
+      .then((r) => r.json())
+      .then((d) => {
+        const list = d.data?.testimonials || d.data || d || []
+        setReviews(Array.isArray(list) ? list : [])
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const averageRating = reviews.length > 0
+    ? reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / reviews.length
+    : 0
 
   return (
     <section ref={ref} className="relative py-20 sm:py-28 overflow-hidden bg-gradient-to-b from-gold-50/20 to-warm-ivory">
@@ -74,18 +68,29 @@ export function ReviewsSection() {
               </span>
               <div className="flex flex-col items-start">
                 <ReviewStars rating={Math.round(averageRating)} size="md" />
-                <span className="text-xs text-dark-slate/50 mt-0.5">Google Reviews</span>
+                <span className="text-xs text-dark-slate/50 mt-0.5">{t("reviews.googleReviews")}</span>
               </div>
             </div>
           </div>
           <h2 className="text-2xl sm:text-3xl font-heading font-bold text-dark-slate">
-            What Devotees Say
+            {t("reviews.whatDevoteesSay")}
           </h2>
           <p className="mt-2 text-sm text-dark-slate/50">
-            Real reviews from visitors who experienced divine grace
+            {t("reviews.subtitle")}
           </p>
         </motion.div>
 
+        {loading && (
+          <div className="flex justify-center py-16">
+            <span className="text-sm text-dark-slate/60">{t("common.loading")}</span>
+          </div>
+        )}
+        {!loading && reviews.length === 0 && (
+          <div className="flex justify-center py-16 text-center">
+            <span className="text-sm text-dark-slate/60">{t("common.noResults")}</span>
+          </div>
+        )}
+        {!loading && reviews.length > 0 && (
         <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
           {reviews.map((review, index) => (
             <motion.div
@@ -118,12 +123,13 @@ export function ReviewsSection() {
 
                 <div className="mt-3 flex items-center gap-1.5 text-xs text-dark-slate/40">
                   <ThumbsUp className="h-3 w-3" />
-                  <span>Found helpful</span>
+                  <span>{t("reviews.foundHelpful")}</span>
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
+        )}
 
         <motion.div
           initial={{ opacity: 0 }}
@@ -138,7 +144,7 @@ export function ReviewsSection() {
             className="group inline-flex items-center gap-2 text-sm font-medium text-gold-600 hover:text-gold-700 transition-colors"
           >
             <Quote className="h-3.5 w-3.5" />
-            Leave a Review on Google
+            {t("reviews.leaveReview")}
           </a>
         </motion.div>
       </div>

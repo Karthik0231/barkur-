@@ -24,39 +24,23 @@
  * -----------------------------------------------------------------------
  */
 
-import { useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { motion, useInView } from "framer-motion"
 import { Clock, ArrowRight, IndianRupee, Stamp } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n"
 
-const featuredSevas = [
-  {
-    id: "nitya-pooja",
-    name: "Nitya Pooja",
-    description: "Daily ritual worship of the deity with flowers, incense, and lamps",
-    price: 501,
-    duration: "30 min",
-    tag: "Daily",
-  },
-  {
-    id: "abhishekam",
-    name: "Abhishekam",
-    description: "Sacred bathing ceremony with milk, curd, honey, and sacred waters",
-    price: 1001,
-    duration: "45 min",
-    tag: "Sacred Bath",
-  },
-  {
-    id: "maha-homa",
-    name: "Maha Homa",
-    description: "Grand fire ritual for peace, prosperity, and spiritual well-being",
-    price: 5001,
-    duration: "2 hours",
-    tag: "Fire Ritual",
-  },
-]
+interface SevaItem {
+  id: string
+  name: string
+  description: string | null
+  shortDescription?: string | null
+  price: number
+  duration?: number | null
+  slug?: string
+  category?: { name: string } | null
+}
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -102,14 +86,24 @@ function Guilloche({ seed }: { seed: number }) {
   )
 }
 
+function formatDuration(minutes: number | null | undefined): string {
+  if (!minutes) return ""
+  if (minutes < 60) return `${minutes} min`
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return m ? `${h}h ${m}m` : `${h} hours`
+}
+
 function SevaTicket({
   seva,
   index,
   featured,
+  t: translate,
 }: {
-  seva: (typeof featuredSevas)[number]
+  seva: SevaItem
   index: number
   featured?: boolean
+  t: (key: string) => string
 }) {
   const serial = `SEVA · ${String(index + 1).padStart(3, "0")}`
 
@@ -141,7 +135,7 @@ function SevaTicket({
               </div>
               <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] text-[#5B0E16]/50 uppercase tracking-wide">
                 <Clock className="h-3 w-3" />
-                {seva.duration}
+                {formatDuration(seva.duration)}
               </span>
             </div>
           </div>
@@ -149,20 +143,20 @@ function SevaTicket({
           {/* MAIN */}
           <div className="flex-1 p-5 sm:p-6 flex flex-col justify-center">
             <span className="text-[10px] uppercase tracking-[0.14em] text-gold-700/70 font-semibold mb-1.5">
-              {seva.tag}
+              {seva.category?.name || translate("sevas.ourSevas")}
             </span>
             <h3 className="font-script text-2xl sm:text-3xl text-[#5B0E16] leading-none">
               {seva.name}
             </h3>
             <p className="mt-3 text-sm text-dark-slate/60 leading-relaxed max-w-md">
-              {seva.description}
+              {seva.shortDescription || seva.description || ""}
             </p>
 
             <div className="mt-5 flex items-center gap-4">
               <Link
                 href="/sevas"
                 className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-[#C1432B]/70 text-[#C1432B] rotate-[-8deg] group-hover:rotate-0 transition-transform duration-500"
-                aria-label={t_bookLabel(seva.name)}
+                aria-label={translate("home.bookThisSeva")}
               >
                 <span className="absolute inset-1 rounded-full border border-dashed border-[#C1432B]/40" />
                 <Stamp className="h-5 w-5" />
@@ -171,7 +165,7 @@ function SevaTicket({
                 href="/sevas"
                 className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-gold-700 hover:text-gold-800 transition-colors group/link"
               >
-                Book This Seva
+                {translate("home.bookThisSeva")}
                 <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover/link:translate-x-1" />
               </Link>
             </div>
@@ -182,14 +176,24 @@ function SevaTicket({
   )
 }
 
-function t_bookLabel(name: string) {
-  return `Book ${name}`
-}
-
 export function FeaturedSevasSection() {
   const { t } = useTranslation()
   const ref = useRef<HTMLElement>(null)
   const isInView = useInView(ref, { once: true, margin: "-60px" })
+  const [sevas, setSevas] = useState<SevaItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/sevas?isFeatured=true&limit=3")
+      .then((r) => r.json())
+      .then((d) => {
+        const list = d.data?.sevas || d.sevas || d || []
+        setSevas(Array.isArray(list) ? list : [])
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <section
@@ -211,24 +215,41 @@ export function FeaturedSevasSection() {
             {t("sevas.ourSevas")}
           </span>
           <h2 className="section-heading font-script text-dark-slate leading-none">
-            Sacred Rituals
+            {t("home.sacredRituals")}
           </h2>
           <div className="mt-3 h-px w-20 bg-gradient-to-r from-transparent via-gold-400/60 to-transparent" />
           <p className="mt-4 text-sm sm:text-base text-dark-slate/60 max-w-lg font-light leading-relaxed">
-            Reserved the way they&apos;ve always been reserved — a name, a time, a token
+            {t("home.sacredRitualsSub")}
           </p>
         </motion.div>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5"
-        >
-          <SevaTicket seva={featuredSevas[0]} index={0} featured />
-          <SevaTicket seva={featuredSevas[1]} index={1} />
-          <SevaTicket seva={featuredSevas[2]} index={2} />
-        </motion.div>
+        {loading && (
+          <div className="flex justify-center py-16">
+            <span className="text-sm text-dark-slate/60">{t("common.loading")}</span>
+          </div>
+        )}
+        {error && (
+          <div className="flex justify-center py-16">
+            <span className="text-sm text-dark-slate/60">{t("common.error")}</span>
+          </div>
+        )}
+        {!loading && !error && sevas.length === 0 && (
+          <div className="flex justify-center py-16">
+            <span className="text-sm text-dark-slate/60">{t("common.noResults")}</span>
+          </div>
+        )}
+        {!loading && !error && sevas.length > 0 && (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate={isInView ? "visible" : "hidden"}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5"
+          >
+            <SevaTicket seva={sevas[0]} index={0} featured t={t} />
+            {sevas[1] && <SevaTicket seva={sevas[1]} index={1} t={t} />}
+            {sevas[2] && <SevaTicket seva={sevas[2]} index={2} t={t} />}
+          </motion.div>
+        )}
 
         <motion.div
           initial={{ opacity: 0 }}
@@ -240,7 +261,7 @@ export function FeaturedSevasSection() {
             href="/sevas"
             className="group inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary-light transition-colors"
           >
-            View All Sacred Services
+            {t("home.viewAllSacredServices")}
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </motion.div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Search, Eye, CheckCircle, XCircle, Calendar, MapPin, Users, IndianRupee } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -28,23 +28,49 @@ interface HallBooking {
   expectedGuests: number
 }
 
-const sampleBookings: HallBooking[] = [
-  { id: "h1", bookingId: "HALL-2026-0012", hall: "Main Kalyana Mantapa", eventName: "Wedding Reception", organizer: "Suresh Shetty", date: "2026-07-15", startTime: "10:00", endTime: "14:00", amount: 25000, status: "PENDING", paymentStatus: "PENDING", approval: "PENDING", expectedGuests: 300 },
-  { id: "h2", bookingId: "HALL-2026-0011", hall: "Mini Hall", eventName: "Birthday Party", organizer: "Priya Rao", date: "2026-07-10", startTime: "16:00", endTime: "20:00", amount: 8000, status: "CONFIRMED", paymentStatus: "PAID", approval: "APPROVED", expectedGuests: 80 },
-  { id: "h3", bookingId: "HALL-2026-0010", hall: "Main Kalyana Mantapa", eventName: "Engagement Ceremony", organizer: "Ravi Kumar", date: "2026-07-20", startTime: "09:00", endTime: "13:00", amount: 20000, status: "CONFIRMED", paymentStatus: "PAID", approval: "APPROVED", expectedGuests: 200 },
-  { id: "h4", bookingId: "HALL-2026-0009", hall: "Annadana Hall", eventName: "Community Feast", organizer: "Temple Trust", date: "2026-07-05", startTime: "11:00", endTime: "15:00", amount: 5000, status: "COMPLETED", paymentStatus: "PAID", approval: "APPROVED", expectedGuests: 150 },
-  { id: "h5", bookingId: "HALL-2026-0008", hall: "Mini Hall", eventName: "Study Group", organizer: "Veda Class", date: "2026-06-30", startTime: "08:00", endTime: "10:00", amount: 2000, status: "CANCELLED", paymentStatus: "REFUNDED", approval: "REJECTED", expectedGuests: 20 },
-]
-
 export default function HallBookingPage() {
-  const [bookings] = useState<HallBooking[]>(sampleBookings)
+  const [bookings, setBookings] = useState<HallBooking[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [view, setView] = useState<"list" | "calendar">("list")
 
+  const fetchBookings = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch("/api/hall-booking")
+      const json = await res.json()
+      const data = json.data ?? json ?? []
+      setBookings(Array.isArray(data) ? data : [])
+    } catch {
+      toast.error("Failed to fetch bookings")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchBookings() }, [])
+
   const filtered = bookings.filter((b) => !search || b.bookingId.toLowerCase().includes(search.toLowerCase()) || b.organizer.toLowerCase().includes(search.toLowerCase()) || b.eventName.toLowerCase().includes(search.toLowerCase()))
 
-  const handleApprove = (id: string) => { toast.success(`Booking ${id} approved`) }
-  const handleReject = (id: string) => { toast.success(`Booking ${id} rejected`) }
+  const handleApprove = async (id: string) => {
+    try {
+      const res = await fetch(`/api/hall-booking/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ approval: "APPROVED" }) })
+      const json = await res.json()
+      if (!json.success) { toast.error(json.message); return }
+      toast.success(json.message)
+      fetchBookings()
+    } catch { toast.error("Failed to approve booking") }
+  }
+
+  const handleReject = async (id: string) => {
+    try {
+      const res = await fetch(`/api/hall-booking/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ approval: "REJECTED" }) })
+      const json = await res.json()
+      if (!json.success) { toast.error(json.message); return }
+      toast.success(json.message)
+      fetchBookings()
+    } catch { toast.error("Failed to reject booking") }
+  }
 
   const columns: Column<HallBooking>[] = [
     { key: "bookingId", header: "Booking ID", sortable: true, render: (item) => <span className="font-medium text-secondary">{item.bookingId}</span> },
@@ -71,6 +97,9 @@ export default function HallBookingPage() {
         </div>
       </div>
 
+      {loading ? (
+        <div className="text-center py-12 text-text-muted">Loading...</div>
+      ) : (<>
       {view === "calendar" ? (
         <Card className="p-6">
           <h3 className="text-lg font-semibold font-heading text-text-primary mb-4">Booking Calendar</h3>
@@ -111,6 +140,7 @@ export default function HallBookingPage() {
           />
         </Card>
       )}
+      </>)}
     </div>
   )
 }

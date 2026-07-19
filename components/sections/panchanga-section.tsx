@@ -34,7 +34,16 @@ import Link from "next/link"
 import { Sun, Moon, Star, Sparkles, Sunrise, Clock, ArrowRight } from "lucide-react"
 import { useTranslation } from "@/lib/i18n"
 import { TEMPLE_TIMINGS } from "@/lib/constants"
-import { fetchPanchanga, type PanchangaData } from "@/lib/panchanga"
+
+interface PanchangaApiData {
+  tithi?: string
+  nakshatra?: string
+  yoga?: string
+  karana?: string
+  rahuKala?: { start: string; end: string }
+  yamaganda?: { start: string; end: string }
+  source?: string
+}
 
 const VARA_NAMES = [
   "Ravivara",
@@ -93,10 +102,25 @@ export function PanchangaSection() {
   const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: "-80px" })
-  const [panchanga, setPanchanga] = useState<PanchangaData | null>(null)
+  const [panchanga, setPanchanga] = useState<PanchangaApiData | null>(null)
+  const [panchangaLoading, setPanchangaLoading] = useState(true)
 
   useEffect(() => {
-    fetchPanchanga().then(setPanchanga)
+    fetch("/api/panchanga?today=true")
+      .then((r) => r.json())
+      .then((d) => {
+        const p = d.data?.panchanga || d.panchanga || d
+        setPanchanga({
+          tithi: p.tithi,
+          nakshatra: p.nakshatra,
+          yoga: p.yoga,
+          karana: p.karana,
+          rahuKala: p.rahuKala || { start: p.rahuKalaStart, end: p.rahuKalaEnd },
+          yamaganda: p.yamaganda || { start: p.yamagandaStart, end: p.yamagandaEnd },
+        })
+      })
+      .catch(() => {})
+      .finally(() => setPanchangaLoading(false))
   }, [])
 
   const now = useMemo(() => new Date(), [])
@@ -113,11 +137,11 @@ export function PanchangaSection() {
 
   // The five anga, arranged 72° apart starting at the top and running clockwise.
   const ANGA = [
-    { key: "vara", label: "Vara", icon: Sun, value: vara },
-    { key: "tithi", label: "Tithi", icon: Moon, value: panchanga?.tithi },
-    { key: "nakshatra", label: "Nakshatra", icon: Star, value: panchanga?.nakshatra },
-    { key: "yoga", label: "Yoga", icon: Sparkles, value: panchanga?.yoga },
-    { key: "karana", label: "Karana", icon: Sunrise, value: panchanga?.karana },
+    { key: "vara", label: t("home.vara"), icon: Sun, value: vara },
+    { key: "tithi", label: t("home.tithi"), icon: Moon, value: panchanga?.tithi },
+    { key: "nakshatra", label: t("home.nakshatra"), icon: Star, value: panchanga?.nakshatra },
+    { key: "yoga", label: t("home.yoga"), icon: Sparkles, value: panchanga?.yoga },
+    { key: "karana", label: t("home.karana"), icon: Sunrise, value: panchanga?.karana },
   ].map((item, i) => ({ ...item, angle: -90 + i * 72 }))
 
   // Fine ticks around the rim, every 6°, sixty of them — an instrument's calibration marks.
@@ -146,7 +170,7 @@ export function PanchangaSection() {
             transition={{ duration: 0.6, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
             className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-dark-slate"
           >
-            The Pancha&#8209;Anga
+            {t("home.panchaAnga")}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 12 }}
@@ -154,7 +178,7 @@ export function PanchangaSection() {
             transition={{ duration: 0.6, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
             className="mt-3 text-sm sm:text-base text-dark-slate/50 max-w-md font-script italic"
           >
-            Five limbs of the day, read from the sky
+            {t("home.panchaAngaSub")}
           </motion.p>
         </div>
 
@@ -253,31 +277,31 @@ export function PanchangaSection() {
           transition={{ duration: 0.6, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="mt-14 sm:mt-16 grid sm:grid-cols-2 gap-3 sm:gap-4 max-w-2xl mx-auto"
         >
-          <RivetPlate accent="kumkum" label="Inauspicious Timings" icon={Clock}>
+          <RivetPlate accent="kumkum" label={t("home.inauspiciousTimings")} icon={Clock}>
             <div className="grid grid-cols-2 gap-2">
               <div className="text-center">
-                <p className="text-[9px] uppercase tracking-wider text-[#C1432B]/80 font-semibold">Rahu Kala</p>
+                <p className="text-[9px] uppercase tracking-wider text-[#C1432B]/80 font-semibold">{t("home.rahuKala")}</p>
                 <p className="text-xs font-medium text-dark-slate mt-0.5 tabular-nums">
-                  {panchanga ? `${panchanga.rahuKala.start} – ${panchanga.rahuKala.end}` : "—"}
+                  {panchanga?.rahuKala ? `${panchanga.rahuKala.start} – ${panchanga.rahuKala.end}` : "—"}
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-[9px] uppercase tracking-wider text-[#C1432B]/80 font-semibold">Yamaganda</p>
+                <p className="text-[9px] uppercase tracking-wider text-[#C1432B]/80 font-semibold">{t("home.yamaganda")}</p>
                 <p className="text-xs font-medium text-dark-slate mt-0.5 tabular-nums">
-                  {panchanga ? `${panchanga.yamaganda.start} – ${panchanga.yamaganda.end}` : "—"}
+                  {panchanga?.yamaganda ? `${panchanga.yamaganda.start} – ${panchanga.yamaganda.end}` : "—"}
                 </p>
               </div>
             </div>
           </RivetPlate>
 
-          <RivetPlate accent="brass" label="Darshana Hours" icon={Sun}>
+          <RivetPlate accent="brass" label={t("home.darshanaHours")} icon={Sun}>
             <div className="grid grid-cols-2 gap-2">
               <div className="text-center">
-                <p className="text-[9px] uppercase tracking-wider text-gold-700/80 font-semibold">Morning</p>
+                <p className="text-[9px] uppercase tracking-wider text-gold-700/80 font-semibold">{t("timings.morning")}</p>
                 <p className="text-xs font-medium text-dark-slate mt-0.5 tabular-nums">{TEMPLE_TIMINGS.morning}</p>
               </div>
               <div className="text-center">
-                <p className="text-[9px] uppercase tracking-wider text-gold-700/80 font-semibold">Evening</p>
+                <p className="text-[9px] uppercase tracking-wider text-gold-700/80 font-semibold">{t("timings.evening")}</p>
                 <p className="text-xs font-medium text-dark-slate mt-0.5 tabular-nums">{TEMPLE_TIMINGS.evening}</p>
               </div>
             </div>
@@ -294,7 +318,7 @@ export function PanchangaSection() {
             href="/panchanga"
             className="inline-flex items-center gap-1.5 text-xs font-medium text-gold-700 hover:text-gold-600 transition-colors duration-200 group/link"
           >
-            {todayDate} &middot; View Full Panchanga
+            {todayDate} &middot; {t("home.viewFullPanchanga")}
             <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover/link:translate-x-1" />
           </Link>
         </motion.div>

@@ -24,13 +24,13 @@ export function NewsletterSection() {
 
     if (!email.trim()) {
       setStatus("error")
-      setErrorMsg("Please enter your email address")
+      setErrorMsg(t("newsletter.emailRequired"))
       return
     }
 
     if (!validateEmail(email)) {
       setStatus("error")
-      setErrorMsg("Please enter a valid email address")
+      setErrorMsg(t("newsletter.emailInvalid"))
       return
     }
 
@@ -71,14 +71,14 @@ export function NewsletterSection() {
           </motion.div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-dark-slate leading-tight">
-            Stay Connected
+            {t("newsletter.stayConnected")}
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary to-gold-500">
-              with Sri Kalikamba Temple
+              {t("newsletter.withTemple")}
             </span>
           </h2>
 
           <p className="mt-4 text-base text-dark-slate/60 max-w-lg mx-auto">
-            Subscribe to receive temple updates, event notifications, spiritual insights, and divine blessings directly in your inbox.
+            {t("newsletter.subtitle")}
           </p>
 
           <div className="mt-8 max-w-md mx-auto">
@@ -92,7 +92,7 @@ export function NewsletterSection() {
                     setEmail(e.target.value)
                     if (status === "error") setStatus("idle")
                   }}
-                  placeholder="Your email address"
+                  placeholder={t("newsletter.emailPlaceholder")}
                   disabled={status === "loading" || status === "success"}
                   className={cn(
                     "w-full rounded-xl border border-gold-200/60 bg-white py-3 pl-10 pr-32 text-sm text-dark-slate placeholder:text-dark-slate/40",
@@ -144,7 +144,7 @@ export function NewsletterSection() {
                 className="mt-2 flex items-center gap-1.5 text-xs text-leaf-500"
               >
                 <CheckCircle className="h-3.5 w-3.5" />
-                Thank you! You have been subscribed.
+                {t("newsletter.subscribed")}
               </motion.p>
             )}
           </div>
@@ -152,15 +152,15 @@ export function NewsletterSection() {
           <div className="mt-8 flex items-center justify-center gap-6 text-xs text-dark-slate/40">
             <span className="flex items-center gap-1.5">
               <Sparkles className="h-3 w-3 text-gold-400" />
-              Weekly updates
+              {t("newsletter.weeklyUpdates")}
             </span>
             <span className="flex items-center gap-1.5">
               <Sparkles className="h-3 w-3 text-gold-400" />
-              No spam
+              {t("newsletter.noSpam")}
             </span>
             <span className="flex items-center gap-1.5">
               <Sparkles className="h-3 w-3 text-gold-400" />
-              Unsubscribe anytime
+              {t("newsletter.unsubscribe")}
             </span>
           </div>
         </motion.div>

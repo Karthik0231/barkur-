@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Search, Edit3, Eye, Globe, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -33,30 +33,72 @@ const pages = [
   { id: "footer", name: "Footer", sections: ["Links", "Social", "Copyright"] },
 ]
 
-const sampleContent: Record<string, PageContent> = {
-  "home-hero": { id: "pc1", page: "home", section: "Hero", title: "Sri Kalikamba Temple", subtitle: "Discover the divine grace of the ancient temple in Barkur", content: "<p>Welcome to Sri Kalikamba Temple, a sacred spiritual destination...</p>", isActive: true, sortOrder: 1 },
-  "home-stats": { id: "pc2", page: "home", section: "Stats", title: "Temple at a Glance", subtitle: "Our legacy in numbers", content: "<p>Centuries of spiritual service...</p>", isActive: true, sortOrder: 2 },
-}
-
 export default function PagesPage() {
   const [activePage, setActivePage] = useState(pages[0].id)
   const [activeSection, setActiveSection] = useState(pages[0].sections[0])
   const [search, setSearch] = useState("")
   const [saving, setSaving] = useState(false)
-  const [editorContent, setEditorContent] = useState(sampleContent["home-hero"]?.content || "")
-  const [pageTitle, setPageTitle] = useState(sampleContent["home-hero"]?.title || "")
-  const [pageSubtitle, setPageSubtitle] = useState(sampleContent["home-hero"]?.subtitle || "")
+  const [loading, setLoading] = useState(true)
+  const [contentMap, setContentMap] = useState<Record<string, PageContent>>({})
+  const [editorContent, setEditorContent] = useState("")
+  const [pageTitle, setPageTitle] = useState("")
+  const [pageSubtitle, setPageSubtitle] = useState("")
   const [images, setImages] = useState<ImageItem[]>([])
+
+  const fetchContent = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch("/api/page-content")
+      const json = await res.json()
+      const data = json.data ?? json ?? []
+      const items = Array.isArray(data) ? data : []
+      const map: Record<string, PageContent> = {}
+      items.forEach((item: PageContent) => {
+        const key = `${item.page}-${item.section.toLowerCase().replace(/\s+/g, "-")}`
+        map[key] = item
+      })
+      setContentMap(map)
+    } catch {
+      toast.error("Failed to fetch page content")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchContent() }, [])
 
   const currentPage = pages.find((p) => p.id === activePage)
   const contentKey = `${activePage}-${activeSection.toLowerCase().replace(/\s+/g, "-")}`
-  const currentContent = sampleContent[contentKey]
+  const currentContent = contentMap[contentKey]
+
+  useEffect(() => {
+    if (currentContent) {
+      setPageTitle(currentContent.title)
+      setPageSubtitle(currentContent.subtitle)
+      setEditorContent(currentContent.content)
+      setImages([])
+    } else {
+      setPageTitle("")
+      setPageSubtitle("")
+      setEditorContent("")
+      setImages([])
+    }
+  }, [activePage, activeSection, contentMap])
 
   const handleSave = async () => {
     setSaving(true)
-    await new Promise((r) => setTimeout(r, 1000))
-    toast.success(`Content saved for ${activeSection}`)
-    setSaving(false)
+    try {
+      const payload = { page: activePage, section: activeSection, title: pageTitle, subtitle: pageSubtitle, content: editorContent, isActive: true }
+      const existing = contentMap[contentKey]
+      const url = existing ? `/api/page-content/${existing.id}` : "/api/page-content"
+      const method = existing ? "PUT" : "POST"
+      const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      const json = await res.json()
+      if (!json.success) { toast.error(json.message); return }
+      toast.success(json.message)
+      fetchContent()
+    } catch { toast.error("Failed to save content") }
+    finally { setSaving(false) }
   }
 
   return (
@@ -71,6 +113,9 @@ export default function PagesPage() {
         </Button>
       </div>
 
+      {loading ? (
+        <div className="text-center py-12 text-text-muted">Loading...</div>
+      ) : (
       <div className="flex gap-6">
         <div className="hidden lg:flex flex-col gap-1 w-48 shrink-0">
           {pages.map((page) => (
@@ -147,6 +192,7 @@ export default function PagesPage() {
           </Card>
         </div>
       </div>
+      )}
     </div>
   )
 }

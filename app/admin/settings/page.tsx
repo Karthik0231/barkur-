@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Save, Building2, Clock, Mail, Palette, CreditCard, Search, Globe, Phone, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -95,42 +95,28 @@ const settingSections: SettingSection[] = [
   },
 ]
 
-const defaultValues: Record<string, string> = {
-  templeName: "Sri Kalikamba Temple",
-  templeAddress: "Near Kalchappra, Barkurpete",
-  templeCity: "Barkur",
-  templeState: "Karnataka",
-  templePincode: "576210",
-  contactPhone: "+91 77952 92377",
-  contactAltPhone: "",
-  contactEmail: "info@kalikambatemple.org",
-  contactWhatsApp: "+91 77952 92377",
-  socialInstagram: "https://instagram.com/shrikalikambatemple",
-  socialFacebook: "",
-  socialYoutube: "",
-  socialTwitter: "",
-  timingsMorningOpen: "6:00 AM",
-  timingsMorningClose: "1:30 PM",
-  timingsEveningOpen: "4:00 PM",
-  timingsEveningClose: "7:30 PM",
-  paymentRazorpayKey: "rzp_live_xxxxxxxxxxxx",
-  paymentRazorpaySecret: "********",
-  paymentCurrency: "INR",
-  emailHost: "smtp.gmail.com",
-  emailPort: "587",
-  emailUser: "noreply@kalikambatemple.org",
-  emailPassword: "********",
-  emailFrom: "noreply@kalikambatemple.org",
-  seoTitle: "Sri Kalikamba Temple | Barkur, Udupi",
-  seoDescription: "Discover the divine grace of Sri Kalikamba Temple in Barkur, Udupi.",
-  seoKeywords: "Sri Kalikamba Temple, Barkur, Udupi, Temple, Seva, Puja",
-}
-
 export default function SettingsPage() {
-  const [values, setValues] = useState<Record<string, string>>(defaultValues)
+  const [values, setValues] = useState<Record<string, string>>({})
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState(settingSections[0].id)
   const [dirty, setDirty] = useState(false)
+  const [settingsList, setSettingsList] = useState<{ key: string; value: string; group: string }[]>([])
+
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const res = await fetch("/api/settings")
+        const data = await res.json()
+        const list = data.settings || []
+        setSettingsList(list)
+        const flat: Record<string, string> = {}
+        list.forEach((s: { key: string; value: string }) => { flat[s.key] = s.value })
+        setValues(flat)
+      } catch { toast.error("Failed to load settings") }
+      finally { setLoading(false) }
+    })()
+  }, [])
 
   const updateValue = (key: string, val: string) => {
     setValues((prev) => ({ ...prev, [key]: val }))
@@ -139,10 +125,15 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     setSaving(true)
-    await new Promise((r) => setTimeout(r, 1500))
-    setSaving(false)
-    setDirty(false)
-    toast.success("Settings saved successfully")
+    try {
+      const updated = settingsList.map((s) => ({ ...s, value: values[s.key] ?? s.value }))
+      const payload = { settings: updated }
+      const res = await fetch("/api/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      if (!res.ok) throw new Error()
+      setDirty(false)
+      toast.success("Settings saved successfully")
+    } catch { toast.error("Failed to save settings") }
+    finally { setSaving(false) }
   }
 
   const activeSection = settingSections.find((s) => s.id === activeTab) || settingSections[0]

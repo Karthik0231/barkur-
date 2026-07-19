@@ -294,10 +294,10 @@ export function calculatePanchanga(date: Date): PanchangaData {
   const sunNirayana = ((sunSayana - ayan) % 360 + 360) % 360
   const moonNirayana = ((moonSayana - ayan) % 360 + 360) % 360
 
-  const tithi = calcTithi(sunSayana, moonSayana)
+  const tithi = calcTithi(sunNirayana, moonNirayana)
   const nakshatra = calcNakshatra(moonNirayana)
   const yoga = calcYoga(sunNirayana, moonNirayana)
-  const karana = calcKarana(sunSayana, moonSayana)
+  const karana = calcKarana(sunNirayana, moonNirayana)
   const masa = calcMasa(sunNirayana)
 
   const periods = calcPeriods(julianDay, sunriseHours, sunsetHours)

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Plus, Edit3, Trash2, Search, Church, MapPin, BookOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -15,6 +15,7 @@ import {
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@/lib/zod-resolver"
 import { z } from "zod"
+import toast from "react-hot-toast"
 
 interface SubDeity {
   id: string
@@ -37,21 +38,25 @@ const deitySchema = z.object({
   isActive: z.boolean().optional(),
 })
 
-const sampleData: SubDeity[] = [
-  { id: "sd1", name: "Ganapati", sanskritName: "गणपति", description: "Lord Ganesha is the deity of wisdom, prosperity and good fortune. The temple has a beautiful shrine dedicated to Lord Ganapati.", significance: "Remover of obstacles, worshipped before any new beginning.", image: "", templeLocation: "South-east corner of main temple", isActive: true, sortOrder: 1 },
-  { id: "sd2", name: "Sri Maha Vishnu", sanskritName: "श्री महाविष्णु", description: "Lord Vishnu, the preserver of the universe, is enshrined in a separate shrine within the temple complex.", significance: "Preserver of the universe, embodiment of compassion.", image: "", templeLocation: "North side shrine", isActive: true, sortOrder: 2 },
-  { id: "sd3", name: "Sri Anjaneya", sanskritName: "श्री अंजनेय", description: "Lord Hanuman, the greatest devotee of Lord Rama, is worshipped with great devotion.", significance: "Symbol of strength, devotion and loyalty.", image: "", templeLocation: "South-west corner", isActive: true, sortOrder: 3 },
-  { id: "sd4", name: "Navagraha", sanskritName: "नवग्रह", description: "The nine planetary deities are enshrined in a single shrine, worshipped for planetary peace.", significance: "Removes planetary afflictions and brings prosperity.", image: "", templeLocation: "Outside the main prakara", isActive: true, sortOrder: 4 },
-  { id: "sd5", name: "Bhoodevi", sanskritName: "भूदेवी", description: "Goddess Earth, consort of Lord Vishnu, is worshipped in a separate shrine.", significance: "Symbol of Mother Earth and fertility.", image: "", templeLocation: "North side", isActive: false, sortOrder: 5 },
-]
-
 export default function SubDeitiesPage() {
-  const [deities, setDeities] = useState<SubDeity[]>(sampleData)
+  const [deities, setDeities] = useState<SubDeity[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<SubDeity | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [editorContent, setEditorContent] = useState("")
+
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const res = await fetch("/api/sub-deities")
+        const data = await res.json()
+        setDeities(data.subDeities || [])
+      } catch { toast.error("Failed to load sub-deities") }
+      finally { setLoading(false) }
+    })()
+  }, [])
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: zodResolver(deitySchema),
@@ -71,18 +76,38 @@ export default function SubDeitiesPage() {
     setDialogOpen(true)
   }
 
-  const onSubmit = (data: any) => {
-    const processed = { ...data, description: editorContent }
-    if (editing) {
-      setDeities((prev) => prev.map((d) => d.id === editing.id ? { ...d, ...processed } : d))
-    } else {
-      setDeities((prev) => [...prev, { id: `sd${Date.now()}`, ...processed, image: "", sortOrder: prev.length + 1 }])
-    }
-    setDialogOpen(false)
-    setEditing(null)
+  const reload = async () => {
+    try {
+      const res = await fetch("/api/sub-deities")
+      const data = await res.json()
+      setDeities(data.subDeities || [])
+    } catch { toast.error("Failed to load sub-deities") }
   }
 
-  const handleDelete = () => { if (deleteId) { setDeities((prev) => prev.filter((d) => d.id !== deleteId)); setDeleteId(null) } }
+  const onSubmit = async (data: any) => {
+    try {
+      const processed = { ...data, description: editorContent }
+      const url = editing ? `/api/sub-deities/${editing.id}` : "/api/sub-deities"
+      const method = editing ? "PUT" : "POST"
+      const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(processed) })
+      if (!res.ok) throw new Error()
+      toast.success(editing ? "Sub-deity updated" : "Sub-deity created")
+      setDialogOpen(false)
+      setEditing(null)
+      reload()
+    } catch { toast.error("Failed to save sub-deity") }
+  }
+
+  const handleDelete = async () => {
+    if (!deleteId) return
+    try {
+      const res = await fetch(`/api/sub-deities/${deleteId}`, { method: "DELETE" })
+      if (!res.ok) throw new Error()
+      toast.success("Sub-deity deleted")
+      setDeleteId(null)
+      reload()
+    } catch { toast.error("Failed to delete sub-deity") }
+  }
 
   const filtered = deities.filter((d) => !search || d.name.toLowerCase().includes(search.toLowerCase()) || (d.sanskritName && d.sanskritName.includes(search)))
 

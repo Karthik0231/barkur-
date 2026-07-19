@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Search, Mail, Phone, MessageSquare, CheckCircle, Eye, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -23,22 +23,37 @@ interface ContactMessage {
   createdAt: string
 }
 
-const sampleData: ContactMessage[] = [
-  { id: "c1", name: "Ramesh Hegde", email: "ramesh@example.com", phone: "+91 98765 43210", subject: "Booking Inquiry", message: "I would like to know about the availability of Rudra Abhishekam for next week.", isRead: false, category: "Booking", createdAt: "2026-07-02T10:30:00Z" },
-  { id: "c2", name: "Priya Shetty", email: "priya@example.com", phone: "+91 87654 32109", subject: "Donation Related", message: "I want to make a donation for the Annadana scheme. Please let me know the process.", isRead: false, category: "Donation", createdAt: "2026-07-01T14:20:00Z" },
-  { id: "c3", name: "Venkatesh Rao", email: "venkatesh@example.com", phone: null, subject: "General Feedback", message: "The temple experience was wonderful. The new booking system is very user-friendly.", isRead: true, category: "Feedback", createdAt: "2026-06-28T09:15:00Z" },
-  { id: "c4", name: "Lakshmi Devi", email: "lakshmi@example.com", phone: "+91 76543 21098", subject: "Hall Booking", message: "We are planning a wedding in December and would like to check hall availability.", isRead: true, category: "Hall Booking", createdAt: "2026-06-25T16:45:00Z" },
-  { id: "c5", name: "Ananya Sharma", email: "ananya@example.com", phone: null, subject: "Technical Issue", message: "I am unable to complete the payment for my seva booking. Getting an error.", isRead: false, category: "Technical", createdAt: "2026-07-02T11:00:00Z" },
-]
+
 
 export default function ContactPage() {
-  const [messages, setMessages] = useState<ContactMessage[]>(sampleData)
+  const [messages, setMessages] = useState<ContactMessage[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null)
 
-  const markAsRead = (id: string) => {
-    setMessages((prev) => prev.map((m) => m.id === id ? { ...m, isRead: true } : m))
-    toast.success("Marked as read")
+  useEffect(() => {
+    fetch("/api/contact")
+      .then((r) => r.json())
+      .then((d) => {
+        setMessages(d.data || d || [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  const markAsRead = async (id: string) => {
+    try {
+      const res = await fetch(`/api/contact/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isRead: true }),
+      })
+      if (!res.ok) throw new Error()
+      toast.success("Marked as read")
+      setMessages((prev) => prev.map((m) => m.id === id ? { ...m, isRead: true } : m))
+    } catch {
+      toast.error("Failed to mark as read")
+    }
   }
 
   const filtered = messages.filter((m) => !search || m.name.toLowerCase().includes(search.toLowerCase()) || m.subject.toLowerCase().includes(search.toLowerCase()) || m.email.toLowerCase().includes(search.toLowerCase()))
@@ -104,7 +119,7 @@ export default function ContactPage() {
           onRowClick={(item) => setSelectedMessage(item)}
           searchable searchQuery={search} onSearch={setSearch}
           searchPlaceholder="Search by name, email, or subject..."
-          selectable emptyMessage="No contact messages found"
+          selectable loading={loading} emptyMessage="No contact messages found"
           actions={(item) => (
             <div className="flex items-center gap-1">
               {!item.isRead && (
