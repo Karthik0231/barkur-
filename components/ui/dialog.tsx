@@ -113,7 +113,7 @@ export function Dialog({
                 <X className="h-4 w-4" />
               </button>
             )}
-            <div className="overflow-y-auto">{children}</div>
+            {children}
           </motion.div>
         </div>
       )}
@@ -144,7 +144,7 @@ export function DialogContent({
   ...props
 }: HTMLAttributes<HTMLDivElement> & { size?: "sm" | "md" | "lg" | "xl" | "full" }) {
   return (
-    <div className={cn("p-5 sm:p-6", sizeStyles[size], className)} {...props}>
+    <div className={cn("p-5 sm:p-6 flex flex-col overflow-y-auto", sizeStyles[size], className)} {...props}>
       {children}
     </div>
   )
