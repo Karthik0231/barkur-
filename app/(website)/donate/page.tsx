@@ -36,6 +36,7 @@ export default function DonatePage() {
   const { t } = useTranslation()
   const [campaigns, setCampaigns] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [now] = useState(() => Date.now())
 
   useEffect(() => {
     fetch("/api/donations/campaigns?limit=50")
@@ -83,7 +84,7 @@ export default function DonatePage() {
               const featured = campaign.isFeatured || campaign.featured
               const donors = Number(campaign.donorCount || campaign.donors || 0)
               const endDate = campaign.endDate ? new Date(campaign.endDate) : null
-              const daysLeft = endDate ? Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : (campaign.daysLeft || 0)
+              const daysLeft = endDate ? Math.ceil((endDate.getTime() - now) / (1000 * 60 * 60 * 24)) : (campaign.daysLeft || 0)
               return (
               <motion.div
                 key={campaign.id}

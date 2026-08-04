@@ -43,7 +43,7 @@ export default function GalleryPage() {
       setLoading(true)
       const res = await fetch("/api/gallery")
       const json = await res.json()
-      const data = json.data ?? json ?? []
+      const data = json.data?.gallery ?? []
       setItems(Array.isArray(data) ? data : [])
     } catch {
       toast.error("Failed to fetch gallery")
@@ -64,7 +64,7 @@ export default function GalleryPage() {
     try {
       const item = items.find((i) => i.id === id)
       if (!item) return
-      const res = await fetch(`/api/gallery/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isFeatured: !item.isFeatured }) })
+      const res = await fetch(`/api/gallery/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isFeatured: !item.isFeatured }) })
       const json = await res.json()
       if (!json.success) { toast.error(json.message); return }
       toast.success(json.message)
@@ -76,7 +76,7 @@ export default function GalleryPage() {
     try {
       const item = items.find((i) => i.id === id)
       if (!item) return
-      const res = await fetch(`/api/gallery/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isPublished: !item.isPublished }) })
+      const res = await fetch(`/api/gallery/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isPublished: !item.isPublished }) })
       const json = await res.json()
       if (!json.success) { toast.error(json.message); return }
       toast.success(json.message)
@@ -103,6 +103,14 @@ export default function GalleryPage() {
     try {
       const formData = new FormData()
       Array.from(files).forEach((f) => formData.append("images", f))
+      formData.append("metadata", JSON.stringify({
+        title: "Uploaded Image",
+        category: categoryFilter || "OTHER",
+        type: "IMAGE",
+        isFeatured: false,
+        isPublished: true,
+        sortOrder: 0,
+      }))
       const res = await fetch("/api/gallery", { method: "POST", body: formData })
       const json = await res.json()
       if (!json.success) { toast.error(json.message); return }

@@ -48,7 +48,7 @@ export default function FAQPage() {
 
   useEffect(() => {
     fetch("/api/faq").then((r) => r.json()).then((json) => {
-      setFaqs(Array.isArray(json) ? json : (json.data ?? []))
+      setFaqs(Array.isArray(json) ? json : (json.data?.faqs ?? []))
     }).finally(() => setLoading(false))
   }, [])
 

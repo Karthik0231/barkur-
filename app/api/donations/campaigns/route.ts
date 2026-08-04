@@ -15,6 +15,7 @@ export async function GET(request: Request) {
     if (!isAdmin) where.isActive = true
     if (search) where.OR = [
       { name: { contains: search, mode: "insensitive" } },
+      { slug: { contains: search, mode: "insensitive" } },
       { description: { contains: search, mode: "insensitive" } },
     ]
 
@@ -24,6 +25,7 @@ export async function GET(request: Request) {
         skip,
         take: limit,
         orderBy: [{ isFeatured: "desc" }, { [sortBy]: sortOrder }],
+        include: { _count: { select: { donations: true } } },
       }),
       prisma.donationCampaign.count({ where: where as never }),
     ])

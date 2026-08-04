@@ -37,9 +37,9 @@ export default function HallBookingPage() {
   const fetchBookings = async () => {
     try {
       setLoading(true)
-      const res = await fetch("/api/hall-booking")
+      const res = await fetch("/api/hall-bookings")
       const json = await res.json()
-      const data = json.data ?? json ?? []
+      const data = json.data?.bookings ?? []
       setBookings(Array.isArray(data) ? data : [])
     } catch {
       toast.error("Failed to fetch bookings")
@@ -54,7 +54,7 @@ export default function HallBookingPage() {
 
   const handleApprove = async (id: string) => {
     try {
-      const res = await fetch(`/api/hall-booking/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ approval: "APPROVED" }) })
+      const res = await fetch(`/api/hall-bookings/${id}/approve`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ approved: true }) })
       const json = await res.json()
       if (!json.success) { toast.error(json.message); return }
       toast.success(json.message)
@@ -64,7 +64,7 @@ export default function HallBookingPage() {
 
   const handleReject = async (id: string) => {
     try {
-      const res = await fetch(`/api/hall-booking/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ approval: "REJECTED" }) })
+      const res = await fetch(`/api/hall-bookings/${id}/approve`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ approved: false }) })
       const json = await res.json()
       if (!json.success) { toast.error(json.message); return }
       toast.success(json.message)

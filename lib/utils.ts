@@ -61,7 +61,9 @@ export function generateCertificateNumber() {
 }
 
 export function generateOTP() {
-  return String(Math.floor(100000 + Math.random() * 900000))
+  const array = new Uint32Array(1)
+  crypto.getRandomValues(array)
+  return String((array[0] % 900000) + 100000)
 }
 
 export function calculateAge(dob: Date) {

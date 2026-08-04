@@ -6,183 +6,56 @@ datasource db {
   provider = "postgresql"
 }
 
-enum UserRole {
-  SUPER_ADMIN
-  ADMIN
-  TEMPLE_MANAGER
-  ACCOUNTANT
-  VOLUNTEER
-  RECEPTION
-  DEVOTEE
-}
-
-enum ShashwathaType {
-  NITYA_POOJA
-  NAVARATRI
-  SONARATHI
-}
-
-enum BookingPaymentStatus {
-  PENDING
-  PAID
-  REFUNDED
-  FAILED
-}
-
-enum BookingStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
-  COMPLETED
-}
-
-enum AdminApproval {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-enum PaymentStatus {
-  CREATED
-  PAID
-  FAILED
-  REFUNDED
-}
-
-enum DonationCategory {
-  GENERAL
-  ANNADANAM
-  RENOVATION
-  FESTIVAL
-  GO_SEVA
-  EDUCATION
-  OTHER
-}
-
-enum RecurringType {
-  MONTHLY
-  YEARLY
-  ONE_TIME
-}
-
-enum AnnouncementType {
-  INFO
-  WARNING
-  URGENT
-  EVENT
-}
-
-enum GalleryType {
-  IMAGE
-  VIDEO
-}
-
-enum GalleryCategory {
-  POOJA
-  FESTIVAL
-  TEMPLE
-  EVENT
-  OTHER
-}
-
-enum CommitteeMemberType {
-  TRUSTEE
-  MEMBER
-  PRIEST
-  STAFF
-  VOLUNTEER
-}
-
-enum StaffType {
-  PRIEST
-  STAFF
-  VOLUNTEER
-  OTHER
-}
-
-enum OTPType {
-  EMAIL
-  SMS
-}
-
-enum OTPPurpose {
-  LOGIN
-  REGISTRATION
-  FORGOT_PASSWORD
-  BOOKING
-}
-
-enum NotificationType {
-  BOOKING
-  PAYMENT
-  DONATION
-  GENERAL
-  ADMIN
-}
-
-enum CertificateType {
-  SEVA
-  DONATION
-  SHASHWATHA
-}
-
-enum EmailStatus {
-  SENT
-  FAILED
-  PENDING
-}
-
 model User {
-  id               String    @id @default(uuid()) @db.Uuid
-  name             String
-  email            String?   @unique
-  phone            String?
-  password         String?
-  image            String?
-  role             UserRole  @default(DEVOTEE)
-  emailVerified    DateTime?
-  isActive         Boolean   @default(true)
-  twoFactorEnabled Boolean   @default(false)
-  refreshToken     String?
-  lastLogin        DateTime?
-  deletedAt        DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  createdBy        String?   @db.Uuid
-  updatedBy        String?   @db.Uuid
-
-  creator                    User?               @relation("UserCreatedBy", fields: [createdBy], references: [id])
-  updater                    User?               @relation("UserUpdatedBy", fields: [updatedBy], references: [id])
-  createdUsers               User[]              @relation("UserCreatedBy")
-  updatedUsers               User[]              @relation("UserUpdatedBy")
+  id                         String              @id @default(uuid()) @db.Uuid
+  name                       String
+  email                      String?             @unique
+  phone                      String?
+  password                   String?
+  image                      String?
+  role                       UserRole            @default(DEVOTEE)
+  emailVerified              DateTime?
+  isActive                   Boolean             @default(true)
+  twoFactorEnabled           Boolean             @default(false)
+  refreshToken               String?
+  lastLogin                  DateTime?
+  deletedAt                  DateTime?
+  createdAt                  DateTime            @default(now())
+  updatedAt                  DateTime            @updatedAt
+  createdBy                  String?             @db.Uuid
+  updatedBy                  String?             @db.Uuid
   accounts                   Account[]
-  sessions                   Session[]
+  createdAnnouncements       Announcement[]      @relation("AnnouncementCreatedBy")
   auditLogs                  AuditLog[]
-  bookings                   Booking[]
-  hallBookings               HallBooking[]
-  feedbacks                  Feedback[]
-  notifications              Notification[]
-  shashwathaBookings         ShashwathaBooking[]
-  createdSevaCategories      SevaCategory[]      @relation("SevaCategoryCreatedBy")
-  createdSevas               Seva[]              @relation("SevaCreatedBy")
-  updatedSevas               Seva[]              @relation("SevaUpdatedBy")
-  createdBookings            Booking[]           @relation("BookingCreatedBy")
-  createdDonationCampaigns   DonationCampaign[]  @relation("DonationCampaignCreatedBy")
-  updatedDonationCampaigns   DonationCampaign[]  @relation("DonationCampaignUpdatedBy")
-  createdHalls               Hall[]              @relation("HallCreatedBy")
-  createdHallBookings        HallBooking[]       @relation("HallBookingCreatedBy")
-  createdFestivals           Festival[]          @relation("FestivalCreatedBy")
-  updatedFestivals           Festival[]          @relation("FestivalUpdatedBy")
   createdBlogs               Blog[]              @relation("BlogCreatedBy")
   updatedBlogs               Blog[]              @relation("BlogUpdatedBy")
-  createdNews                News[]              @relation("NewsCreatedBy")
-  createdAnnouncements       Announcement[]      @relation("AnnouncementCreatedBy")
-  createdGalleries           Gallery[]           @relation("GalleryCreatedBy")
   approvedBookings           Booking[]           @relation("BookingApprovedBy")
-  approvedHallBookings       HallBooking[]       @relation("HallBookingApprovedBy")
-  approvedShashwathaBookings ShashwathaBooking[] @relation("ShashwathaApprovedBy")
+  createdBookings            Booking[]           @relation("BookingCreatedBy")
+  bookings                   Booking[]
   repliedContacts            Contact[]           @relation("ContactRepliedBy")
+  createdDonationCampaigns   DonationCampaign[]  @relation("DonationCampaignCreatedBy")
+  updatedDonationCampaigns   DonationCampaign[]  @relation("DonationCampaignUpdatedBy")
   resolvedFeedbacks          Feedback[]          @relation("FeedbackResolvedBy")
+  feedbacks                  Feedback[]
+  createdFestivals           Festival[]          @relation("FestivalCreatedBy")
+  updatedFestivals           Festival[]          @relation("FestivalUpdatedBy")
+  createdGalleries           Gallery[]           @relation("GalleryCreatedBy")
+  createdHalls               Hall[]              @relation("HallCreatedBy")
+  approvedHallBookings       HallBooking[]       @relation("HallBookingApprovedBy")
+  createdHallBookings        HallBooking[]       @relation("HallBookingCreatedBy")
+  hallBookings               HallBooking[]
+  createdNews                News[]              @relation("NewsCreatedBy")
+  notifications              Notification[]
+  sessions                   Session[]
+  createdSevas               Seva[]              @relation("SevaCreatedBy")
+  updatedSevas               Seva[]              @relation("SevaUpdatedBy")
+  createdSevaCategories      SevaCategory[]      @relation("SevaCategoryCreatedBy")
+  approvedShashwathaBookings ShashwathaBooking[] @relation("ShashwathaApprovedBy")
+  shashwathaBookings         ShashwathaBooking[]
+  creator                    User?               @relation("UserCreatedBy", fields: [createdBy], references: [id])
+  createdUsers               User[]              @relation("UserCreatedBy")
+  updater                    User?               @relation("UserUpdatedBy", fields: [updatedBy], references: [id])
+  updatedUsers               User[]              @relation("UserUpdatedBy")
 
   @@index([role])
   @@index([isActive])
@@ -202,8 +75,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
@@ -214,8 +86,7 @@ model Session {
   sessionToken String   @unique
   userId       String   @db.Uuid
   expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -229,25 +100,23 @@ model VerificationToken {
 }
 
 model Permission {
-  id          String   @id @default(uuid()) @db.Uuid
-  name        String
-  slug        String   @unique
-  description String?
-  module      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  id              String           @id @default(uuid()) @db.Uuid
+  name            String
+  slug            String           @unique
+  description     String?
+  module          String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   rolePermissions RolePermission[]
 
   @@index([module])
 }
 
 model RolePermission {
-  id           String   @id @default(uuid()) @db.Uuid
+  id           String     @id @default(uuid()) @db.Uuid
   role         UserRole
-  permissionId String   @db.Uuid
-
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  permissionId String     @db.Uuid
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   @@index([role])
   @@index([permissionId])
@@ -263,8 +132,7 @@ model AuditLog {
   ipAddress String?
   userAgent String?
   createdAt DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([action])
@@ -297,9 +165,8 @@ model SevaCategory {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   createdBy   String?   @db.Uuid
-
-  creator User?  @relation("SevaCategoryCreatedBy", fields: [createdBy], references: [id])
-  sevas   Seva[]
+  sevas       Seva[]
+  creator     User?     @relation("SevaCategoryCreatedBy", fields: [createdBy], references: [id])
 
   @@index([isActive])
   @@index([sortOrder])
@@ -307,40 +174,39 @@ model SevaCategory {
 }
 
 model Seva {
-  id                  String          @id @default(uuid()) @db.Uuid
+  id                  String              @id @default(uuid()) @db.Uuid
   name                String
-  slug                String          @unique
-  categoryId          String          @db.Uuid
+  slug                String              @unique
+  categoryId          String              @db.Uuid
   description         String?
   shortDescription    String?
   images              Json?
-  price               Decimal         @db.Decimal(10, 2)
-  originalPrice       Decimal?        @db.Decimal(10, 2)
+  price               Decimal             @db.Decimal(10, 2)
+  originalPrice       Decimal?            @db.Decimal(10, 2)
   duration            Int?
   maxDevotees         Int?
   minDevotees         Int?
   rules               Json?
   specialInstructions Json?
-  isShashwatha        Boolean         @default(false)
+  isShashwatha        Boolean             @default(false)
   shashwathaType      ShashwathaType?
-  isSpecial           Boolean         @default(false)
-  isActive            Boolean         @default(true)
+  isSpecial           Boolean             @default(false)
+  isActive            Boolean             @default(true)
   bookingNotice       Int?
-  requiresApproval    Boolean         @default(false)
-  sortOrder           Int             @default(0)
+  requiresApproval    Boolean             @default(false)
+  sortOrder           Int                 @default(0)
   deletedAt           DateTime?
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
-  createdBy           String?         @db.Uuid
-  updatedBy           String?         @db.Uuid
-
-  category           SevaCategory        @relation(fields: [categoryId], references: [id])
-  creator            User?               @relation("SevaCreatedBy", fields: [createdBy], references: [id])
-  updater            User?               @relation("SevaUpdatedBy", fields: [updatedBy], references: [id])
-  sevaDates          SevaDate[]
-  sevaTimeSlots      SevaTimeSlot[]
-  bookingItems       BookingItem[]
-  shashwathaBookings ShashwathaBooking[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  createdBy           String?             @db.Uuid
+  updatedBy           String?             @db.Uuid
+  bookingItems        BookingItem[]
+  category            SevaCategory        @relation(fields: [categoryId], references: [id])
+  creator             User?               @relation("SevaCreatedBy", fields: [createdBy], references: [id])
+  updater             User?               @relation("SevaUpdatedBy", fields: [updatedBy], references: [id])
+  sevaDates           SevaDate[]
+  sevaTimeSlots       SevaTimeSlot[]
+  shashwathaBookings  ShashwathaBooking[]
 
   @@index([categoryId])
   @@index([isActive])
@@ -350,20 +216,19 @@ model Seva {
 }
 
 model SevaDate {
-  id           String   @id @default(uuid()) @db.Uuid
-  sevaId       String   @db.Uuid
+  id           String         @id @default(uuid()) @db.Uuid
+  sevaId       String         @db.Uuid
   date         DateTime
-  isAvailable  Boolean  @default(true)
+  isAvailable  Boolean        @default(true)
   maxBookings  Int?
-  bookedCount  Int      @default(0)
+  bookedCount  Int            @default(0)
   blockedDates Json?
   notes        String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  seva      Seva           @relation(fields: [sevaId], references: [id], onDelete: Cascade)
-  timeSlots SevaTimeSlot[]
-  bookings  Booking[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  bookings     Booking[]
+  seva         Seva           @relation(fields: [sevaId], references: [id], onDelete: Cascade)
+  timeSlots    SevaTimeSlot[]
 
   @@unique([sevaId, date])
   @@index([date])
@@ -380,9 +245,8 @@ model SevaTimeSlot {
   maxBookings Int?
   bookedCount Int      @default(0)
   createdAt   DateTime @default(now())
-
-  seva Seva     @relation(fields: [sevaId], references: [id], onDelete: Cascade)
-  date SevaDate @relation(fields: [dateId], references: [id], onDelete: Cascade)
+  date        SevaDate @relation(fields: [dateId], references: [id], onDelete: Cascade)
+  seva        Seva     @relation(fields: [sevaId], references: [id], onDelete: Cascade)
 
   @@index([sevaId])
   @@index([dateId])
@@ -390,7 +254,7 @@ model SevaTimeSlot {
 }
 
 model DevoteeDetail {
-  id           String   @id @default(uuid()) @db.Uuid
+  id           String        @id @default(uuid()) @db.Uuid
   name         String
   gotra        String?
   nakshatra    String?
@@ -404,8 +268,7 @@ model DevoteeDetail {
   district     String?
   pincode      String?
   country      String?
-  createdAt    DateTime @default(now())
-
+  createdAt    DateTime      @default(now())
   bookingItems BookingItem[]
 
   @@index([phone])
@@ -442,15 +305,14 @@ model Booking {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   createdBy           String?              @db.Uuid
-
-  user         User?         @relation(fields: [userId], references: [id])
-  creator      User?         @relation("BookingCreatedBy", fields: [createdBy], references: [id])
-  approver     User?         @relation("BookingApprovedBy", fields: [approvedBy], references: [id])
-  sevaDate     SevaDate?     @relation(fields: [sevaDateId], references: [id])
-  items        BookingItem[]
-  payments     Payment[]
-  certificates Certificate[]
-  receipts     Receipt[]
+  approver            User?                @relation("BookingApprovedBy", fields: [approvedBy], references: [id])
+  creator             User?                @relation("BookingCreatedBy", fields: [createdBy], references: [id])
+  sevaDate            SevaDate?            @relation(fields: [sevaDateId], references: [id])
+  user                User                 @relation(fields: [userId], references: [id])
+  items               BookingItem[]
+  certificates        Certificate[]
+  payments            Payment[]
+  receipts            Receipt[]
 
   @@index([userId])
   @@index([bookingStatus])
@@ -461,23 +323,22 @@ model Booking {
 }
 
 model BookingItem {
-  id                  String   @id @default(uuid()) @db.Uuid
-  bookingId           String   @db.Uuid
-  sevaId              String   @db.Uuid
-  devoteeDetailId     String?  @db.Uuid
+  id                  String         @id @default(uuid()) @db.Uuid
+  bookingId           String         @db.Uuid
+  sevaId              String         @db.Uuid
+  devoteeDetailId     String?        @db.Uuid
   devoteeName         String?
   gotra               String?
   nakshatra           String?
   rashi               String?
-  quantity            Int      @default(1)
-  unitPrice           Decimal  @db.Decimal(10, 2)
-  totalPrice          Decimal  @db.Decimal(10, 2)
+  quantity            Int            @default(1)
+  unitPrice           Decimal        @db.Decimal(10, 2)
+  totalPrice          Decimal        @db.Decimal(10, 2)
   specialInstructions String?
-  createdAt           DateTime @default(now())
-
-  booking       Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  seva          Seva           @relation(fields: [sevaId], references: [id])
-  devoteeDetail DevoteeDetail? @relation(fields: [devoteeDetailId], references: [id])
+  createdAt           DateTime       @default(now())
+  booking             Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  devoteeDetail       DevoteeDetail? @relation(fields: [devoteeDetailId], references: [id])
+  seva                Seva           @relation(fields: [sevaId], references: [id])
 
   @@index([bookingId])
   @@index([sevaId])
@@ -503,11 +364,10 @@ model Payment {
   paidAt            DateTime?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
-
-  booking     Booking      @relation(fields: [bookingId], references: [id])
-  paymentLogs PaymentLog[]
-  receipts    Receipt[]
-  donations   Donation[]
+  donations         Donation[]
+  booking           Booking       @relation(fields: [bookingId], references: [id])
+  paymentLogs       PaymentLog[]
+  receipts          Receipt[]
 
   @@index([bookingId])
   @@index([status])
@@ -523,8 +383,7 @@ model PaymentLog {
   ipAddress String?
   userAgent String?
   createdAt DateTime @default(now())
-
-  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  payment   Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 
   @@index([paymentId])
 }
@@ -538,8 +397,7 @@ model Certificate {
   metadata          Json?
   issuedAt          DateTime?
   createdAt         DateTime        @default(now())
-
-  booking Booking @relation(fields: [bookingId], references: [id])
+  booking           Booking         @relation(fields: [bookingId], references: [id])
 
   @@index([bookingId])
   @@index([type])
@@ -558,9 +416,8 @@ model Receipt {
   pdfUrl        String?
   issuedAt      DateTime?
   createdAt     DateTime  @default(now())
-
-  booking Booking  @relation(fields: [bookingId], references: [id])
-  payment Payment? @relation(fields: [paymentId], references: [id])
+  booking       Booking   @relation(fields: [bookingId], references: [id])
+  payment       Payment?  @relation(fields: [paymentId], references: [id])
 
   @@index([bookingId])
   @@index([paymentId])
@@ -587,10 +444,9 @@ model DonationCampaign {
   updatedAt        DateTime         @updatedAt
   createdBy        String?          @db.Uuid
   updatedBy        String?          @db.Uuid
-
-  creator   User?      @relation("DonationCampaignCreatedBy", fields: [createdBy], references: [id])
-  updater   User?      @relation("DonationCampaignUpdatedBy", fields: [updatedBy], references: [id])
-  donations Donation[]
+  donations        Donation[]
+  creator          User?            @relation("DonationCampaignCreatedBy", fields: [createdBy], references: [id])
+  updater          User?            @relation("DonationCampaignUpdatedBy", fields: [updatedBy], references: [id])
 
   @@index([isActive])
   @@index([category])
@@ -599,19 +455,19 @@ model DonationCampaign {
 }
 
 model Donation {
-  id            String         @id @default(uuid()) @db.Uuid
-  donationId    String         @unique
-  campaignId    String?        @db.Uuid
+  id            String            @id @default(uuid()) @db.Uuid
+  donationId    String            @unique
+  campaignId    String?           @db.Uuid
   donorName     String
   donorEmail    String?
   donorPhone    String?
-  amount        Decimal        @db.Decimal(10, 2)
+  amount        Decimal           @db.Decimal(10, 2)
   message       String?
-  isAnonymous   Boolean        @default(false)
-  isRecurring   Boolean        @default(false)
+  isAnonymous   Boolean           @default(false)
+  isRecurring   Boolean           @default(false)
   recurringType RecurringType?
-  paymentId     String?        @db.Uuid
-  receiptId     String?        @db.Uuid
+  paymentId     String?           @db.Uuid
+  receiptId     String?           @db.Uuid
   receiptNumber String?
   status        String?
   panNumber     String?
@@ -620,13 +476,12 @@ model Donation {
   city          String?
   state         String?
   pincode       String?
-  taxBenefit    Boolean        @default(false)
+  taxBenefit    Boolean           @default(false)
   deletedAt     DateTime?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-
-  campaign DonationCampaign? @relation(fields: [campaignId], references: [id])
-  payment  Payment?          @relation(fields: [paymentId], references: [id])
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  campaign      DonationCampaign? @relation(fields: [campaignId], references: [id])
+  payment       Payment?          @relation(fields: [paymentId], references: [id])
 
   @@index([campaignId])
   @@index([donorEmail])
@@ -635,27 +490,26 @@ model Donation {
 }
 
 model Hall {
-  id              String    @id @default(uuid()) @db.Uuid
+  id              String             @id @default(uuid()) @db.Uuid
   name            String
-  slug            String    @unique
+  slug            String             @unique
   description     String?
   capacity        Int?
   images          Json?
   amenities       Json?
   rules           Json?
-  basePrice       Decimal?  @db.Decimal(10, 2)
-  pricePerHour    Decimal?  @db.Decimal(10, 2)
-  pricePerDay     Decimal?  @db.Decimal(10, 2)
-  securityDeposit Decimal?  @db.Decimal(10, 2)
-  isActive        Boolean   @default(true)
+  basePrice       Decimal?           @db.Decimal(10, 2)
+  pricePerHour    Decimal?           @db.Decimal(10, 2)
+  pricePerDay     Decimal?           @db.Decimal(10, 2)
+  securityDeposit Decimal?           @db.Decimal(10, 2)
+  isActive        Boolean            @default(true)
   deletedAt       DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  createdBy       String?   @db.Uuid
-
-  creator        User?              @relation("HallCreatedBy", fields: [createdBy], references: [id])
-  bookings       HallBooking[]
-  availabilities HallAvailability[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  createdBy       String?            @db.Uuid
+  creator         User?              @relation("HallCreatedBy", fields: [createdBy], references: [id])
+  availabilities  HallAvailability[]
+  bookings        HallBooking[]
 
   @@index([isActive])
   @@index([deletedAt])
@@ -692,11 +546,10 @@ model HallBooking {
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   createdBy          String?              @db.Uuid
-
-  hall     Hall  @relation(fields: [hallId], references: [id])
-  user     User  @relation(fields: [userId], references: [id])
-  creator  User? @relation("HallBookingCreatedBy", fields: [createdBy], references: [id])
-  approver User? @relation("HallBookingApprovedBy", fields: [approvedBy], references: [id])
+  approver           User?                @relation("HallBookingApprovedBy", fields: [approvedBy], references: [id])
+  creator            User?                @relation("HallBookingCreatedBy", fields: [createdBy], references: [id])
+  hall               Hall                 @relation(fields: [hallId], references: [id])
+  user               User                 @relation(fields: [userId], references: [id])
 
   @@index([hallId])
   @@index([userId])
@@ -715,8 +568,7 @@ model HallAvailability {
   notes       String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-
-  hall Hall @relation(fields: [hallId], references: [id], onDelete: Cascade)
+  hall        Hall      @relation(fields: [hallId], references: [id], onDelete: Cascade)
 
   @@unique([hallId, date])
   @@index([date])
@@ -746,10 +598,9 @@ model Festival {
   updatedAt        DateTime  @updatedAt
   createdBy        String?   @db.Uuid
   updatedBy        String?   @db.Uuid
-
-  creator User?   @relation("FestivalCreatedBy", fields: [createdBy], references: [id])
-  updater User?   @relation("FestivalUpdatedBy", fields: [updatedBy], references: [id])
-  events  Event[]
+  events           Event[]
+  creator          User?     @relation("FestivalCreatedBy", fields: [createdBy], references: [id])
+  updater          User?     @relation("FestivalUpdatedBy", fields: [updatedBy], references: [id])
 
   @@index([isActive])
   @@index([category])
@@ -768,8 +619,7 @@ model Event {
   location    String?
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
-
-  festival Festival? @relation(fields: [festivalId], references: [id], onDelete: Cascade)
+  festival    Festival? @relation(fields: [festivalId], references: [id], onDelete: Cascade)
 
   @@index([festivalId])
   @@index([date])
@@ -799,9 +649,8 @@ model Blog {
   updatedAt      DateTime  @updatedAt
   createdBy      String?   @db.Uuid
   updatedBy      String?   @db.Uuid
-
-  creator User? @relation("BlogCreatedBy", fields: [createdBy], references: [id])
-  updater User? @relation("BlogUpdatedBy", fields: [updatedBy], references: [id])
+  creator        User?     @relation("BlogCreatedBy", fields: [createdBy], references: [id])
+  updater        User?     @relation("BlogUpdatedBy", fields: [updatedBy], references: [id])
 
   @@index([isPublished])
   @@index([category])
@@ -831,8 +680,7 @@ model News {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   createdBy      String?   @db.Uuid
-
-  creator User? @relation("NewsCreatedBy", fields: [createdBy], references: [id])
+  creator        User?     @relation("NewsCreatedBy", fields: [createdBy], references: [id])
 
   @@index([isPublished])
   @@index([isUrgent])
@@ -856,8 +704,7 @@ model Announcement {
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
   createdBy String?          @db.Uuid
-
-  creator User? @relation("AnnouncementCreatedBy", fields: [createdBy], references: [id])
+  creator   User?            @relation("AnnouncementCreatedBy", fields: [createdBy], references: [id])
 
   @@index([isActive])
   @@index([type])
@@ -883,8 +730,7 @@ model Gallery {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   createdBy   String?         @db.Uuid
-
-  creator User? @relation("GalleryCreatedBy", fields: [createdBy], references: [id])
+  creator     User?           @relation("GalleryCreatedBy", fields: [createdBy], references: [id])
 
   @@index([type])
   @@index([category])
@@ -967,8 +813,7 @@ model Contact {
   deletedAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-
-  replier User? @relation("ContactRepliedBy", fields: [repliedBy], references: [id])
+  replier   User?     @relation("ContactRepliedBy", fields: [repliedBy], references: [id])
 
   @@index([email])
   @@index([isRead])
@@ -1058,9 +903,8 @@ model Feedback {
   deletedAt  DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
-
-  user     User? @relation(fields: [userId], references: [id])
-  resolver User? @relation("FeedbackResolvedBy", fields: [resolvedBy], references: [id])
+  resolver   User?     @relation("FeedbackResolvedBy", fields: [resolvedBy], references: [id])
+  user       User?     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([isResolved])
@@ -1111,8 +955,7 @@ model Notification {
   isRead    Boolean          @default(false)
   readAt    DateTime?
   createdAt DateTime         @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([isRead])
@@ -1249,15 +1092,140 @@ model ShashwathaBooking {
   deletedAt      DateTime?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
-
-  user       User    @relation(fields: [userId], references: [id])
-  seva       Seva    @relation(fields: [sevaId], references: [id])
-  approver   User?   @relation("ShashwathaApprovedBy", fields: [approvedBy], references: [id])
-  approvedBy String? @db.Uuid
+  approvedBy     String?        @db.Uuid
+  approver       User?          @relation("ShashwathaApprovedBy", fields: [approvedBy], references: [id])
+  seva           Seva           @relation(fields: [sevaId], references: [id])
+  user           User           @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([sevaId])
   @@index([shashwathaType])
   @@index([status])
   @@index([deletedAt])
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  TEMPLE_MANAGER
+  ACCOUNTANT
+  VOLUNTEER
+  RECEPTION
+  DEVOTEE
+}
+
+enum ShashwathaType {
+  NITYA_POOJA
+  NAVARATRI
+  SONARATHI
+}
+
+enum BookingPaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+  FAILED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum AdminApproval {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PaymentStatus {
+  CREATED
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum DonationCategory {
+  GENERAL
+  ANNADANAM
+  RENOVATION
+  FESTIVAL
+  GO_SEVA
+  EDUCATION
+  OTHER
+}
+
+enum RecurringType {
+  MONTHLY
+  YEARLY
+  ONE_TIME
+}
+
+enum AnnouncementType {
+  INFO
+  WARNING
+  URGENT
+  EVENT
+}
+
+enum GalleryType {
+  IMAGE
+  VIDEO
+}
+
+enum GalleryCategory {
+  POOJA
+  FESTIVAL
+  TEMPLE
+  EVENT
+  OTHER
+}
+
+enum CommitteeMemberType {
+  TRUSTEE
+  MEMBER
+  PRIEST
+  STAFF
+  VOLUNTEER
+}
+
+enum StaffType {
+  PRIEST
+  STAFF
+  VOLUNTEER
+  OTHER
+}
+
+enum OTPType {
+  EMAIL
+  SMS
+}
+
+enum OTPPurpose {
+  LOGIN
+  REGISTRATION
+  FORGOT_PASSWORD
+  BOOKING
+}
+
+enum NotificationType {
+  BOOKING
+  PAYMENT
+  DONATION
+  GENERAL
+  ADMIN
+}
+
+enum CertificateType {
+  SEVA
+  DONATION
+  SHASHWATHA
+}
+
+enum EmailStatus {
+  SENT
+  FAILED
+  PENDING
 }

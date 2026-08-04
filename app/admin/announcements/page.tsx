@@ -58,7 +58,7 @@ export default function AnnouncementsPage() {
       try {
         const res = await fetch("/api/announcements")
         const data = await res.json()
-        setItems(data.announcements || [])
+        setItems(data.data?.announcements || [])
       } catch { toast.error("Failed to load announcements") }
       finally { setLoading(false) }
     })()
@@ -84,7 +84,7 @@ export default function AnnouncementsPage() {
     try {
       const res = await fetch("/api/announcements")
       const data = await res.json()
-      setItems(data.announcements || [])
+      setItems(data.data?.announcements || [])
     } catch { toast.error("Failed to load announcements") }
   }
 

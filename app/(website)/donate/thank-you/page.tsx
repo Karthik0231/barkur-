@@ -1,27 +1,38 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import { CheckCircle, Heart, Download, Share2, Home, ArrowRight, ChevronRight, Globe, Copy, Check } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { formatPrice } from "@/lib/utils"
 
-const receiptData = {
-  receiptNumber: "RCP-2026-01024",
-  certificateNumber: "CERT-2026-01024",
-  amount: 5001,
-  donorName: "Guest Devotee",
-  date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }),
-  campaign: "Annadanam",
-}
-
-export default function DonationThankYouPage() {
+function ThankYouContent() {
+  const searchParams = useSearchParams()
   const [copied, setCopied] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
+
+  const getStoredDonation = () => {
+    if (typeof window === "undefined") return null
+    try {
+      const stored = sessionStorage.getItem("lastDonation")
+      if (stored) return JSON.parse(stored)
+    } catch { return null }
+    return null
+  }
+
+  const stored = getStoredDonation()
+  const donorName = searchParams.get("donorName") || stored?.donorName || "Guest Devotee"
+  const amount = Number(searchParams.get("amount")) || Number(stored?.amount) || 0
+  const campaign = searchParams.get("campaign") || stored?.campaign || "General Donation"
+  const donationId = searchParams.get("donationId") || stored?.donationId || ""
+  const receiptNumber = searchParams.get("receiptNumber") || stored?.receiptNumber || ""
+  const date = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
 
   const shareUrl = typeof window !== "undefined" ? window.location.origin + "/donate" : ""
   const shareText = `I just donated to Sri Kalikamba Temple! Support this noble cause. 🙏`
@@ -34,10 +45,11 @@ export default function DonationThankYouPage() {
 
   const handleDownload = (type: "receipt" | "certificate") => {
     const element = document.createElement("a")
+    const id = receiptNumber || donationId || `DON-${Date.now()}`
     element.href = `data:text/plain;charset=utf-8,${encodeURIComponent(
-      `${type.toUpperCase()}\n\n${type === "receipt" ? `Receipt No: ${receiptData.receiptNumber}` : `Certificate No: ${receiptData.certificateNumber}`}\nDonor: ${receiptData.donorName}\nAmount: ₹${receiptData.amount}\nCampaign: ${receiptData.campaign}\nDate: ${receiptData.date}\n\nThank you for your generosity!`
+      `${type.toUpperCase()}\n\n${type === "receipt" ? `Receipt No: ${receiptNumber || id}` : `Donation ID: ${donationId || id}`}\nDonor: ${donorName}\nAmount: ${formatPrice(amount)}\nCampaign: ${campaign}\nDate: ${date}\n\nStatus: Pending Verification\n\nThank you for your generosity. Your donation is currently being verified.\n\nSri Kalikamba Temple, Barkur\n`
     )}`
-    element.download = `${type}-${receiptData.receiptNumber}.txt`
+    element.download = `${type}-${id}.txt`
     element.click()
   }
 
@@ -70,7 +82,7 @@ export default function DonationThankYouPage() {
               Thank You for Your Generosity!
             </h1>
             <p className="text-lg text-text-secondary mt-4 max-w-xl mx-auto leading-relaxed">
-              Your donation has been received. May the divine bless you abundantly for your kindness and support.
+              Your donation record has been submitted successfully. Our team will verify and confirm your payment shortly. May the divine bless you abundantly for your kindness and support.
             </p>
           </motion.div>
 
@@ -86,28 +98,36 @@ export default function DonationThankYouPage() {
                   <Heart className="h-6 w-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <Badge variant="success" size="sm" className="mb-2">Donation Successful</Badge>
+                  <Badge variant="warning" size="sm" className="mb-2">Pending Verification</Badge>
                   <div className="space-y-1.5 text-sm">
                     <div className="flex justify-between">
                       <span className="text-text-muted">Donor</span>
-                      <span className="text-text-primary font-medium">{receiptData.donorName}</span>
+                      <span className="text-text-primary font-medium">{donorName}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-text-muted">Amount</span>
-                      <span className="text-primary font-bold font-heading text-lg">₹{receiptData.amount}</span>
+                      <span className="text-primary font-bold font-heading text-lg">{formatPrice(amount)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-text-muted">Campaign</span>
-                      <span className="text-text-primary">{receiptData.campaign}</span>
+                      <span className="text-text-primary">{campaign}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-text-muted">Date</span>
-                      <span className="text-text-primary">{receiptData.date}</span>
+                      <span className="text-text-primary">{date}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-text-muted">Receipt</span>
-                      <span className="text-text-primary font-mono text-xs">{receiptData.receiptNumber}</span>
-                    </div>
+                    {donationId && (
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">Donation ID</span>
+                        <span className="text-text-primary font-mono text-xs">{donationId}</span>
+                      </div>
+                    )}
+                    {receiptNumber && (
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">Receipt No.</span>
+                        <span className="text-text-primary font-mono text-xs">{receiptNumber}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -181,5 +201,17 @@ export default function DonationThankYouPage() {
         </div>
       </section>
     </div>
+  )
+}
+
+export default function DonationThankYouPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center text-text-muted">
+        Loading...
+      </div>
+    }>
+      <ThankYouContent />
+    </Suspense>
   )
 }

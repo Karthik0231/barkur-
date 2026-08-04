@@ -54,7 +54,53 @@ export default function BookingDetailPage() {
         return r.json()
       })
       .then((d) => {
-        setBooking(d.data || d)
+        const raw = d.data || d
+        const firstItem = raw.items?.[0] || {}
+        const firstSeva = firstItem.seva || {}
+        const user = raw.user || {}
+        const firstPayment = raw.payments?.[0] || {}
+        const mapped: BookingDetail = {
+          id: raw.id,
+          bookingId: raw.bookingId,
+          bookingStatus: raw.bookingStatus,
+          paymentStatus: raw.paymentStatus,
+          adminApproval: raw.adminApproval,
+          totalAmount: Number(raw.totalAmount),
+          discountAmount: raw.discountAmount ? Number(raw.discountAmount) : null,
+          finalAmount: Number(raw.finalAmount),
+          quantity: raw.quantity,
+          preferredDate: raw.preferredDate,
+          preferredTime: raw.preferredTime,
+          remarks: raw.remarks,
+          specialInstructions: raw.specialInstructions,
+          cancellationReason: raw.cancellationReason,
+          createdAt: raw.createdAt,
+          updatedAt: raw.updatedAt,
+          seva: {
+            name: firstSeva.name || "Unknown Seva",
+            category: firstSeva.category?.name || firstSeva.category || "General",
+            duration: firstSeva.duration || null,
+          },
+          devotee: {
+            name: user.name || firstItem.devoteeName || "Unknown",
+            phone: user.phone || "",
+            email: user.email || "",
+            address: [user.addressLine1, user.addressLine2, user.city, user.state, user.pincode].filter(Boolean).join(", ") || "N/A",
+            gotra: firstItem.gotra || null,
+            nakshatra: firstItem.nakshatra || null,
+            rashi: firstItem.rashi || null,
+          },
+          payment: {
+            razorpayPaymentId: firstPayment.razorpayPaymentId,
+            amount: Number(firstPayment.amount),
+            status: firstPayment.status,
+            method: firstPayment.method,
+            paidAt: firstPayment.paidAt,
+          },
+          certificates: raw.certificates || [],
+          auditLogs: [],
+        }
+        setBooking(mapped)
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -62,24 +108,46 @@ export default function BookingDetailPage() {
 
   const handleApprove = async () => {
     setProcessing(true)
-    await new Promise((r) => setTimeout(r, 1000))
-    setBooking((prev) => prev ? { ...prev, adminApproval: "APPROVED", bookingStatus: "CONFIRMED" } : prev)
-    toast.success("Booking approved successfully")
-    setProcessing(false)
+    try {
+      const res = await fetch(`/api/bookings/${params.id}/approve`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ approved: true }) })
+      const json = await res.json()
+      if (!json.success) { toast.error(json.message); setProcessing(false); return }
+      setBooking((prev) => prev ? { ...prev, adminApproval: "APPROVED", bookingStatus: "CONFIRMED" } : prev)
+      toast.success("Booking approved successfully")
+      setProcessing(false)
+    } catch {
+      toast.error("Failed to approve booking")
+      setProcessing(false)
+    }
   }
 
   const handleReject = async () => {
     setProcessing(true)
-    await new Promise((r) => setTimeout(r, 1000))
-    setBooking((prev) => prev ? { ...prev, adminApproval: "REJECTED", bookingStatus: "CANCELLED" } : prev)
-    toast.success("Booking rejected")
-    setProcessing(false)
+    try {
+      const res = await fetch(`/api/bookings/${params.id}/approve`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ approved: false }) })
+      const json = await res.json()
+      if (!json.success) { toast.error(json.message); setProcessing(false); return }
+      setBooking((prev) => prev ? { ...prev, adminApproval: "REJECTED", bookingStatus: "CANCELLED" } : prev)
+      toast.success("Booking rejected")
+      setProcessing(false)
+    } catch {
+      toast.error("Failed to reject booking")
+      setProcessing(false)
+    }
   }
 
-  const handleAddNote = () => {
+  const handleAddNote = async () => {
     if (!note.trim()) return
-    toast.success("Note added")
-    setNote("")
+    try {
+      const res = await fetch(`/api/bookings/${params.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ remarks: note }) })
+      const json = await res.json()
+      if (!json.success) { toast.error(json.message); return }
+      setBooking((prev) => prev ? { ...prev, remarks: note } : prev)
+      toast.success("Note added")
+      setNote("")
+    } catch {
+      toast.error("Failed to add note")
+    }
   }
 
   if (loading) return <PageSkeleton />

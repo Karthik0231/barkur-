@@ -32,7 +32,7 @@ export default function TestimonialsPage() {
 
   useEffect(() => {
     fetch("/api/testimonials").then((r) => r.json()).then((json) => {
-      setTestimonials(Array.isArray(json) ? json : (json.data ?? []))
+      setTestimonials(Array.isArray(json) ? json : (json.data?.testimonials ?? []))
     }).finally(() => setLoading(false))
   }, [])
 
@@ -40,7 +40,7 @@ export default function TestimonialsPage() {
     const t = testimonials.find((x) => x.id === id)
     if (!t) return
     try {
-      await fetch(`/api/testimonials/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isApproved: !t.isApproved }) })
+      await fetch(`/api/testimonials/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isApproved: !t.isApproved }) })
       setTestimonials((prev) => prev.map((x) => x.id === id ? { ...x, isApproved: !x.isApproved } : x))
       toast.success(`Testimonial ${t.isApproved ? "unapproved" : "approved"}`)
     } catch { toast.error("Failed to toggle approval") }

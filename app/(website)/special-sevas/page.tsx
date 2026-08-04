@@ -19,8 +19,12 @@ export default function SpecialSevasPage() {
   useEffect(() => {
     fetch("/api/sevas?limit=50&isSpecial=true")
       .then(res => res.json())
-      .then(data => {
-        setSevas(data.sevas || [])
+      .then(res => {
+        if (res.success) {
+          setSevas(res.data.sevas || [])
+        } else {
+          setSevas([])
+        }
         setLoading(false)
       })
       .catch(() => setLoading(false))

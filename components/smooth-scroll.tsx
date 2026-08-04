@@ -5,13 +5,13 @@ import Lenis from "lenis"
 
 export function SmoothScroll({ children }: { children: ReactNode }) {
   const lenisRef = useRef<Lenis | null>(null)
+  const rafIdRef = useRef<number>(0)
 
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 0.8,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
-      gestureOrientation: "vertical",
       smoothWheel: true,
       wheelMultiplier: 1,
       touchMultiplier: 1.5,
@@ -21,12 +21,13 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
 
     function raf(time: number) {
       lenis.raf(time)
-      requestAnimationFrame(raf)
+      rafIdRef.current = requestAnimationFrame(raf)
     }
 
-    requestAnimationFrame(raf)
+    rafIdRef.current = requestAnimationFrame(raf)
 
     return () => {
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current)
       lenis.destroy()
     }
   }, [])

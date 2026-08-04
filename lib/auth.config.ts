@@ -13,7 +13,8 @@ export const authConfig = {
       if (isOnAdmin) {
         if (!isLoggedIn) return false
         const role = (auth.user as { role?: string } | undefined)?.role
-        if (role !== "ADMIN" && role !== "SUPER_ADMIN") return false
+        const allowedRoles = ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER", "ACCOUNTANT", "RECEPTION", "VOLUNTEER"]
+        if (!role || !allowedRoles.includes(role)) return false
         return true
       }
 

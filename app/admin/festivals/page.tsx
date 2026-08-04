@@ -57,7 +57,7 @@ export default function FestivalsPage() {
       try {
         const res = await fetch("/api/festivals")
         const data = await res.json()
-        setFestivals(data.festivals || [])
+        setFestivals(data.data?.festivals || [])
       } catch { toast.error("Failed to load festivals") }
       finally { setLoading(false) }
     })()

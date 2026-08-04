@@ -38,29 +38,56 @@ export const profileSchema = z.object({
   pincode: z.string().regex(/^\d{6}$/, "Pincode must be 6 digits").optional(),
 })
 
-export const sevaBookingSchema = z.object({
+const bookingItemSchema = z.object({
   sevaId: z.string().min(1, "Seva is required"),
-  devoteeName: z.string().min(2, "Devotee name must be at least 2 characters").max(200),
+  quantity: z.number().int().min(1, "Quantity must be at least 1").max(100, "Quantity cannot exceed 100"),
+  devoteeName: z.string().min(2, "Devotee name must be at least 2 characters").max(200).optional(),
   gotra: z.string().optional(),
   nakshatra: z.string().optional(),
   rashi: z.string().optional(),
-  phone: z.string().regex(/^\+?[\d\s-]{10,15}$/, "Please enter a valid phone number"),
-  email: z.email("Please enter a valid email address"),
-  address: z.string().min(5, "Address must be at least 5 characters").max(500),
-  state: z.string().min(2, "State is required"),
-  district: z.string().min(2, "District is required"),
-  pincode: z.string().regex(/^\d{6}$/, "Pincode must be 6 digits"),
-  quantity: z.number().int().min(1, "Quantity must be at least 1").max(100, "Quantity cannot exceed 100"),
-  preferredDate: z.string().min(1, "Preferred date is required"),
-  preferredTime: z.string().optional(),
-  remarks: z.string().max(1000, "Remarks must be under 1000 characters").optional(),
   specialInstructions: z.string().max(2000, "Special instructions must be under 2000 characters").optional(),
-  familyMembers: z.array(z.object({
-    name: z.string().min(1, "Name is required"),
-    relation: z.string().min(1, "Relation is required"),
-    age: z.number().int().positive().optional(),
-  })).optional(),
+  unitPrice: z.number().positive("Unit price must be greater than zero"),
 })
+
+export const sevaBookingSchema = z.union([
+  z.object({
+    items: z.array(bookingItemSchema).min(1, "At least one seva item is required"),
+    phone: z.string().regex(/^\+?[\d\s-]{10,15}$/, "Please enter a valid phone number"),
+    email: z.email("Please enter a valid email address"),
+    address: z.string().min(5, "Address must be at least 5 characters").max(500),
+    state: z.string().min(2, "State is required"),
+    district: z.string().min(2, "District is required"),
+    pincode: z.string().regex(/^\d{6}$/, "Pincode must be 6 digits"),
+    preferredDate: z.string().min(1, "Preferred date is required"),
+    preferredTime: z.string().optional(),
+    remarks: z.string().max(1000, "Remarks must be under 1000 characters").optional(),
+  }),
+  z.object({
+    sevaId: z.string().min(1, "Seva is required"),
+    devoteeName: z.string().min(2, "Devotee name must be at least 2 characters").max(200),
+    gotra: z.string().optional(),
+    nakshatra: z.string().optional(),
+    rashi: z.string().optional(),
+    phone: z.string().regex(/^\+?[\d\s-]{10,15}$/, "Please enter a valid phone number"),
+    email: z.email("Please enter a valid email address"),
+    address: z.string().min(5, "Address must be at least 5 characters").max(500),
+    state: z.string().min(2, "State is required"),
+    district: z.string().min(2, "District is required"),
+    pincode: z.string().regex(/^\d{6}$/, "Pincode must be 6 digits"),
+    quantity: z.number().int().min(1, "Quantity must be at least 1").max(100, "Quantity cannot exceed 100"),
+    preferredDate: z.string().min(1, "Preferred date is required"),
+    preferredTime: z.string().optional(),
+    remarks: z.string().max(1000, "Remarks must be under 1000 characters").optional(),
+    specialInstructions: z.string().max(2000, "Special instructions must be under 2000 characters").optional(),
+    familyMembers: z.array(z.object({
+      name: z.string().min(1, "Name is required"),
+      relation: z.string().min(1, "Relation is required"),
+      age: z.number().int().positive().optional(),
+    })).optional(),
+  }),
+])
+
+export type BookingItemInput = z.input<typeof bookingItemSchema>
 
 export const shashwathaBookingSchema = z.object({
   type: z.enum(["NITYA_POOJA", "NAVARATRI", "SONARATHI"] as const),
@@ -83,13 +110,19 @@ export const shashwathaBookingSchema = z.object({
 export const donationSchema = z.object({
   amount: z.number().positive("Amount must be greater than zero"),
   category: z.string().min(1, "Category is required"),
+  campaignId: z.string().optional(),
   donorName: z.string().min(2, "Name must be at least 2 characters").max(200),
   email: z.email("Please enter a valid email address"),
   phone: z.string().regex(/^\+?[\d\s-]{10,15}$/, "Please enter a valid phone number"),
   address: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  pincode: z.string().regex(/^\d{6}$/, "Pincode must be 6 digits").optional().or(z.literal("")),
   message: z.string().max(1000, "Message must be under 1000 characters").optional(),
   isAnonymous: z.boolean().optional(),
-  panCard: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN card format").optional(),
+  panCard: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN card format").optional().or(z.literal("")),
+  paymentMethod: z.enum(["UPI", "BANK_TRANSFER", "OTHER"]).optional(),
+  transactionReference: z.string().optional(),
 })
 
 export const hallBookingSchema = z.object({
@@ -118,6 +151,7 @@ export const contactSchema = z.object({
   phone: z.string().regex(/^\+?[\d\s-]{10,15}$/, "Please enter a valid phone number").optional(),
   subject: z.string().min(3, "Subject must be at least 3 characters").max(200),
   message: z.string().min(10, "Message must be at least 10 characters").max(5000),
+  category: z.string().optional(),
 })
 
 export const newsletterSchema = z.object({
@@ -205,25 +239,40 @@ export const categorySchema = z.object({
   description: z.string().max(500).optional(),
   type: z.string().min(1, "Category type is required"),
   parentId: z.string().optional(),
-  sortOrder: z.number().int().optional(),
+  sortOrder: z.coerce.number().int().optional(),
+  isActive: z.boolean().optional(),
+  imageUrl: z.string().optional(),
 })
 
 export const sevaSchema = z.object({
   name: z.string().min(2, "Seva name must be at least 2 characters").max(200),
   slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
+  categoryId: z.string().min(1, "Category is required"),
   description: z.string().min(20, "Description must be at least 20 characters").max(5000),
   shortDescription: z.string().max(300).optional(),
-  type: z.string().min(1, "Seva type is required"),
-  duration: z.string().optional(),
-  price: z.number().positive("Price must be greater than zero"),
-  discountedPrice: z.number().optional(),
-  maxQuantity: z.number().int().positive().optional(),
+  price: z.coerce.number().positive("Price must be greater than zero"),
+  originalPrice: z.coerce.number().optional(),
+  duration: z.coerce.number().int().positive().optional(),
+  maxDevotees: z.coerce.number().int().positive().optional(),
+  minDevotees: z.coerce.number().int().positive().optional(),
+  bookingNotice: z.coerce.number().int().min(0).optional(),
+  requiresApproval: z.boolean().optional(),
   isActive: z.boolean().optional(),
-  isFeatured: z.boolean().optional(),
-  imageUrl: z.string().optional(),
-  categoryId: z.string().optional(),
-  prerequisites: z.string().max(1000).optional(),
-  notes: z.string().max(2000).optional(),
+  isSpecial: z.boolean().optional(),
+  isShashwatha: z.boolean().optional(),
+  images: z.array(z.object({
+    id: z.string().optional(),
+    url: z.string(),
+    alt: z.string().optional(),
+    isFeatured: z.boolean().optional(),
+  })).optional(),
+  bookingRules: z.string().max(2000).optional(),
+  availabilityDates: z.array(z.object({
+    date: z.string(),
+    isAvailable: z.boolean().optional(),
+    maxBookings: z.number().int().optional(),
+  })).optional(),
+  sortOrder: z.coerce.number().int().optional(),
 })
 
 export const settingSchema = z.object({
@@ -268,23 +317,23 @@ export const festivalSchema = z.object({
 export const announcementSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters").max(200),
   content: z.string().min(10, "Content must be at least 10 characters").max(2000),
-  priority: z.enum(["LOW", "NORMAL", "HIGH", "URGENT"] as const).optional(),
+  type: z.enum(["INFO", "WARNING", "URGENT", "EVENT"] as const).optional(),
   isActive: z.boolean().optional(),
-  expiresAt: z.string().optional(),
-  link: z.url().optional().or(z.literal("")),
+  endDate: z.string().optional(),
+  link: z.string().optional(),
 })
 
 export const newsSchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters").max(200),
-  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
-  content: z.string().min(50, "Content must be at least 50 characters"),
+  title: z.string().min(5).max(200),
+  slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
+  content: z.string().min(50),
   excerpt: z.string().max(300).optional(),
   coverImage: z.string().optional(),
   category: z.string().optional(),
   isPublished: z.boolean().optional(),
   isBreaking: z.boolean().optional(),
   publishedAt: z.string().optional(),
-  authorId: z.string().min(1, "Author is required"),
+  authorId: z.string().optional(),
   tags: z.array(z.string()).optional(),
 })
 
@@ -330,6 +379,62 @@ export const subDeitySchema = z.object({
   sortOrder: z.number().int().optional(),
 })
 
+export const userSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(100),
+  email: z.email("Please enter a valid email address"),
+  phone: z.string().regex(/^\+?[\d\s-]{10,15}$/, "Please enter a valid phone number").optional().or(z.literal("")),
+  role: z.enum(["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER", "ACCOUNTANT", "RECEPTION", "DEVOTEE"]).optional(),
+  isActive: z.boolean().optional(),
+})
+
+export const hallSchema = z.object({
+  name: z.string().min(2, "Hall name must be at least 2 characters").max(200),
+  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
+  description: z.string().min(20, "Description must be at least 20 characters").max(5000),
+  shortDescription: z.string().max(300).optional(),
+  capacity: z.number().int().positive("Capacity must be a positive number"),
+  pricePerHour: z.coerce.number().positive("Price per hour must be greater than zero"),
+  amenities: z.array(z.string()).optional(),
+  images: z.array(z.object({
+    id: z.string().optional(),
+    url: z.string(),
+    alt: z.string().optional(),
+    isFeatured: z.boolean().optional(),
+  })).optional(),
+  isActive: z.boolean().optional(),
+  isFeatured: z.boolean().optional(),
+  sortOrder: z.coerce.number().int().optional(),
+})
+
+export const paymentSchema = z.object({
+  bookingId: z.string().min(1, "Booking ID is required"),
+  amount: z.coerce.number().positive("Amount must be greater than zero"),
+  method: z.enum(["RAZORPAY", "UPI", "BANK_TRANSFER", "CASH", "OTHER"] as const),
+  status: z.enum(["PENDING", "COMPLETED", "FAILED", "REFUNDED"] as const).optional(),
+  transactionId: z.string().optional(),
+  razorpayPaymentId: z.string().optional(),
+  razorpayOrderId: z.string().optional(),
+  receiptUrl: z.string().optional(),
+  notes: z.string().max(1000).optional(),
+})
+
+export const certificateSchema = z.object({
+  bookingId: z.string().min(1, "Booking ID is required"),
+  certificateNumber: z.string().min(1, "Certificate number is required"),
+  type: z.enum(["SEVA", "DONATION", "SHASHWATHA"] as const),
+  template: z.string().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+})
+
+export const receiptSchema = z.object({
+  donationId: z.string().optional(),
+  bookingId: z.string().optional(),
+  amount: z.coerce.number().positive("Amount must be greater than zero"),
+  paymentMethod: z.string().min(1, "Payment method is required"),
+  transactionReference: z.string().optional(),
+  notes: z.string().max(1000).optional(),
+})
+
 export type LoginInput = z.input<typeof loginSchema>
 export type RegisterInput = z.input<typeof registerSchema>
 export type ForgotPasswordInput = z.input<typeof forgotPasswordSchema>
@@ -357,3 +462,8 @@ export type NewsInput = z.input<typeof newsSchema>
 export type StaffInput = z.input<typeof staffSchema>
 export type DailyScheduleInput = z.input<typeof dailyScheduleSchema>
 export type SubDeityInput = z.input<typeof subDeitySchema>
+export type UserInput = z.input<typeof userSchema>
+export type HallInput = z.input<typeof hallSchema>
+export type PaymentInput = z.input<typeof paymentSchema>
+export type CertificateInput = z.input<typeof certificateSchema>
+export type ReceiptInput = z.input<typeof receiptSchema>

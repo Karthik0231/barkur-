@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma"
 import PanchangaClient from "./PanchangaClient"
 
+export const dynamic = "force-dynamic"
+
 export default async function PanchangaPage() {
   const festivals = await prisma.festival.findMany({
     where: { isActive: true, deletedAt: null },

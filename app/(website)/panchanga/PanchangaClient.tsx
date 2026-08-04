@@ -21,7 +21,7 @@ import { TEMPLE_NAME } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 
 const VARA_NAMES = ["Ravivara", "Somavara", "Mangalavara", "Budhavara", "Guruvara", "Shukravara", "Shanivara"]
-const VARA_SHORT = ["Sunday", "Monday", "Tuesday", "Wednesday", "Guruvara", "Friday", "Saturday"]
+const VARA_SHORT = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
 const NAKSHATRA_RASHI: Record<string, string> = {
   "Ashwini": "Mesha",
@@ -437,7 +437,7 @@ function FestivalCard({ festival, index, locale, t }: { festival: any, index: nu
           <p className="text-sm text-text-secondary mt-3 leading-relaxed flex-1">{festival.description || festival.shortDescription || ""}</p>
 
           <div className="flex items-center gap-2 mt-5 pt-4 border-t border-border/50">
-            <Link href={`/seva?event=${slugify(festival.name)}`} className="flex-1">
+            <Link href={`/sevas?event=${slugify(festival.name)}`} className="flex-1">
               <Button variant="secondary" size="sm" className="w-full" iconRight={<ArrowRight className="h-3.5 w-3.5" />}
               >
                 Book Seva
@@ -480,8 +480,31 @@ export default function PanchangaClient({ festivals }: { festivals: any[] }) {
   useEffect(() => {
     setLoading(true)
     fetch("/api/panchanga?today=true").then(r => r.json()).then(d => {
-      const p = d.data?.panchanga || d.panchanga || d
-      if (p.tithi) setPanchanga(p)
+      const raw = d.data?.panchanga || d.panchanga || d
+      if (raw && raw.tithi) {
+        const p: PanchangaData = {
+          tithi: raw.tithi,
+          nakshatra: raw.nakshatra,
+          nakshatraPada: raw.nakshatraPada ?? 0,
+          yoga: raw.yoga,
+          karana: raw.karana,
+          masa: raw.masa || "—",
+          paksha: raw.paksha || "—",
+          sunrise: raw.sunrise || "—",
+          sunset: raw.sunset || "—",
+          moonrise: raw.moonrise || "—",
+          moonset: raw.moonset || "—",
+          rahuKala: raw.rahuKala && raw.rahuKala.start ? raw.rahuKala : { start: raw.rahuKalaStart || "—", end: raw.rahuKalaEnd || "—" },
+          yamaganda: raw.yamaganda && raw.yamaganda.start ? raw.yamaganda : { start: raw.yamagandaStart || "—", end: raw.yamagandaEnd || "—" },
+          gulika: raw.gulika && raw.gulika.start ? raw.gulika : { start: raw.gulikaStart || "—", end: raw.gulikaEnd || "—" },
+          amritaKala: raw.amritaKala && raw.amritaKala.start ? raw.amritaKala : { start: raw.amritaKalaStart || "—", end: raw.amritaKalaEnd || "—" },
+          abhijitMuhurta: raw.abhijitMuhurta && raw.abhijitMuhurta.start ? raw.abhijitMuhurta : { start: raw.abhijitMuhurtaStart || "—", end: raw.abhijitMuhurtaEnd || "—" },
+          isEkadashi: !!raw.isEkadashi,
+          isAmavasya: !!raw.isAmavasya,
+          isPournami: !!raw.isPournami,
+        }
+        setPanchanga(p)
+      }
       setLoading(false)
     }).catch(() => setLoading(false))
   }, [])
@@ -559,6 +582,15 @@ export default function PanchangaClient({ festivals }: { festivals: any[] }) {
       { label: t("panchanga.karana"), value: panchanga.karana, icon: Clock },
       { label: t("panchanga.masa"), value: panchanga.masa, icon: CalendarDays },
       { label: t("panchanga.paksha"), value: panchanga.paksha, icon: Sun },
+      { label: t("panchanga.sunrise"), value: panchanga.sunrise, icon: Sun },
+      { label: t("panchanga.sunset"), value: panchanga.sunset, icon: Sun },
+      { label: t("panchanga.moonrise"), value: panchanga.moonrise, icon: Moon },
+      { label: t("panchanga.moonset"), value: panchanga.moonset, icon: Moon },
+      { label: t("panchanga.rahuKala"), value: `${panchanga.rahuKala.start} – ${panchanga.rahuKala.end}`, icon: Clock },
+      { label: t("panchanga.yamaganda"), value: `${panchanga.yamaganda.start} – ${panchanga.yamaganda.end}`, icon: Clock },
+      { label: t("panchanga.gulika"), value: `${panchanga.gulika.start} – ${panchanga.gulika.end}`, icon: Clock },
+      { label: t("panchanga.amritaKala"), value: `${panchanga.amritaKala.start} – ${panchanga.amritaKala.end}`, icon: Sparkles, sparkle: true },
+      { label: t("panchanga.abhijit"), value: `${panchanga.abhijitMuhurta.start} – ${panchanga.abhijitMuhurta.end}`, icon: Sparkles, sparkle: true },
     ]
   }, [panchanga, t])
 
@@ -600,7 +632,7 @@ export default function PanchangaClient({ festivals }: { festivals: any[] }) {
 
         <div className="mt-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-3">
           {loading
-            ? Array.from({ length: 14 }).map((_, i) => (
+            ? Array.from({ length: 15 }).map((_, i) => (
               <Card key={i} variant="glass" className="p-4 min-h-[100px]">
                 <Skeleton className="h-4 w-4 rounded-full mb-3" />
                 <Skeleton className="h-3 w-16 mb-2" />
@@ -624,7 +656,7 @@ export default function PanchangaClient({ festivals }: { festivals: any[] }) {
                       <div className="p-2 rounded-xl bg-gradient-to-br from-secondary/10 to-gold-400/10 group-hover:from-secondary/20 group-hover:to-gold-400/20 transition-all">
                         <Icon className="h-4 w-4 text-secondary" />
                       </div>
-                      {(card.label === "Abhijit Muhurta" || card.label === "Amrita Kala") && (
+                      {card.sparkle && (
                         <Sparkles className="h-3 w-3 text-gold-400 animate-pulse-soft" />
                       )}
                     </div>
@@ -868,7 +900,7 @@ export default function PanchangaClient({ festivals }: { festivals: any[] }) {
           className="max-w-5xl mx-auto"
         >
           <div className="glass rounded-2xl px-3 py-3 sm:px-6 sm:py-4 shadow-premium border border-gold-400/20 flex flex-wrap items-center justify-center gap-2 sm:gap-4">
-            <Link href="/seva?event=today" className="shrink-0">
+            <Link href="/sevas?event=today" className="shrink-0">
               <Button variant="primary" size="sm" iconLeft={<Sparkles className="h-4 w-4" />}>
                 <span className="hidden sm:inline">{t("panchanga.bookTodaysSeva")}</span>
                 <span className="sm:hidden">{t("panchanga.bookSeva")}</span>

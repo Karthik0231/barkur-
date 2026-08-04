@@ -38,7 +38,7 @@ export default function DonationsPage() {
     fetch("/api/donations")
       .then((r) => r.json())
       .then((d) => {
-        setDonations(d.data || d || [])
+        setDonations(d.data?.donations || [])
         setLoading(false)
       })
       .catch(() => setLoading(false))

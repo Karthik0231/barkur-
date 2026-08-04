@@ -1,13 +1,13 @@
 "use client"
 
-import { use, useState } from "react"
+import { use, useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { motion, AnimatePresence } from "framer-motion"
 import { z } from "zod"
 import { format } from "date-fns"
-import { ArrowLeft, ChevronRight, CalendarDays, Clock, Building2, Users, User, Phone, Mail, MessageSquare, Check, Shield } from "lucide-react"
+import { ArrowLeft, ChevronRight, CalendarDays, Clock, Building2, Users, User, Phone, Mail, MessageSquare, Check, Shield, AlertCircle } from "lucide-react"
 import { AnimatedSection } from "@/components/animated-section"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -57,16 +57,60 @@ const steps = [
   { label: "Review & Pay", description: "Confirm and pay" },
 ]
 
-const hallPricing = {
-  basePrice: 15000,
-  pricePerHour: 3000,
-  securityDeposit: 10000,
-  tax: 18,
+interface HallBookInfo {
+  id: string
+  slug: string
+  name: string
+  basePrice: number
+  pricePerHour: number
+  securityDeposit: number
+  tax: number
+}
+
+function useHallInfo(slug: string) {
+  const [hall, setHall] = useState<HallBookInfo | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchHall() {
+      try {
+        setLoading(true)
+        setError(null)
+        const res = await fetch("/api/halls?limit=100")
+        const json = await res.json()
+        if (!json?.success) throw new Error(json?.message || "Failed to load hall details")
+        const rawHalls: any[] = json?.data?.halls || []
+        const match = rawHalls.find((h: any) => (h.slug || String(h.id)) === slug)
+        if (!match) {
+          setHall(null)
+        } else {
+          setHall({
+            id: String(match.id),
+            slug: match.slug || String(match.id),
+            name: match.name || slug.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
+            basePrice: Number(match.basePrice) || 0,
+            pricePerHour: Number(match.pricePerHour) || 0,
+            securityDeposit: Number(match.securityDeposit) || Math.round((Number(match.basePrice) || 0) * 0.5),
+            tax: 18,
+          })
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An unexpected error occurred")
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchHall()
+  }, [slug])
+
+  return { hall, loading, error }
 }
 
 export default function BookHallPage({ params }: { params: Promise<{ slug: string }> }) {
   const { t } = useTranslation()
   const { slug } = use(params)
+  const { hall, loading: hallLoading, error: hallError } = useHallInfo(slug)
   const [currentStep, setCurrentStep] = useState(0)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [selectedStartTime, setSelectedStartTime] = useState("")
@@ -75,6 +119,7 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
   const {
     register,
     handleSubmit,
+    setError,
     setValue,
     watch,
     formState: { errors },
@@ -117,18 +162,77 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
   }
 
   const handlePayment = () => {
-    console.log("Processing payment...")
+    setError("root", {
+      type: "manual",
+      message: "Please submit the booking request before payment.",
+    })
   }
 
-  const hallName = slug.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+  const hallName = hall?.name || slug.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+  const basePrice = hall?.basePrice ?? 0
+  const pricePerHour = hall?.pricePerHour ?? 0
+  const securityDeposit = hall?.securityDeposit ?? 0
+  const tax = hall?.tax ?? 18
 
-  const lineItems = [
-    { label: "Base Price", amount: hallPricing.basePrice, description: "Standard hall rental" },
-    { label: "Hourly Charges", amount: hallPricing.pricePerHour * 4, description: "4 hours estimated" },
-    { label: "Security Deposit", amount: hallPricing.securityDeposit, description: "Refundable" },
-  ]
+  const lineItems = useMemo(() => [
+    { label: "Base Price", amount: basePrice, description: "Standard hall rental" },
+    { label: "Hourly Charges", amount: pricePerHour * 4, description: "4 hours estimated" },
+    { label: "Security Deposit", amount: securityDeposit, description: "Refundable" },
+  ], [basePrice, pricePerHour, securityDeposit])
 
-  const total = hallPricing.basePrice + hallPricing.pricePerHour * 4
+  const total = useMemo(() => basePrice + pricePerHour * 4, [basePrice, pricePerHour])
+
+  if (hallLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-bg-secondary/30 to-bg-primary flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-bg-secondary/60 animate-pulse mb-4" />
+          <h2 className="text-xl font-heading font-bold text-primary mb-2">Loading Hall Details...</h2>
+          <p className="text-text-muted">Please wait while we fetch the hall information</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (hallError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-bg-secondary/30 to-bg-primary flex items-center justify-center p-4">
+        <Card variant="elevated" className="p-10 text-center max-w-md">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500 mb-4">
+            <AlertCircle className="h-8 w-8" />
+          </div>
+          <h1 className="text-3xl font-heading font-bold text-primary mb-2">Error</h1>
+          <p className="text-text-secondary mb-6">{hallError}</p>
+          <Link href="/hall-booking">
+            <Button variant="gradient">
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back to Halls
+            </Button>
+          </Link>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!hall) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-bg-secondary/30 to-bg-primary flex items-center justify-center p-4">
+        <Card variant="elevated" className="p-10 text-center max-w-md">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-bg-secondary/50 flex items-center justify-center text-text-muted mb-4">
+            <Building2 className="h-8 w-8" />
+          </div>
+          <h1 className="text-3xl font-heading font-bold text-primary mb-2">Hall Not Found</h1>
+          <p className="text-text-secondary mb-6">The requested hall does not exist or may have been removed.</p>
+          <Link href="/hall-booking">
+            <Button variant="gradient">
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Browse All Halls
+            </Button>
+          </Link>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-bg-secondary/30 to-bg-primary">
@@ -222,10 +326,10 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                                 <button
                                   key={time}
                                   type="button"
-                                  onClick={() => setValue("endTime", time, { shouldValidate: true })}
+                                  onClick={() => { setSelectedEndTime(time); setValue("endTime", time, { shouldValidate: true }) }}
                                   className={cn(
                                     "py-2 px-3 rounded-lg border text-xs text-left transition-all",
-                                    watch("endTime") === time
+                                    selectedEndTime === time
                                       ? "border-primary bg-primary/5 text-primary font-medium"
                                       : "border-border text-text-secondary hover:border-secondary/50",
                                   )}
@@ -377,6 +481,9 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                             placeholder="Any special requirements or requests..."
                             className="w-full pl-10 pr-4 py-3 rounded-lg border border-border bg-warm-white dark:bg-bg-secondary text-sm focus:border-secondary focus:ring-2 focus:ring-secondary/20 focus:outline-none transition-all resize-none"
                           />
+                          {errors.root?.message && (
+                            <p className="text-sm text-red-500">{errors.root.message}</p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -463,11 +570,11 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                     <div className="md:col-span-2">
                       <PaymentSummary
                         lineItems={lineItems}
-                        tax={hallPricing.tax}
-                        deposit={hallPricing.securityDeposit}
+                        tax={tax}
+                        deposit={securityDeposit}
                         total={total}
                         onPayment={handlePayment}
-                        paymentLabel={`Pay ${formatPrice(total + Math.round(total * hallPricing.tax / 100) + hallPricing.securityDeposit)}`}
+                        paymentLabel={`Pay ${formatPrice(total + Math.round(total * tax / 100) + securityDeposit)}`}
                       />
                     </div>
                   </div>
