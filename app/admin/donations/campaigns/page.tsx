@@ -27,6 +27,7 @@ interface Campaign {
   name: string
   slug: string
   description: string
+  shortDescription: string
   goalAmount: number
   collectedAmount: number
   startDate: string
@@ -34,6 +35,7 @@ interface Campaign {
   category: string
   isActive: boolean
   isFeatured: boolean
+  banner: string
 }
 
 export default function CampaignsPage() {
@@ -45,10 +47,12 @@ export default function CampaignsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch("/api/donations/campaigns")
+    fetch("/api/donations/campaigns?limit=100")
       .then((r) => r.json())
       .then((d) => {
-        setCampaigns(d.data || d || [])
+        const payload = d.data || d
+        const items = Array.isArray(payload.campaigns) ? payload.campaigns : Array.isArray(payload) ? payload : []
+        setCampaigns(items)
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -60,32 +64,38 @@ export default function CampaignsPage() {
 
   const openCreate = () => {
     setEditing(null)
-    reset({ name: "", slug: "", description: "", goalAmount: undefined, startDate: "", endDate: "", category: "GENERAL", isActive: true, isFeatured: false })
+    reset({ name: "", slug: "", description: "", shortDescription: "", goalAmount: undefined, startDate: "", endDate: "", category: "GENERAL", isActive: true, isFeatured: false, banner: "" })
     setDialogOpen(true)
   }
 
   const openEdit = (c: Campaign) => {
     setEditing(c)
-    reset({ name: c.name, slug: c.slug, description: c.description, goalAmount: c.goalAmount, startDate: c.startDate, endDate: c.endDate || "", category: c.category, isActive: c.isActive, isFeatured: c.isFeatured })
+    reset({ name: c.name, slug: c.slug, description: c.description, shortDescription: c.shortDescription || "", goalAmount: c.goalAmount, startDate: c.startDate, endDate: c.endDate || "", category: c.category, isActive: c.isActive, isFeatured: c.isFeatured, banner: c.banner || "" })
     setDialogOpen(true)
   }
 
   const onSubmit = async (data: any) => {
     try {
+      const payload = {
+        ...data,
+        shortDescription: data.shortDescription || "",
+        banner: data.banner || "",
+      }
       if (editing) {
         const res = await fetch(`/api/donations/campaigns/${editing.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
+          body: JSON.stringify(payload),
         })
         if (!res.ok) throw new Error()
+        const updated = await res.json()
         toast.success("Campaign updated")
-        setCampaigns((prev) => prev.map((c) => c.id === editing.id ? { ...c, ...data, endDate: data.endDate || null } : c))
+        setCampaigns((prev) => prev.map((c) => c.id === editing.id ? { ...c, ...payload, endDate: payload.endDate || null } : c))
       } else {
         const res = await fetch("/api/donations/campaigns", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
+          body: JSON.stringify(payload),
         })
         if (!res.ok) throw new Error()
         const created = await res.json()
@@ -188,7 +198,9 @@ export default function CampaignsPage() {
               <Input label="Campaign Name" placeholder="e.g., Temple Renovation" error={errors.name?.message as string} {...register("name")} />
               <Input label="Slug" placeholder="temple-renovation" error={errors.slug?.message as string} {...register("slug")} />
             </div>
+            <Input label="Short Description" placeholder="Brief summary shown on campaign cards..." error={errors.shortDescription?.message as string} {...register("shortDescription")} />
             <Input label="Description" placeholder="Describe the campaign purpose..." error={errors.description?.message as string} {...register("description")} />
+            <Input label="Banner Image URL" placeholder="https://example.com/banner.jpg" error={errors.banner?.message as string} {...register("banner")} />
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <Input label="Goal Amount (₹)" type="number" placeholder="1000000" error={errors.goalAmount?.message as string} {...register("goalAmount")} />
               <div className="flex flex-col gap-1.5">
