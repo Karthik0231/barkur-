@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@/lib/zod-resolver"
-import { z } from "zod"
+import { campaignSchema, type CampaignInput } from "@/lib/validations"
 
 interface Campaign {
   id: string
@@ -35,22 +35,6 @@ interface Campaign {
   isActive: boolean
   isFeatured: boolean
 }
-
-const campaignSchema = z.object({
-  name: z.string().min(5, "Title must be at least 5 characters").max(200),
-  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/),
-  description: z.string().min(20),
-  goalAmount: z.coerce.number().positive(),
-  startDate: z.string().min(1),
-  endDate: z.string().optional(),
-  category: z.string().min(1),
-  isActive: z.boolean().optional(),
-  isFeatured: z.boolean().optional(),
-})
-
-
-
-
 
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
@@ -70,7 +54,7 @@ export default function CampaignsPage() {
       .catch(() => setLoading(false))
   }, [])
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<any>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<CampaignInput>({
     resolver: zodResolver(campaignSchema),
   })
 

@@ -213,15 +213,14 @@ export const faqSchema = z.object({
 })
 
 export const campaignSchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters").max(200),
+  name: z.string().min(5, "Title must be at least 5 characters").max(200),
   slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
   description: z.string().min(20, "Description must be at least 20 characters").max(5000),
   shortDescription: z.string().max(300).optional(),
-  targetAmount: z.number().positive("Target amount must be greater than zero"),
-  raisedAmount: z.number().min(0).optional(),
+  goalAmount: z.coerce.number().positive("Goal amount must be greater than zero"),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
-  coverImage: z.string().optional(),
+  banner: z.string().optional(),
   category: z.string().min(1, "Category is required"),
   isActive: z.boolean().optional(),
   isFeatured: z.boolean().optional(),

@@ -27,14 +27,11 @@ import {
   PartyPopper,
   Clock,
   LogOut,
-  Library,
-  UserCog,
   ScrollText,
   Tent,
   Landmark,
   Church,
   MessagesSquare,
-  UserCircle,
   type LucideIcon,
 } from "lucide-react"
 
@@ -60,9 +57,8 @@ const navGroups: { group: string; items: NavItem[]; roles?: string[] }[] = [
     ],
   },
   {
-    group: "Sevas & Categories",
+    group: "Sevas",
     items: [
-      { label: "Categories", href: "/admin/categories", icon: Library },
       { label: "Sevas", href: "/admin/sevas", icon: Flower2 },
     ],
   },
@@ -94,17 +90,8 @@ const navGroups: { group: string; items: NavItem[]; roles?: string[] }[] = [
     ],
   },
   {
-    group: "Committee & Staff",
-    items: [
-      { label: "Committee", href: "/admin/committee", icon: Users },
-      { label: "Staff", href: "/admin/staff", icon: UserCog },
-      { label: "Priests", href: "/admin/staff/priests", icon: UserCircle },
-    ],
-  },
-  {
     group: "System",
     items: [
-      { label: "Pages", href: "/admin/pages", icon: FileText },
       { label: "Users", href: "/admin/users", icon: Users },
       { label: "Settings", href: "/admin/settings", icon: Settings },
       { label: "Audit Logs", href: "/admin/audit-logs", icon: ScrollText },

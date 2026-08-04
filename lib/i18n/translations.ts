@@ -376,6 +376,22 @@ export interface TranslationData {
     siteLabel: string
     presidingDeityLabel: string
     dailyRitesLabel: string
+    milestoneEstablishment: string
+    milestoneEstablishmentDesc: string
+    milestoneChola: string
+    milestoneCholaDesc: string
+    milestoneVijayanagara: string
+    milestoneVijayanagaraDesc: string
+    milestoneRestoration: string
+    milestoneRestorationDesc: string
+    factFoundedValue: string
+    factFoundedSub: string
+    factSiteValue: string
+    factSiteSub: string
+    factDeityValue: string
+    factDeitySub: string
+    factRitesValue: string
+    factRitesSub: string
     panchaAnga: string
     panchaAngaSub: string
     viewFullPanchanga: string
@@ -1095,6 +1111,22 @@ const translations: Record<string, TranslationData> = {
       siteLabel: "ಸ್ಥಳ",
       presidingDeityLabel: "ಪ್ರಧಾನ ದೇವತೆ",
       dailyRitesLabel: "ದೈನಂದಿನ ಆಚರಣೆಗಳು",
+      milestoneEstablishment: "ದೇವಸ್ಥಾನ ಸ್ಥಾಪನೆ",
+      milestoneEstablishmentDesc: "ಶ್ರೀ ಕಾಳಿಕಾಂಬಾ ದೇವಿ ದೇವಸ್ಥಾನವನ್ನು ಹಾಲಾಡಿ ನದಿಯ ತೀರದಲ್ಲಿ ಅನುಷ್ಠಾಪಿಸಲಾಯಿತು, ತರunal generations ಗೆ ಆಧ್ಯಾತ್ಮಿಕ ಆಶ್ರಯವಾಗಿ ಮಾತು ಮಾಡಿತು.",
+      milestoneChola: "ಚೋಳ ನವೀಕರಣಗಳು",
+      milestoneCholaDesc: "ಚೋಳ ಸಾಮ್ರಾಜ್ಯದ ಪರಂಪರೆಯಲ್ಲಿ, ದೇವಸ್ಥಾನವು ಕಲ್ಪಿತ ಗೋಪುರಮ್ ಮತ್ತು ಕಂಬದ ಮಂಡಪದೊಂದಿಗೆ ಮೊದಲ ಮಹಾ ವಿಸ್ತರಣೆಯನ್ನು ಕಂಡಿತು.",
+      milestoneVijayanagara: "ವಿಜಯನಗರ ಪರಂಪರೆ",
+      milestoneVijayanagaraDesc: "ವಿಜಯನಗರ ಅರಸರು ದೇವಸ್ಥಾನವನ್ನು ಕೇಂದ್ರಿಯ ಕೆತ್ತನೆಗಳು, ವಿಶಾಲ ದೇವಸ್ಥಾನ ಹೊಳೆ ಮತ್ತು ದೈನಂದಿನ ಆಚರಣೆಗಳಿಗೆ ಸ್ಥಿರೀಕರಣಗಳೊಂದಿಗೆ ಸಮೃದ್ಧಿಗೊಳಿಸಿದರು.",
+      milestoneRestoration: "ದೇವಸ್ಥಾನ ಪುನಃಸ್ಥಾಪನೆ",
+      milestoneRestorationDesc: "ಸಮಗ್ರ ಪುನಃಸ್ಥಾಪನೆ ಪ್ರಜೆವೊಂದಿಗೆ ದೇವಸ್ಥಾನದ ಪ್ರಾಚೀನ ಮಹಿಮೆಯನ್ನು ಪುನಃಸ್ಥಾಪಿಸಿತು, ಅದರ ವಾಸ್ತುಶಿಲ್ಪ ಪರಂಪರೆಯನ್ನು ಶತಮಾನಗಳಿಗೆ ಸಂರಕ್ಷಿಸಲು.",
+      factFoundedValue: "1200 CE",
+      factFoundedSub: "13ನ ಶತಮಾನ",
+      factSiteValue: "ಹಾಲಾಡಿ ನದಿ",
+      factSiteSub: "ಬಾರ್ಕೂರು, ಉಡುಪಿ",
+      factDeityValue: "ಶ್ರೀ ಕಾಳಿಕಾಂಬಾ ದೇವಿ",
+      factDeitySub: "ಶಕ್ತಿ ಸಂಪ್ರದಾಯ",
+      factRitesValue: "7 ಸೇವೆಗಳು",
+      factRitesSub: "ಭೋರ್ಕಳದಿಂದ ಮಧ್ಯರಾತ್ರಿ ವರೆಗೆ",
       panchaAnga: "ಪಂಚಾಂಗ",
       panchaAngaSub: "ದಿನದ ಐದು ಅಂಗಗಳು, ಆಕಾಶದಿಂದ ಓದಲ್ಪಟ್ಟಿವೆ",
       viewFullPanchanga: "ಪೂರ್ಣ ಪಂಚಾಂಗ ವೀಕ್ಷಿಸಿ",
@@ -1897,6 +1929,22 @@ const translations: Record<string, TranslationData> = {
       siteLabel: "Site",
       presidingDeityLabel: "Presiding Deity",
       dailyRitesLabel: "Daily Rites",
+      milestoneEstablishment: "Temple Establishment",
+      milestoneEstablishmentDesc: "The sacred shrine of Sri Kalikamba Devi was consecrated on the banks of the Haladi River, becoming a beacon of spiritual solace for generations.",
+      milestoneChola: "Chola Renovations",
+      milestoneCholaDesc: "Under the patronage of the Chola dynasty, the temple saw its first major expansion with the addition of the ornate gopuram and pillared mandapa.",
+      milestoneVijayanagara: "Vijayanagara Patronage",
+      milestoneVijayanagaraDesc: "The Vijayanagara rulers enriched the temple with intricate carvings, a sprawling temple tank, and endowments that sustained daily rituals.",
+      milestoneRestoration: "Temple Restoration",
+      milestoneRestorationDesc: "A comprehensive restoration revived the temple's ancient grandeur, preserving its architectural heritage for centuries to come.",
+      factFoundedValue: "1200 CE",
+      factFoundedSub: "13th century",
+      factSiteValue: "Haladi River",
+      factSiteSub: "Barkur, Udupi",
+      factDeityValue: "Sri Kalikamba Devi",
+      factDeitySub: "Shakti tradition",
+      factRitesValue: "7 Sevas",
+      factRitesSub: "dawn to midnight",
       panchaAnga: "The Pancha\u2011Anga",
       panchaAngaSub: "Five limbs of the day, read from the sky",
       viewFullPanchanga: "View Full Panchanga",
