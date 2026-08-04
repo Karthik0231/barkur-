@@ -56,17 +56,17 @@ interface FactItem {
 }
 
 const fallbackMilestones: MilestoneItem[] = [
-  { year: "1200", era: "CE", label: "Temple Establishment", description: "The sacred shrine of Sri Kalikamba Devi was consecrated on the banks of the Haladi River, becoming a beacon of spiritual solace for generations.", lift: "high" },
-  { year: "1500", era: "CE", label: "Chola Renovations", description: "Under the patronage of the Chola dynasty, the temple saw its first major expansion with the addition of the ornate gopuram and pillared mandapa.", lift: "low" },
-  { year: "1800", era: "CE", label: "Vijayanagara Patronage", description: "The Vijayanagara rulers enriched the temple with intricate carvings, a sprawling temple tank, and endowments that sustained daily rituals.", lift: "high" },
-  { year: "2024", era: "CE", label: "Temple Restoration", description: "A comprehensive restoration revived the temple's ancient grandeur, preserving its architectural heritage for centuries to come.", lift: "low" },
+  { year: "1200", era: "CE", label: "home.milestoneEstablishment", description: "home.milestoneEstablishmentDesc", lift: "high" },
+  { year: "1500", era: "CE", label: "home.milestoneChola", description: "home.milestoneCholaDesc", lift: "low" },
+  { year: "1800", era: "CE", label: "home.milestoneVijayanagara", description: "home.milestoneVijayanagaraDesc", lift: "high" },
+  { year: "2024", era: "CE", label: "home.milestoneRestoration", description: "home.milestoneRestorationDesc", lift: "low" },
 ]
 
 const fallbackFacts: FactItem[] = [
-  { icon: Landmark, label: "foundedLabel", value: "1200 CE", sub: "13th century" },
-  { icon: Waves, label: "siteLabel", value: "Haladi River", sub: "Barkur, Udupi" },
-  { icon: SparklesIcon, label: "presidingDeityLabel", value: "Sri Kalikamba Devi", sub: "Shakti tradition" },
-  { icon: Sunrise, label: "dailyRitesLabel", value: "7 Sevas", sub: "dawn to midnight" },
+  { icon: Landmark, label: "foundedLabel", value: "home.factFoundedValue", sub: "home.factFoundedSub" },
+  { icon: Waves, label: "siteLabel", value: "home.factSiteValue", sub: "home.factSiteSub" },
+  { icon: SparklesIcon, label: "presidingDeityLabel", value: "home.factDeityValue", sub: "home.factDeitySub" },
+  { icon: Sunrise, label: "dailyRitesLabel", value: "home.factRitesValue", sub: "home.factRitesSub" },
 ]
 
 /** Brass banner clipped into a pennant — identical silhouette to Hero/Panchanga. */
@@ -256,8 +256,8 @@ export function TempleStorySection() {
               key={f.label}
               icon={fallbackFacts[i % fallbackFacts.length].icon}
               label={t(`home.${f.label}`)}
-              value={f.value}
-              sub={f.sub}
+              value={t(f.value)}
+              sub={t(f.sub)}
               delay={0.15 + i * 0.08}
               isInView={isInView}
             />
@@ -319,10 +319,10 @@ export function TempleStorySection() {
                   <CornerMark className="absolute -top-px -left-px h-4 w-4" />
                   <CornerMark className="absolute -bottom-px -right-px h-4 w-4 -scale-x-100 -scale-y-100" />
                   <h3 className="font-heading text-sm sm:text-[15px] font-bold mb-1.5 text-dark-slate">
-                    {m.label}
+                    {t(m.label)}
                   </h3>
                   <p className="text-[11.5px] leading-relaxed text-dark-slate/55">
-                    {m.description}
+                    {t(m.description)}
                   </p>
                 </div>
               </motion.div>

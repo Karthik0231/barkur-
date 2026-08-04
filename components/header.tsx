@@ -8,7 +8,6 @@ import { Menu, ChevronDown, Heart, Landmark } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n"
 import { LanguageSwitcher } from "@/lib/i18n/language-switcher"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { MobileNav } from "@/components/mobile-nav"
 
 type NavChild = {
@@ -213,8 +212,6 @@ export function Header() {
             </nav>
 
             <div className="flex items-center gap-2 shrink-0">
-              <ThemeToggle />
-
               <LanguageSwitcher />
 
               <Link

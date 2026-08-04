@@ -40,8 +40,6 @@ interface PanchangaApiData {
   nakshatra?: string
   yoga?: string
   karana?: string
-  rahuKala?: { start: string; end: string }
-  yamaganda?: { start: string; end: string }
   source?: string
 }
 
@@ -115,8 +113,6 @@ export function PanchangaSection() {
           nakshatra: p.nakshatra,
           yoga: p.yoga,
           karana: p.karana,
-          rahuKala: p.rahuKala || { start: p.rahuKalaStart, end: p.rahuKalaEnd },
-          yamaganda: p.yamaganda || { start: p.yamagandaStart, end: p.yamagandaEnd },
         })
       })
       .catch(() => {})
@@ -277,23 +273,6 @@ export function PanchangaSection() {
           transition={{ duration: 0.6, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="mt-14 sm:mt-16 grid sm:grid-cols-2 gap-3 sm:gap-4 max-w-2xl mx-auto"
         >
-          <RivetPlate accent="kumkum" label={t("home.inauspiciousTimings")} icon={Clock}>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-center">
-                <p className="text-[9px] uppercase tracking-wider text-[#C1432B]/80 font-semibold">{t("home.rahuKala")}</p>
-                <p className="text-xs font-medium text-dark-slate mt-0.5 tabular-nums">
-                  {panchanga?.rahuKala ? `${panchanga.rahuKala.start} – ${panchanga.rahuKala.end}` : "—"}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-[9px] uppercase tracking-wider text-[#C1432B]/80 font-semibold">{t("home.yamaganda")}</p>
-                <p className="text-xs font-medium text-dark-slate mt-0.5 tabular-nums">
-                  {panchanga?.yamaganda ? `${panchanga.yamaganda.start} – ${panchanga.yamaganda.end}` : "—"}
-                </p>
-              </div>
-            </div>
-          </RivetPlate>
-
           <RivetPlate accent="brass" label={t("home.darshanaHours")} icon={Sun}>
             <div className="grid grid-cols-2 gap-2">
               <div className="text-center">

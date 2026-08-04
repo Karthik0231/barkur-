@@ -50,14 +50,14 @@ export async function POST(request: Request) {
     const data = parsed.data
     const campaign = await prisma.donationCampaign.create({
       data: {
-        name: data.title,
+        name: data.name,
         slug: data.slug,
         description: data.description,
         shortDescription: data.shortDescription,
-        goalAmount: data.targetAmount,
-        collectedAmount: data.raisedAmount ?? 0,
+        goalAmount: data.goalAmount,
         startDate: new Date(data.startDate),
         endDate: data.endDate ? new Date(data.endDate) : null,
+        banner: data.banner ?? null,
         category: data.category as never,
         isActive: data.isActive ?? true,
         isFeatured: data.isFeatured ?? false,
