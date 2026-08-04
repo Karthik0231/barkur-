@@ -25,7 +25,6 @@ function LoginContent() {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
-    console.log("Attempting login with", { email });
     const result = await signIn('credentials', {
       email,
       password,
@@ -33,12 +32,9 @@ function LoginContent() {
       callbackUrl,
     });
 
-    console.log("Sign in result:", result);
     if (result?.error) {
-      console.error("Login error:", result.error);
       setError('Invalid email or password');
     } else if (result?.ok) {
-      console.log("Login successful, redirecting to:", callbackUrl);
       router.push(callbackUrl);
     }
 
@@ -113,15 +109,6 @@ function LoginContent() {
             </Button>
           </div>
 
-          <div className="mt-6 p-4 bg-sand-50 border border-border rounded-lg">
-            <p className="text-xs text-text-muted mb-2">Demo credentials:</p>
-            <p className="text-xs text-text-secondary">
-              <strong>Admin:</strong> admin@kalikambatemple.org / admin123
-            </p>
-            <p className="text-xs text-text-secondary mt-1">
-              <strong>Super Admin:</strong> superadmin@kalikambatemple.org / superadmin123
-            </p>
-          </div>
         </form>
       </div>
     </div>

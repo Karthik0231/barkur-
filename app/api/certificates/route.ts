@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { successResponse, errorResponse, getAuthUser } from "@/lib/api-utils"
 import { generateCertificateNumber } from "@/lib/utils"
+import { certificateSchema } from "@/lib/validations"
 
 export async function POST(request: Request) {
   try {
@@ -10,26 +11,26 @@ export async function POST(request: Request) {
     if (!user) return errorResponse("Unauthorized", 401)
 
     const body = await request.json()
-    const { bookingId, type } = body
+    const parsed = certificateSchema.safeParse(body)
+    if (!parsed.success) return errorResponse("Validation failed", 400, parsed.error.flatten().fieldErrors as Record<string, string[]>)
 
-    if (!bookingId || !type) return errorResponse("bookingId and type are required", 400)
-
+    const data = parsed.data
     const booking = await prisma.booking.findFirst({
-      where: { id: bookingId, deletedAt: null },
+      where: { id: data.bookingId, deletedAt: null },
       include: { user: { select: { name: true } } },
     })
     if (!booking) return errorResponse("Booking not found", 404)
 
     if (booking.paymentStatus !== "PAID") return errorResponse("Payment not completed", 400)
 
-    const certNumber = generateCertificateNumber()
+    const certNumber = data.certificateNumber || generateCertificateNumber()
     const certificate = await prisma.certificate.create({
       data: {
-        bookingId,
+        bookingId: data.bookingId,
         certificateNumber: certNumber,
-        type: type as never,
-        template: "default",
-        metadata: { generatedBy: user.id, bookingId: booking.bookingId, devotee: booking.user?.name },
+        type: data.type,
+        template: data.template ?? "default",
+        metadata: (data.metadata ?? { generatedBy: user.id, bookingId: booking.id, devotee: booking.user?.name }) as never,
         issuedAt: new Date(),
       },
     })
@@ -49,20 +50,18 @@ export async function GET(request: Request) {
 
     const bookingId = searchParams.get("bookingId")
     const certNumber = searchParams.get("certNumber")
-    const type = searchParams.get("type")
 
     const where: Record<string, unknown> = {}
     if (bookingId) where.bookingId = bookingId
     if (certNumber) where.certificateNumber = certNumber
-    if (type) where.type = type
 
-    const whereBooking = await prisma.certificate.findMany({
+    const certificates = await prisma.certificate.findMany({
       where: where as never,
       include: { booking: { select: { bookingId: true } } },
       orderBy: { createdAt: "desc" },
     })
 
-    return successResponse({ certificates: whereBooking })
+    return successResponse({ certificates })
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to fetch certificates", 500)
   }

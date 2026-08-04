@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Heart, Shield, QrCode, CreditCard, Hash, User, Mail, Phone, MapPin, MessageSquare, Eye, EyeOff } from "lucide-react"
+import { Heart, Shield, QrCode, CreditCard, Hash, User, Mail, Phone, MapPin, MessageSquare, Eye, EyeOff, CheckCircle } from "lucide-react"
 
 const donationFormSchema = z.object({
   amount: z.number().min(1, "Please select or enter an amount"),
@@ -26,6 +26,8 @@ const donationFormSchema = z.object({
   isAnonymous: z.boolean().optional(),
   isRecurring: z.boolean().optional(),
   recurringFrequency: z.enum(["monthly", "yearly"]).optional(),
+  paymentMethod: z.enum(["UPI", "BANK_TRANSFER", "OTHER"]).optional(),
+  transactionReference: z.string().max(100).optional(),
 })
 
 type DonationFormData = z.infer<typeof donationFormSchema>
@@ -312,21 +314,54 @@ export function DonationForm({
           </motion.div>
         )}
 
+        <div>
+          <label className="text-sm font-medium text-text-primary mb-2 block">Payment Method (Optional)</label>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { value: "UPI", label: "UPI" },
+              { value: "BANK_TRANSFER", label: "Bank Transfer" },
+              { value: "OTHER", label: "Other" },
+            ] as const).map((method) => (
+              <button
+                key={method.value}
+                type="button"
+                onClick={() => setValue("paymentMethod", watch("paymentMethod") === method.value ? undefined : method.value)}
+                className={cn(
+                  "py-2 px-3 rounded-xl border-2 text-xs font-medium capitalize transition-all",
+                  watch("paymentMethod") === method.value
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-border text-text-muted hover:border-secondary/50",
+                )}
+              >
+                {method.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-text-primary mb-2 block">Transaction / Reference No. (Optional)</label>
+          <input
+            {...register("transactionReference")}
+            placeholder="Enter UPI transaction ID or bank reference"
+            className="w-full h-11 px-4 rounded-lg border border-border bg-warm-white dark:bg-bg-secondary text-sm focus:border-secondary focus:ring-2 focus:ring-secondary/20 focus:outline-none transition-all"
+          />
+        </div>
+
         <div className="pt-2">
           <p className="text-xs text-text-muted flex items-center gap-1.5 mb-3">
             <Shield className="h-3.5 w-3.5 text-secondary" />
-            Your information is secure and encrypted. 100% safe checkout.
+            Your information is secure and encrypted.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Button variant="gradient" size="lg" type="submit" loading={loading} className="w-full">
-              <CreditCard className="h-4 w-4" />
-              {selectedAmount ? `Donate ${formatPrice(selectedAmount)}` : "Donate"}
-            </Button>
-            <Button variant="outline" size="lg" type="button" className="w-full">
-              <QrCode className="h-4 w-4" />
-              Donate using UPI
-            </Button>
+          <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-secondary/5 border border-primary/10 mb-4">
+            <p className="text-xs text-text-secondary leading-relaxed">
+              <strong>Note:</strong> Please complete your payment using the UPI QR, UPI ID, or Bank Account details displayed above. After making the payment, click below to submit your donation record for verification.
+            </p>
           </div>
+          <Button variant="gradient" size="lg" type="submit" loading={loading} className="w-full">
+            <CheckCircle className="h-4 w-4" />
+            I have made the payment, submit donation record
+          </Button>
         </div>
       </form>
     </Card>

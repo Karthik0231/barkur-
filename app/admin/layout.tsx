@@ -34,14 +34,11 @@ export default function AdminLayout({
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
-  console.log("Admin Layout status:", status, "session:", session);
-
   useEffect(() => {
     setMounted(true)
   }, [])
 
   useEffect(() => {
-    console.log("Status changed:", status);
     if (status === "unauthenticated") {
       router.push("/login")
     }
@@ -157,13 +154,13 @@ export default function AdminLayout({
           </header>
 
           <main className="flex-1 overflow-y-auto bg-bg-primary">
-            <AnimatePresence mode="wait">
+            <AnimatePresence>
               <motion.div
-                key={usePathnameKey()}
-                initial={{ opacity: 0, y: 8 }}
+                key={getPathnameKey()}
+                initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.15 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.12 }}
                 className="p-4 lg:p-6"
               >
                 {children}
@@ -176,7 +173,7 @@ export default function AdminLayout({
   )
 }
 
-function usePathnameKey() {
+function getPathnameKey() {
   if (typeof window === "undefined") return "initial"
   return window.location.pathname + window.location.search
 }

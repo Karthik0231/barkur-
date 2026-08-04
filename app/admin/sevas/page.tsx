@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import {
   Plus,
@@ -8,7 +8,10 @@ import {
   Trash2,
   Search,
   Eye,
-  Filter,
+  EyeOff,
+  Power,
+  X,
+  CheckSquare,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -46,7 +49,12 @@ interface Seva {
   createdAt: string
 }
 
+interface CategoryOption {
+  id: string
+  name: string
+}
 
+const PAGE_SIZE = 10
 
 export default function SevasPage() {
   const [sevas, setSevas] = useState<Seva[]>([])
@@ -55,42 +63,98 @@ export default function SevasPage() {
   const [categoryFilter, setCategoryFilter] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
   const [deleteDialog, setDeleteDialog] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
-  useEffect(() => {
-    fetch("/api/sevas")
-      .then((r) => r.json())
-      .then((d) => {
-        setSevas(d.data || d || [])
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
+  const [page, setPage] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+
+  const [categories, setCategories] = useState<CategoryOption[]>([])
+
+  const [selectedRows, setSelectedRows] = useState<string[]>([])
+  const [bulkActionLoading, setBulkActionLoading] = useState(false)
+
+  const fetchSevas = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      params.set("page", String(page))
+      params.set("limit", String(PAGE_SIZE))
+      if (searchQuery) params.set("search", searchQuery)
+      if (categoryFilter) params.set("categoryId", categoryFilter)
+      if (statusFilter) params.set("isActive", statusFilter === "active" ? "true" : "false")
+
+      const res = await fetch(`/api/sevas?${params.toString()}`)
+      const d = await res.json()
+      const payload = d.data || d
+      const sevaList = Array.isArray(payload) ? payload : payload.sevas || []
+      const total = payload.total ?? sevaList.length
+      const tp = payload.totalPages ?? Math.ceil(total / PAGE_SIZE)
+
+      const mapped: Seva[] = sevaList.map((s: any) => ({
+        ...s,
+        category: s.category?.name || s.category || "Uncategorized",
+        categoryId: s.categoryId || s.category?.id || "",
+      }))
+
+      setSevas(mapped)
+      setTotalItems(total)
+      setTotalPages(tp)
+    } catch {
+      setSevas([])
+      setTotalItems(0)
+      setTotalPages(1)
+    } finally {
+      setLoading(false)
+    }
+  }, [page, searchQuery, categoryFilter, statusFilter])
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const res = await fetch("/api/categories?type=SEVA&limit=200")
+      const d = await res.json()
+      const cats = d.data?.categories || d.data || d || []
+      setCategories(
+        (Array.isArray(cats) ? cats : []).map((c: any) => ({
+          id: c.id,
+          name: c.name,
+        }))
+      )
+    } catch {
+      setCategories([])
+    }
   }, [])
 
-  const categories = [...new Set(sevas.map((s) => s.category))]
+  useEffect(() => {
+    fetchCategories()
+  }, [fetchCategories])
 
-  const filtered = sevas.filter((s) => {
-    const matchesSearch =
-      !searchQuery ||
-      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.slug.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = !categoryFilter || s.category === categoryFilter
-    const matchesStatus =
-      !statusFilter ||
-      (statusFilter === "active" && s.isActive) ||
-      (statusFilter === "inactive" && !s.isActive)
-    return matchesSearch && matchesCategory && matchesStatus
-  })
+  useEffect(() => {
+    fetchSevas()
+  }, [fetchSevas])
+
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery, categoryFilter, statusFilter])
+
+  useEffect(() => {
+    setSelectedRows([])
+  }, [sevas])
 
   const handleDelete = async (id: string) => {
+    setDeleting(true)
     try {
       const res = await fetch(`/api/sevas/${id}`, { method: "DELETE" })
       if (!res.ok) throw new Error()
       setSevas((prev) => prev.filter((s) => s.id !== id))
+      setTotalItems((prev) => Math.max(0, prev - 1))
       toast.success("Seva deleted")
     } catch {
       toast.error("Failed to delete seva")
+    } finally {
+      setDeleteDialog(null)
+      setDeleting(false)
     }
-    setDeleteDialog(null)
   }
 
   const handleToggleStatus = async (id: string) => {
@@ -104,11 +168,62 @@ export default function SevasPage() {
       })
       if (!res.ok) throw new Error()
       setSevas((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, isActive: !s.isActive } : s)),
+        prev.map((s) => (s.id === id ? { ...s, isActive: !s.isActive } : s))
       )
       toast.success(`Seva ${target.isActive ? "deactivated" : "activated"}`)
     } catch {
       toast.error("Failed to update status")
+    }
+  }
+
+  const handleBulkStatusToggle = async (activate: boolean) => {
+    if (selectedRows.length === 0) return
+    setBulkActionLoading(true)
+    let successCount = 0
+    let failCount = 0
+
+    try {
+      await Promise.all(
+        selectedRows.map(async (id) => {
+          try {
+            const res = await fetch(`/api/sevas/${id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ isActive: activate }),
+            })
+            if (res.ok) {
+              successCount++
+            } else {
+              failCount++
+            }
+          } catch {
+            failCount++
+          }
+        })
+      )
+
+      setSevas((prev) =>
+        prev.map((s) =>
+          selectedRows.includes(s.id) ? { ...s, isActive: activate } : s
+        )
+      )
+
+      if (failCount === 0) {
+        toast.success(
+          `${successCount} seva${successCount !== 1 ? "s" : ""} ${
+            activate ? "activated" : "deactivated"
+          }`
+        )
+      } else {
+        toast.success(
+          `${successCount} succeeded, ${failCount} failed`
+        )
+      }
+    } catch {
+      toast.error("Bulk action failed")
+    } finally {
+      setBulkActionLoading(false)
+      setSelectedRows([])
     }
   }
 
@@ -119,12 +234,12 @@ export default function SevasPage() {
       sortable: true,
       render: (item) => (
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary text-xs font-bold">
+          <div className="h-8 w-8 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary text-xs font-bold shrink-0">
             {item.name.charAt(0)}
           </div>
-          <div>
-            <p className="font-medium text-text-primary">{item.name}</p>
-            <p className="text-xs text-text-muted">{item.slug}</p>
+          <div className="min-w-0">
+            <p className="font-medium text-text-primary truncate">{item.name}</p>
+            <p className="text-xs text-text-muted truncate">{item.slug}</p>
           </div>
         </div>
       ),
@@ -134,8 +249,11 @@ export default function SevasPage() {
       header: "Category",
       sortable: true,
       render: (item) => (
-        <Badge variant="subtle" size="sm">{item.category}</Badge>
+        <Badge variant="subtle" size="sm">
+          {item.category}
+        </Badge>
       ),
+      hideOnMobile: true,
     },
     {
       key: "price",
@@ -143,8 +261,10 @@ export default function SevasPage() {
       sortable: true,
       render: (item) => (
         <div className="flex items-center gap-1.5">
-          <span className="font-medium text-text-primary">₹{item.price.toLocaleString()}</span>
-          {item.originalPrice && (
+          <span className="font-medium text-text-primary">
+            ₹{item.price.toLocaleString()}
+          </span>
+          {item.originalPrice && item.originalPrice > item.price && (
             <span className="text-xs text-text-muted line-through">
               ₹{item.originalPrice.toLocaleString()}
             </span>
@@ -178,7 +298,17 @@ export default function SevasPage() {
       header: "Status",
       sortable: true,
       render: (item) => (
-        <StatusBadge status={item.isActive ? "ACTIVE" : "INACTIVE"} size="sm" />
+        <div className="flex items-center gap-2">
+          <StatusBadge
+            status={item.isActive ? "ACTIVE" : "INACTIVE"}
+            size="sm"
+          />
+          {item.isSpecial && (
+            <Badge variant="secondary" size="xs">
+              Special
+            </Badge>
+          )}
+        </div>
       ),
     },
   ]
@@ -187,41 +317,93 @@ export default function SevasPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold font-heading text-text-primary">Sevas</h1>
+          <h1 className="text-2xl font-bold font-heading text-text-primary">
+            Sevas
+          </h1>
           <p className="text-sm text-text-muted mt-1">
             Manage temple sevas, pujas, and homas
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            iconLeft={<Filter className="h-4 w-4" />}
-          >
-            Filter
-          </Button>
           <Link href="/admin/sevas/new">
-            <Button variant="primary" size="sm" iconLeft={<Plus className="h-4 w-4" />}>
+            <Button
+              variant="primary"
+              size="sm"
+              iconLeft={<Plus className="h-4 w-4" />}
+            >
               Add New Seva
             </Button>
           </Link>
         </div>
       </div>
 
+      {selectedRows.length > 0 && (
+        <Card
+          variant="elevated"
+          padding="sm"
+          className="flex items-center justify-between gap-4 border-secondary/30 bg-secondary/5"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-secondary/15 flex items-center justify-center shrink-0">
+              <CheckSquare className="h-4 w-4 text-secondary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-text-primary">
+                {selectedRows.length} seva{selectedRows.length !== 1 ? "s" : ""}{" "}
+                selected
+              </p>
+              <p className="text-xs text-text-muted">Apply bulk actions</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleBulkStatusToggle(true)}
+              loading={bulkActionLoading}
+              iconLeft={<Eye className="h-4 w-4" />}
+            >
+              Activate
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleBulkStatusToggle(false)}
+              loading={bulkActionLoading}
+              iconLeft={<EyeOff className="h-4 w-4" />}
+            >
+              Deactivate
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedRows([])}
+              iconLeft={<X className="h-4 w-4" />}
+              disabled={bulkActionLoading}
+            >
+              Clear
+            </Button>
+          </div>
+        </Card>
+      )}
+
       <Card variant="elevated" padding="none">
         <DataTable
           columns={columns}
-          data={filtered}
+          data={sevas}
           keyExtractor={(item) => item.id}
           searchable
           searchPlaceholder="Search sevas by name or slug..."
           searchQuery={searchQuery}
           onSearch={setSearchQuery}
           selectable
+          onSelectionChange={setSelectedRows}
           loading={loading}
-          exportable
-          onExport={() => console.log("Export sevas")}
           emptyMessage="No sevas found matching your criteria"
+          currentPage={page}
+          totalItems={totalItems}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
           filters={
             <>
               <select
@@ -231,7 +413,9 @@ export default function SevasPage() {
               >
                 <option value="">All Categories</option>
                 {categories.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
                 ))}
               </select>
               <select
@@ -250,18 +434,26 @@ export default function SevasPage() {
               <Link
                 href={`/admin/sevas/${item.id}/edit`}
                 className="p-1.5 rounded-lg text-text-muted hover:text-secondary hover:bg-secondary/10 transition-all"
+                title="Edit"
               >
                 <Edit3 className="h-4 w-4" />
               </Link>
               <button
                 onClick={() => handleToggleStatus(item.id)}
-                className="p-1.5 rounded-lg text-text-muted hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all"
+                className={
+                  "p-1.5 rounded-lg transition-all " +
+                  (item.isActive
+                    ? "text-text-muted hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                    : "text-text-muted hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20")
+                }
+                title={item.isActive ? "Deactivate" : "Activate"}
               >
-                <Eye className="h-4 w-4" />
+                <Power className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setDeleteDialog(item.id)}
                 className="p-1.5 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+                title="Delete"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -275,17 +467,24 @@ export default function SevasPage() {
           <DialogHeader>
             <DialogTitle>Delete Seva</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this seva? This action cannot be undone.
+              Are you sure you want to delete this seva? This action cannot be
+              undone and may affect existing bookings.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDeleteDialog(null)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDeleteDialog(null)}
+              disabled={deleting}
+            >
               Cancel
             </Button>
             <Button
               variant="destructive"
               size="sm"
               onClick={() => deleteDialog && handleDelete(deleteDialog)}
+              loading={deleting}
             >
               Delete
             </Button>
@@ -295,4 +494,3 @@ export default function SevasPage() {
     </div>
   )
 }
-

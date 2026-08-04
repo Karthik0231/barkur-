@@ -1,58 +1,42 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useForm, useFieldArray } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { zodResolver } from "@/lib/zod-resolver"
-import { z } from "zod"
-import { motion } from "framer-motion"
+import { sevaSchema, type SevaInput } from "@/lib/validations"
 import {
   Save,
   ArrowLeft,
   Plus,
   X,
+  Calendar,
 } from "lucide-react"
 import toast from "react-hot-toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { RichEditor } from "@/components/admin/rich-editor"
 import { ImageUpload, type ImageItem } from "@/components/admin/image-upload"
 
-const sevaFormSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters").max(200),
-  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens"),
-  categoryId: z.string().min(1, "Category is required"),
-  shortDescription: z.string().max(300).optional(),
-  description: z.string().min(20, "Description must be at least 20 characters"),
-  price: z.coerce.number().positive("Price must be greater than 0"),
-  originalPrice: z.coerce.number().optional().or(z.literal("")),
-  duration: z.coerce.number().int().positive().optional().or(z.literal("")),
-  maxDevotees: z.coerce.number().int().positive().optional().or(z.literal("")),
-  minDevotees: z.coerce.number().int().positive().optional().or(z.literal("")),
-  bookingNotice: z.coerce.number().int().min(0).optional().or(z.literal("")),
-  requiresApproval: z.boolean().optional(),
-  isActive: z.boolean().optional(),
-  isSpecial: z.boolean().optional(),
-})
+interface CategoryOption {
+  id: string
+  name: string
+  slug: string
+}
 
-
-
-const categories = [
-  { id: "cat1", name: "Abhishekam" },
-  { id: "cat2", name: "Vrata" },
-  { id: "cat3", name: "Homa" },
-  { id: "cat4", name: "Nitya" },
-  { id: "cat5", name: "Special" },
-  { id: "cat6", name: "Seva" },
-]
+interface AvailabilityDate {
+  date: string
+  isAvailable: boolean
+  maxBookings?: number
+}
 
 export default function NewSevaPage() {
   const router = useRouter()
   const [images, setImages] = useState<ImageItem[]>([])
-  const [rules, setRules] = useState<string[]>([""])
-  const [instructions, setInstructions] = useState<string[]>([""])
+  const [categories, setCategories] = useState<CategoryOption[]>([])
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
+  const [availabilityDates, setAvailabilityDates] = useState<AvailabilityDate[]>([])
   const [saving, setSaving] = useState(false)
 
   const {
@@ -61,8 +45,8 @@ export default function NewSevaPage() {
     formState: { errors },
     setValue,
     watch,
-  } = useForm<any>({
-    resolver: zodResolver(sevaFormSchema),
+  } = useForm<SevaInput>({
+    resolver: zodResolver(sevaSchema),
     defaultValues: {
       name: "",
       slug: "",
@@ -78,46 +62,88 @@ export default function NewSevaPage() {
       requiresApproval: false,
       isActive: true,
       isSpecial: false,
+      isShashwatha: false,
+      bookingRules: "",
+      sortOrder: 0,
     },
   })
+
+  useEffect(() => {
+    fetch("/api/categories?type=SEVA&limit=100")
+      .then((r) => r.json())
+      .then((d) => {
+        const cats = d.data?.categories || d.data || d || []
+        setCategories(Array.isArray(cats) ? cats : [])
+        setCategoriesLoading(false)
+      })
+      .catch(() => {
+        setCategories([])
+        setCategoriesLoading(false)
+      })
+  }, [])
 
   const name = watch("name")
 
   const generateSlug = (val: string) => {
-    setValue("slug", val.toLowerCase().replace(/[^\w\s-]/g, "").replace(/[\s_]+/g, "-").replace(/^-+|-+$/g, ""))
+    setValue(
+      "slug",
+      val
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, "")
+        .replace(/[\s_]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+    )
   }
 
-  const onSubmit = async (data: any) => {
+  const addAvailabilityDate = () => {
+    setAvailabilityDates((prev) => [
+      ...prev,
+      { date: "", isAvailable: true, maxBookings: undefined },
+    ])
+  }
+
+  const removeAvailabilityDate = (index: number) => {
+    setAvailabilityDates((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const updateAvailabilityDate = (
+    index: number,
+    field: keyof AvailabilityDate,
+    value: any
+  ) => {
+    setAvailabilityDates((prev) =>
+      prev.map((d, i) => (i === index ? { ...d, [field]: value } : d))
+    )
+  }
+
+  const onSubmit = async (data: SevaInput) => {
     setSaving(true)
     try {
+      const payload: any = {
+        ...data,
+        images,
+        availabilityDates: availabilityDates.filter((d) => d.date),
+      }
+
       const res = await fetch("/api/sevas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-          images,
-          rules: rules.filter(Boolean),
-          instructions: instructions.filter(Boolean),
-        }),
+        body: JSON.stringify(payload),
       })
-      if (!res.ok) throw new Error()
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => null)
+        throw new Error(err?.message || "Failed to create seva")
+      }
+
       toast.success("Seva created successfully")
       router.push("/admin/sevas")
-    } catch {
-      toast.error("Failed to create seva")
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to create seva")
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
-
-  const addRule = () => setRules((prev) => [...prev, ""])
-  const removeRule = (index: number) => setRules((prev) => prev.filter((_, i) => i !== index))
-  const updateRule = (index: number, value: string) =>
-    setRules((prev) => prev.map((r, i) => (i === index ? value : r)))
-
-  const addInstruction = () => setInstructions((prev) => [...prev, ""])
-  const removeInstruction = (index: number) => setInstructions((prev) => prev.filter((_, i) => i !== index))
-  const updateInstruction = (index: number, value: string) =>
-    setInstructions((prev) => prev.map((r, i) => (i === index ? value : r)))
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -130,8 +156,12 @@ export default function NewSevaPage() {
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold font-heading text-text-primary">Create New Seva</h1>
-            <p className="text-sm text-text-muted mt-1">Add a new seva, puja, or homa to the temple</p>
+            <h1 className="text-2xl font-bold font-heading text-text-primary">
+              Create New Seva
+            </h1>
+            <p className="text-sm text-text-muted mt-1">
+              Add a new seva, puja, or homa to the temple
+            </p>
           </div>
         </div>
         <Button
@@ -149,23 +179,32 @@ export default function NewSevaPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Card className="p-6 space-y-5">
-              <h3 className="text-lg font-semibold font-heading text-text-primary">Basic Information</h3>
+              <h3 className="text-lg font-semibold font-heading text-text-primary">
+                Basic Information
+              </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
-                  label="Seva Name"
+                  label="Seva Name *"
                   placeholder="e.g., Rudra Abhishekam"
                   error={errors.name?.message as string}
                   {...register("name")}
                   onChange={(e) => {
                     register("name").onChange(e)
-                    if (!watch("slug") || watch("slug") === name?.toLowerCase().replace(/[^\w\s-]/g, "").replace(/[\s_]+/g, "-").replace(/^-+|-+$/g, "")) {
+                    const currentSlug = watch("slug")
+                    const expectedSlug =
+                      (name || "")
+                        .toLowerCase()
+                        .replace(/[^\w\s-]/g, "")
+                        .replace(/[\s_]+/g, "-")
+                        .replace(/^-+|-+$/g, "")
+                    if (!currentSlug || currentSlug === expectedSlug) {
                       generateSlug(e.target.value)
                     }
                   }}
                 />
                 <Input
-                  label="Slug"
+                  label="Slug *"
                   placeholder="rudra-abhishekam"
                   error={errors.slug?.message as string}
                   {...register("slug")}
@@ -174,18 +213,27 @@ export default function NewSevaPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-text-primary">Category</label>
+                  <label className="text-sm font-medium text-text-primary">
+                    Category *
+                  </label>
                   <select
                     {...register("categoryId")}
                     className="h-11 w-full rounded-lg border border-border bg-warm-white dark:bg-bg-secondary px-4 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
+                    disabled={categoriesLoading}
                   >
-                    <option value="">Select category</option>
+                    <option value="">
+                      {categoriesLoading ? "Loading..." : "Select category"}
+                    </option>
                     {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
                     ))}
                   </select>
                   {errors.categoryId && (
-                    <p className="text-xs text-red-500">{String(errors.categoryId.message ?? "")}</p>
+                    <p className="text-xs text-red-500">
+                      {String(errors.categoryId.message ?? "")}
+                    </p>
                   )}
                 </div>
                 <Input
@@ -197,7 +245,7 @@ export default function NewSevaPage() {
               </div>
 
               <RichEditor
-                label="Description"
+                label="Description *"
                 value={watch("description") || ""}
                 onChange={(val) => setValue("description", val)}
                 placeholder="Describe the seva, its significance, and what devotees should know..."
@@ -207,19 +255,21 @@ export default function NewSevaPage() {
             </Card>
 
             <Card className="p-6 space-y-5">
-              <h3 className="text-lg font-semibold font-heading text-text-primary">Pricing & Duration</h3>
+              <h3 className="text-lg font-semibold font-heading text-text-primary">
+                Pricing & Duration
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Input
-                  label="Price (₹)"
+                  label="Price (₹) *"
                   type="number"
                   placeholder="2500"
                   error={errors.price?.message as string}
                   {...register("price")}
                 />
                 <Input
-                  label="Original Price (₹)"
+                  label="Discounted Price (₹)"
                   type="number"
-                  placeholder="3000"
+                  placeholder="2000"
                   error={errors.originalPrice?.message as string}
                   {...register("originalPrice")}
                 />
@@ -241,7 +291,9 @@ export default function NewSevaPage() {
             </Card>
 
             <Card className="p-6 space-y-5">
-              <h3 className="text-lg font-semibold font-heading text-text-primary">Devotee Limits</h3>
+              <h3 className="text-lg font-semibold font-heading text-text-primary">
+                Devotee Limits
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   label="Max Devotees"
@@ -253,7 +305,7 @@ export default function NewSevaPage() {
                 <Input
                   label="Min Devotees"
                   type="number"
-                  placeholder="2"
+                  placeholder="1"
                   error={errors.minDevotees?.message as string}
                   {...register("minDevotees")}
                 />
@@ -261,59 +313,106 @@ export default function NewSevaPage() {
             </Card>
 
             <Card className="p-6 space-y-4">
-              <h3 className="text-lg font-semibold font-heading text-text-primary">Rules</h3>
-              {rules.map((rule, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <Input
-                    value={rule}
-                    onChange={(e) => updateRule(index, e.target.value)}
-                    placeholder={`Rule ${index + 1}`}
-                  />
-                  {rules.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeRule(index)}
-                      className="p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
-              <Button type="button" variant="outline" size="sm" iconLeft={<Plus className="h-4 w-4" />} onClick={addRule}>
-                Add Rule
-              </Button>
+              <h3 className="text-lg font-semibold font-heading text-text-primary">
+                Booking Rules
+              </h3>
+              <div className="flex flex-col gap-1.5">
+                <textarea
+                  {...register("bookingRules")}
+                  rows={6}
+                  placeholder="Enter booking rules and guidelines for devotees...&#10;&#10;e.g.,&#10;- Devotees must arrive 30 minutes before the seva&#10;- Traditional attire is required&#10;- No photography during the ritual"
+                  className="w-full rounded-lg border border-border bg-warm-white dark:bg-bg-secondary px-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all resize-y"
+                />
+                {errors.bookingRules && (
+                  <p className="text-xs text-red-500">
+                    {String(errors.bookingRules.message ?? "")}
+                  </p>
+                )}
+              </div>
             </Card>
 
             <Card className="p-6 space-y-4">
-              <h3 className="text-lg font-semibold font-heading text-text-primary">Special Instructions</h3>
-              {instructions.map((inst, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <Input
-                    value={inst}
-                    onChange={(e) => updateInstruction(index, e.target.value)}
-                    placeholder={`Instruction ${index + 1}`}
-                  />
-                  {instructions.length > 1 && (
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold font-heading text-text-primary">
+                  Availability Dates
+                </h3>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  iconLeft={<Plus className="h-4 w-4" />}
+                  onClick={addAvailabilityDate}
+                >
+                  Add Date
+                </Button>
+              </div>
+              {availabilityDates.length === 0 && (
+                <p className="text-sm text-text-muted">
+                  No specific dates set - seva will be available daily (if active)
+                </p>
+              )}
+              <div className="space-y-2">
+                {availabilityDates.map((ad, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
+                      <input
+                        type="date"
+                        value={ad.date}
+                        onChange={(e) =>
+                          updateAvailabilityDate(index, "date", e.target.value)
+                        }
+                        className="w-full h-10 pl-10 pr-4 text-sm rounded-lg border border-border bg-warm-white dark:bg-bg-secondary text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <label className="flex items-center gap-1.5 text-sm text-text-primary cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={ad.isAvailable}
+                          onChange={(e) =>
+                            updateAvailabilityDate(
+                              index,
+                              "isAvailable",
+                              e.target.checked
+                            )
+                          }
+                          className="h-4 w-4 rounded border-border text-secondary focus:ring-secondary"
+                        />
+                        Available
+                      </label>
+                    </div>
+                    <Input
+                      type="number"
+                      placeholder="Max"
+                      className="w-24"
+                      value={ad.maxBookings ?? ""}
+                      onChange={(e) =>
+                        updateAvailabilityDate(
+                          index,
+                          "maxBookings",
+                          e.target.value ? parseInt(e.target.value) : undefined
+                        )
+                      }
+                    />
                     <button
                       type="button"
-                      onClick={() => removeInstruction(index)}
+                      onClick={() => removeAvailabilityDate(index)}
                       className="p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
                     >
                       <X className="h-4 w-4" />
                     </button>
-                  )}
-                </div>
-              ))}
-              <Button type="button" variant="outline" size="sm" iconLeft={<Plus className="h-4 w-4" />} onClick={addInstruction}>
-                Add Instruction
-              </Button>
+                  </div>
+                ))}
+              </div>
             </Card>
           </div>
 
           <div className="space-y-6">
             <Card className="p-6 space-y-4">
-              <h3 className="text-lg font-semibold font-heading text-text-primary">Settings</h3>
+              <h3 className="text-lg font-semibold font-heading text-text-primary">
+                Settings
+              </h3>
 
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
@@ -323,7 +422,9 @@ export default function NewSevaPage() {
                 />
                 <div>
                   <p className="text-sm font-medium text-text-primary">Active</p>
-                  <p className="text-xs text-text-muted">Make this seva available for booking</p>
+                  <p className="text-xs text-text-muted">
+                    Make this seva available for booking
+                  </p>
                 </div>
               </label>
 
@@ -334,8 +435,12 @@ export default function NewSevaPage() {
                   className="h-4 w-4 rounded border-border text-secondary focus:ring-secondary"
                 />
                 <div>
-                  <p className="text-sm font-medium text-text-primary">Special Seva</p>
-                  <p className="text-xs text-text-muted">Mark as a special/featured seva</p>
+                  <p className="text-sm font-medium text-text-primary">
+                    Special Seva
+                  </p>
+                  <p className="text-xs text-text-muted">
+                    Mark as a special/featured seva
+                  </p>
                 </div>
               </label>
 
@@ -346,19 +451,52 @@ export default function NewSevaPage() {
                   className="h-4 w-4 rounded border-border text-secondary focus:ring-secondary"
                 />
                 <div>
-                  <p className="text-sm font-medium text-text-primary">Requires Approval</p>
-                  <p className="text-xs text-text-muted">Admin must approve bookings</p>
+                  <p className="text-sm font-medium text-text-primary">
+                    Requires Approval
+                  </p>
+                  <p className="text-xs text-text-muted">
+                    Admin must approve bookings
+                  </p>
                 </div>
               </label>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  {...register("isShashwatha")}
+                  className="h-4 w-4 rounded border-border text-secondary focus:ring-secondary"
+                />
+                <div>
+                  <p className="text-sm font-medium text-text-primary">
+                    Shashwatha Seva
+                  </p>
+                  <p className="text-xs text-text-muted">
+                    Permanent/long-term seva
+                  </p>
+                </div>
+              </label>
+
+              <div className="pt-3 border-t border-border/60">
+                <Input
+                  label="Sort Order"
+                  type="number"
+                  placeholder="0"
+                  error={errors.sortOrder?.message as string}
+                  {...register("sortOrder")}
+                />
+              </div>
             </Card>
 
             <Card className="p-6 space-y-4">
-              <h3 className="text-lg font-semibold font-heading text-text-primary">Image</h3>
+              <h3 className="text-lg font-semibold font-heading text-text-primary">
+                Images
+              </h3>
               <ImageUpload
                 images={images}
                 onChange={setImages}
                 maxImages={5}
                 label="Seva Images"
+                featured
               />
             </Card>
           </div>
@@ -367,7 +505,3 @@ export default function NewSevaPage() {
     </div>
   )
 }
-
-
-
-

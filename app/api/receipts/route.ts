@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { successResponse, errorResponse, getAuthUser } from "@/lib/api-utils"
 import { generateReceiptNumber } from "@/lib/utils"
+import { receiptSchema } from "@/lib/validations"
 
 export async function POST(request: Request) {
   try {
@@ -10,19 +11,20 @@ export async function POST(request: Request) {
     if (!user) return errorResponse("Unauthorized", 401)
 
     const body = await request.json()
-    const { bookingId, paymentId } = body
-    if (!bookingId) return errorResponse("bookingId is required", 400)
+    const parsed = receiptSchema.safeParse(body)
+    if (!parsed.success) return errorResponse("Validation failed", 400, parsed.error.flatten().fieldErrors as Record<string, string[]>)
 
-    const booking = await prisma.booking.findFirst({ where: { id: bookingId, deletedAt: null } })
+    const data = parsed.data
+    const booking = await prisma.booking.findFirst({ where: { id: data.bookingId!, deletedAt: null } })
     if (!booking) return errorResponse("Booking not found", 404)
 
     const receipt = await prisma.receipt.create({
       data: {
-        bookingId,
-        paymentId: paymentId ?? null,
+        bookingId: data.bookingId!,
+        paymentId: data.donationId ?? null,
         receiptNumber: generateReceiptNumber(),
-        amount: booking.finalAmount,
-        totalAmount: booking.finalAmount,
+        amount: data.amount,
+        totalAmount: data.amount,
         type: "BOOKING",
         issuedAt: new Date(),
       },

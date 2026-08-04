@@ -59,34 +59,65 @@ export default function AdminDashboard() {
     ;(async () => {
       try {
         const [statsRes, bookingsRes, festivalsRes, pendingRes] = await Promise.all([
-          fetch("/api/admin/stats"),
+          fetch("/api/dashboard"),
           fetch("/api/bookings?limit=5"),
-          fetch("/api/festivals?upcoming=true"),
-          fetch("/api/bookings?status=PENDING"),
+          fetch("/api/festivals"),
+          fetch("/api/bookings?adminApproval=PENDING"),
         ])
 
         const sj = await statsRes.json()
         const s = sj.data || sj
         setStats({
           totalBookings: s.totalBookings ?? 0,
-          revenue: s.revenue ?? 0,
+          revenue: s.totalRevenue ?? s.revenue ?? 0,
           activeSevas: s.activeSevas ?? 0,
-          pendingApprovalsCount: s.pendingApprovalsCount ?? s.pendingApprovals ?? 0,
+          pendingApprovalsCount: s.pendingApprovals ?? s.pendingApprovalsCount ?? 0,
           todayVisitors: s.todayVisitors ?? 0,
         })
-        if (s.revenueChart) setRevenueData(s.revenueChart)
+        if (s.revenueByDay) {
+          setRevenueData(s.revenueByDay.map((r: any) => ({
+            day: new Date(r.date).toLocaleDateString("en-IN", { weekday: "short" }),
+            revenue: Number(r.amount),
+            bookings: 0,
+          })))
+        }
 
         const bj = await bookingsRes.json()
         const bd = bj.data || bj
-        setRecentBookings(Array.isArray(bd) ? bd : bd.bookings || [])
+        const bookingsArr = Array.isArray(bd) ? bd : bd.bookings || []
+        setRecentBookings(bookingsArr.map((b: any) => ({
+          id: b.bookingId || b.id,
+          devotee: b.user?.name || b.devoteeDetails?.name || "Unknown",
+          seva: b.items?.[0]?.seva?.name || b.seva || "-",
+          date: b.createdAt ? new Date(b.createdAt).toLocaleDateString("en-IN") : "-",
+          amount: Number(b.finalAmount || b.totalAmount || 0),
+          status: b.bookingStatus || b.adminApproval || "PENDING",
+          payment: b.paymentStatus || "PENDING",
+        })))
 
         const fj = await festivalsRes.json()
         const fd = fj.data || fj
-        setUpcomingFestivals(Array.isArray(fd) ? fd : fd.festivals || [])
+        const festArr = Array.isArray(fd) ? fd : fd.festivals || []
+        setUpcomingFestivals(festArr.map((f: any) => {
+          const start = f.startDate ? new Date(f.startDate) : null
+          const daysLeft = start ? Math.max(0, Math.ceil((start.getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0
+          return {
+            name: f.name,
+            date: start ? start.toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "-",
+            daysLeft,
+          }
+        }))
 
         const pj = await pendingRes.json()
         const pd = pj.data || pj
-        setPendingApprovals(Array.isArray(pd) ? pd : pd.bookings || [])
+        const pendingArr = Array.isArray(pd) ? pd : pd.bookings || []
+        setPendingApprovals(pendingArr.map((b: any) => ({
+          id: b.bookingId || b.id,
+          requestedBy: b.adminApproval || "PENDING",
+          devotee: b.user?.name || b.devoteeDetails?.name || "Unknown",
+          seva: b.items?.[0]?.seva?.name || b.seva || "-",
+          date: b.createdAt ? new Date(b.createdAt).toLocaleDateString("en-IN") : "-",
+        })))
       } catch {
         toast.error("Failed to load dashboard data")
       } finally {

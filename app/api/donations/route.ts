@@ -2,8 +2,8 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { donationSchema } from "@/lib/validations"
 import { successResponse, errorResponse, getAuthUser, checkRole, paginationHelper, auditLog } from "@/lib/api-utils"
-import { createOrder } from "@/lib/payments"
 import { sendDonationReceipt } from "@/lib/emails"
+import { generateReceiptNumber } from "@/lib/utils"
 
 export async function GET(request: Request) {
   try {
@@ -50,33 +50,37 @@ export async function POST(request: Request) {
 
     const data = parsed.data
     const count = await prisma.donation.count()
-    const donationId = `DON-${new Date().getFullYear()}-${String(count + 1).padStart(4, "0")}`
+    const donationId = `DON-${new Date().getFullYear()}-${String(count + 1).padStart(5, "0")}`
+    const receiptNumber = generateReceiptNumber()
 
-    let razorpayOrder: Record<string, unknown> | undefined
-    if (data.amount > 0) {
-      const receipt = `don_${Date.now()}`
-      const result = await createOrder({
-        amount: data.amount,
-        receipt,
-        notes: { donationId, donorName: data.donorName, email: data.email },
-      })
-      if (result.success && result.order) {
-        razorpayOrder = result.order as Record<string, unknown>
-      }
-    }
+    const fullAddress = data.address
+    const addressParts = fullAddress ? fullAddress.split(", ") : []
+    const addressLine1 = data.address || addressParts[0] || null
+    const addressLine2 = addressParts.length > 1 ? addressParts.slice(1).join(", ") : null
+
+    const metadata: Record<string, unknown> = {}
+    if (data.paymentMethod) metadata.paymentMethod = data.paymentMethod
+    if (data.transactionReference) metadata.transactionReference = data.transactionReference
 
     const donation = await prisma.donation.create({
       data: {
         donationId,
-        ...(body.campaignId ? { campaignId: body.campaignId } : {}),
+        receiptNumber,
+        ...(data.campaignId ? { campaignId: data.campaignId } : {}),
         donorName: data.donorName,
         donorEmail: data.email,
         donorPhone: data.phone,
         amount: data.amount,
         message: data.message ?? null,
         isAnonymous: data.isAnonymous ?? false,
-        panNumber: data.panCard ?? null,
-        status: razorpayOrder ? "PENDING" : "COMPLETED",
+        panNumber: data.panCard ? data.panCard : null,
+        status: "PENDING_VERIFICATION",
+        paymentId: null,
+        addressLine1,
+        addressLine2,
+        city: data.city ?? null,
+        state: data.state ?? null,
+        pincode: data.pincode ?? null,
       },
     })
 
@@ -87,8 +91,15 @@ export async function POST(request: Request) {
       )
     } catch { /* email failure is non-fatal */ }
 
-    await auditLog("CREATE", "Donation", donation.id, { donationId, amount: data.amount }, session)
-    return successResponse({ donation, ...(razorpayOrder ? { order: razorpayOrder } : {}) }, "Donation recorded successfully", 201)
+    if (session && user) {
+      await auditLog("CREATE", "Donation", donation.id, { donationId, amount: data.amount }, session)
+    }
+
+    return successResponse(
+      { donation, receiptNumber },
+      "Donation record submitted successfully. Please allow time for verification.",
+      201
+    )
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to process donation", 500)
   }

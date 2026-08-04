@@ -6,12 +6,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   try {
     const session = await auth()
     const user = getAuthUser(session)
+    if (!user || !checkRole(session, ["SUPER_ADMIN", "ADMIN", "ACCOUNTANT"]))
+      return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const isAdmin = user && checkRole(session, ["SUPER_ADMIN", "ADMIN", "ACCOUNTANT"])
 
     const donation = await prisma.donation.findFirst({
-      where: isAdmin ? { id, deletedAt: null } : { id, deletedAt: null },
+      where: { id, deletedAt: null },
       include: {
         campaign: { select: { id: true, name: true, slug: true } },
         payment: true,

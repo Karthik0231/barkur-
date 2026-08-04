@@ -76,10 +76,38 @@ export default function VolunteerPage() {
     message: "",
   })
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSubmitted(true)
+    setLoading(true)
+    setError("")
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          subject: `Volunteer Registration - ${formData.interest}`,
+          message: `Availability: ${formData.availability}\n\n${formData.message || "No additional message"}`,
+          category: "volunteer",
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok || !json?.success) {
+        setError(json?.message || "Failed to submit registration")
+        setLoading(false)
+        return
+      }
+      setSubmitted(true)
+      setLoading(false)
+    } catch {
+      setError("Network error. Please try again.")
+      setLoading(false)
+    }
   }
 
   return (
@@ -169,6 +197,7 @@ export default function VolunteerPage() {
                 ) : (
                   <Card variant="elevated" className="p-6 lg:p-8">
                     <form onSubmit={handleSubmit} className="space-y-5">
+                      {error && <p className="text-red-500 text-sm">{error}</p>}
                       <div className="grid sm:grid-cols-2 gap-5">
                         <Input
                           label="Full Name"
@@ -234,8 +263,8 @@ export default function VolunteerPage() {
                           placeholder="Any specific skills or preferences..."
                         />
                       </div>
-                      <Button variant="primary" size="lg" className="w-full">
-                        {t("common.submitRegistration")}
+                      <Button variant="primary" size="lg" className="w-full" disabled={loading}>
+                        {loading ? "Submitting..." : t("common.submitRegistration")}
                       </Button>
                     </form>
                   </Card>

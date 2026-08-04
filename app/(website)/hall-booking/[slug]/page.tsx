@@ -1,9 +1,9 @@
 "use client"
 
-import { use } from "react"
+import { use, useState, useEffect } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { ArrowLeft, Building2, Users, Clock, CalendarCheck, IndianRupee, CheckCircle, XCircle, ChevronRight, Shield, MapPin, BookOpen } from "lucide-react"
+import { ArrowLeft, Building2, Users, Clock, CalendarCheck, IndianRupee, CheckCircle, XCircle, ChevronRight, Shield, MapPin, BookOpen, AlertCircle } from "lucide-react"
 import { AnimatedSection } from "@/components/animated-section"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -13,6 +13,7 @@ import { formatPrice } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n"
 
 interface HallData {
+  id: string
   slug: string
   name: string
   description: string
@@ -34,144 +35,161 @@ interface HallData {
   color: string
 }
 
-const hallData: Record<string, HallData> = {
-  "kalikamba-sabha-bhavana": {
-    slug: "kalikamba-sabha-bhavana",
-    name: "Kalikamba Sabha Bhavana",
-    description: "Our main auditorium with a spacious stage, ideal for weddings, conferences, and large gatherings.",
-    longDescription: "Kalikamba Sabha Bhavana is our flagship venue, designed to host large-scale events with elegance and comfort. The hall features a spacious stage with traditional decor, excellent acoustics, and modern lighting systems. The adjoining green rooms provide convenience for performers and speakers. With a capacity of up to 500 guests, this hall is perfect for weddings, religious discourses, cultural programs, and corporate events. The traditional architecture combined with modern amenities creates an ambiance that is both sacred and functional.",
-    capacity: { seating: 350, standing: 500, dining: 300 },
-    amenities: [
-      { name: "Air Conditioning", available: true },
-      { name: "Stage with Curtains", available: true },
-      { name: "Professional Sound System", available: true },
-      { name: "LED Projector & Screen", available: true },
-      { name: "Wireless Microphones", available: true },
-      { name: "Green Room", available: true },
-      { name: "Parking (50+ vehicles)", available: true },
-      { name: "Wheelchair Access", available: true },
-      { name: "Dining Area", available: true },
-      { name: "Generator Backup", available: true },
-    ],
+const colorPalettes = [
+  "from-primary/20 to-primary-light/20",
+  "from-secondary/20 to-gold-400/20",
+  "from-orange-500/20 to-amber-500/20",
+  "from-green-500/20 to-emerald-500/20",
+  "from-blue-500/20 to-cyan-500/20",
+  "from-purple-500/20 to-pink-500/20",
+]
+
+const defaultRules = [
+  "Event timings must be strictly adhered to as per the booking schedule.",
+  "No alcoholic beverages or non-vegetarian food allowed on temple premises.",
+  "Footwear must be removed before entering the main hall area.",
+  "Decoration should not damage any temple property or walls.",
+  "Sound levels must be maintained at reasonable levels.",
+  "All garbage must be disposed of properly after the event.",
+]
+
+function parseJSONField<T>(raw: unknown, fallback: T): T {
+  if (raw === null || raw === undefined) return fallback
+  if (Array.isArray(raw)) return raw as T
+  if (typeof raw === "string") {
+    try { return JSON.parse(raw) as T } catch { return fallback }
+  }
+  return fallback
+}
+
+function transformHallDetail(raw: any, index: number): HallData {
+  const rawCapacity = Number(raw.capacity) || 0
+  const amenitiesArr = parseJSONField<string[]>(raw.amenities, [])
+  const rulesArr = parseJSONField<string[]>(raw.rules, defaultRules)
+  const desc = raw.description || ""
+  const seating = Math.round(rawCapacity * 0.7)
+  const standing = rawCapacity
+  const dining = Math.round(rawCapacity * 0.6)
+
+  return {
+    id: String(raw.id),
+    slug: raw.slug || String(raw.id),
+    name: raw.name || "Unnamed Hall",
+    description: desc,
+    longDescription: desc,
+    capacity: { seating, standing, dining },
+    amenities: amenitiesArr.length > 0
+      ? amenitiesArr.map((a: string) => ({ name: a, available: true }))
+      : [],
     pricing: {
-      basePrice: 15000,
-      pricePerHour: 3000,
-      pricePerDay: 15000,
-      securityDeposit: 10000,
-      overtimeRate: 5000,
+      basePrice: Number(raw.basePrice) || 0,
+      pricePerHour: Number(raw.pricePerHour) || 0,
+      pricePerDay: Number(raw.pricePerDay) || 0,
+      securityDeposit: Number(raw.securityDeposit) || Math.round((Number(raw.basePrice) || 0) * 0.5),
+      overtimeRate: Number(raw.pricePerHour) ? Math.round(Number(raw.pricePerHour) * 1.5) : 0,
     },
-    rules: [
-      "Event timings must be strictly adhered to as per the booking schedule.",
-      "No alcoholic beverages or non-vegetarian food allowed on temple premises.",
-      "Footwear must be removed before entering the main hall area.",
-      "Decoration should not damage any temple property or walls.",
-      "Sound levels must be maintained at reasonable levels.",
-      "All garbage must be disposed of properly after the event.",
-      "Temple management reserves the right to cancel bookings in special circumstances.",
-      "Security deposit will be refunded within 7 working days post-event inspection.",
-    ],
-    color: "from-primary/20 to-primary-light/20",
-  },
-  "shri-madhava-hall": {
-    slug: "shri-madhava-hall",
-    name: "Shri Madhava Hall",
-    description: "A mid-sized hall perfect for family functions, religious ceremonies, and community meetings.",
-    longDescription: "Shri Madhava Hall offers a warm and intimate setting for mid-sized gatherings. The hall is elegantly designed with traditional decor elements that reflect the rich cultural heritage of our temple. It is ideal for family functions, upanayana ceremonies, wedding receptions, and community meetings. The attached dining area and kitchen access make it particularly suitable for events that involve food service. The hall's thoughtful layout ensures that every guest has a clear view of the proceedings.",
-    capacity: { seating: 180, standing: 250, dining: 200 },
-    amenities: [
-      { name: "Air Conditioning", available: true },
-      { name: "Sound System", available: true },
-      { name: "Dining Area", available: true },
-      { name: "Kitchen Access", available: true },
-      { name: "Parking (30+ vehicles)", available: true },
-      { name: "Wheelchair Access", available: true },
-      { name: "Decoration Support", available: true },
-      { name: "Catering Support", available: false },
-    ],
-    pricing: {
-      basePrice: 8000,
-      pricePerHour: 1500,
-      pricePerDay: 8000,
-      securityDeposit: 5000,
-      overtimeRate: 2500,
-    },
-    rules: [
-      "Booking includes standard setup and cleanup time.",
-      "Outside catering allowed with prior approval.",
-      "No religious ceremonies without prior coordination with temple priest.",
-      "All temple rules regarding decorum must be followed.",
-      "Security deposit refund subject to damage assessment.",
-    ],
-    color: "from-secondary/20 to-gold-400/20",
-  },
-  "annapurna-dining-hall": {
-    slug: "annapurna-dining-hall",
-    name: "Annapurna Dining Hall",
-    description: "Dedicated dining hall for community feasts and events. Fully equipped kitchen and seating for large groups.",
-    longDescription: "Annapurna Dining Hall is specially designed for community dining and feast events. The hall comes with a fully equipped kitchen that can handle large-scale cooking requirements. With seating capacity for 300 people, it is the perfect venue for wedding feasts, festival prasadam distribution, and community gatherings. The hall features proper ventilation, wash areas, and storage facilities to ensure hygienic food service. The adjoining serving counters are designed for efficient food distribution.",
-    capacity: { seating: 300, standing: 0, dining: 300 },
-    amenities: [
-      { name: "Commercial Kitchen", available: true },
-      { name: "Dining Tables", available: true },
-      { name: "Utensils & Cookware", available: true },
-      { name: "Water Facility", available: true },
-      { name: "Wash Area", available: true },
-      { name: "Storage Room", available: true },
-      { name: "Parking (20+ vehicles)", available: true },
-    ],
-    pricing: {
-      basePrice: 5000,
-      pricePerHour: 1000,
-      pricePerDay: 5000,
-      securityDeposit: 3000,
-      overtimeRate: 2000,
-    },
-    rules: [
-      "Kitchen usage included in the booking price.",
-      "All food must be vegetarian as per temple traditions.",
-      "Cleaning of kitchen and hall after use is mandatory.",
-      "Utensils must be returned in clean condition.",
-      "Gas and electricity charges are included up to standard usage.",
-    ],
-    color: "from-orange-500/20 to-amber-500/20",
-  },
-  "veda-study-center": {
-    slug: "veda-study-center",
-    name: "Veda Study Center",
-    description: "A serene hall for spiritual discourses, meditation sessions, and religious classes.",
-    longDescription: "The Veda Study Center offers a tranquil environment for spiritual and educational activities. Surrounded by lush greenery, this hall provides the perfect setting for meditation sessions, Vedic classes, spiritual discourses, and yoga retreats. The hall is equipped with comfortable seating, audio systems for guided meditation, and a library of spiritual books. Large windows allow natural light to fill the space, creating a peaceful atmosphere conducive to learning and reflection.",
-    capacity: { seating: 100, standing: 120, dining: 80 },
-    amenities: [
-      { name: "Air Conditioning", available: true },
-      { name: "Library & Bookshelf", available: true },
-      { name: "Meditation Mats", available: true },
-      { name: "Sound System", available: true },
-      { name: "Garden View", available: true },
-      { name: "Whiteboard & Projector", available: true },
-      { name: "Parking (15+ vehicles)", available: true },
-    ],
-    pricing: {
-      basePrice: 3000,
-      pricePerHour: 500,
-      pricePerDay: 3000,
-      securityDeposit: 2000,
-      overtimeRate: 1000,
-    },
-    rules: [
-      "Silence to be maintained in and around the study center.",
-      "Mobile phones must be switched off or kept on silent mode.",
-      "No food or drinks inside the main study hall.",
-      "Books and materials must be handled with care.",
-      "Regular group bookings eligible for special discounts.",
-    ],
-    color: "from-green-500/20 to-emerald-500/20",
-  },
+    rules: rulesArr.length > 0 ? rulesArr : defaultRules,
+    color: colorPalettes[index % colorPalettes.length],
+  }
 }
 
 export default function HallDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { t } = useTranslation()
   const { slug } = use(params)
-  const hall = hallData[slug]
+  const [hall, setHall] = useState<HallData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchHall() {
+      try {
+        setLoading(true)
+        setError(null)
+        const res = await fetch("/api/halls?limit=100")
+        const json = await res.json()
+        if (!json?.success) throw new Error(json?.message || "Failed to load hall")
+        const rawHalls: any[] = json?.data?.halls || []
+        const matchIdx = rawHalls.findIndex((h: any) => (h.slug || String(h.id)) === slug)
+        if (matchIdx === -1) {
+          setHall(null)
+        } else {
+          setHall(transformHallDetail(rawHalls[matchIdx], matchIdx))
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An unexpected error occurred")
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchHall()
+  }, [slug])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen">
+        <section className="relative h-[45vh] min-h-[350px] flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary/20 to-primary-light/20">
+          <div className="absolute inset-0 bg-black/20 z-10" />
+          <div className="relative z-20 text-center px-4 max-w-4xl mx-auto animate-pulse">
+            <div className="h-6 w-32 mx-auto bg-white/20 rounded-md mb-3" />
+            <div className="h-12 md:h-16 w-3/4 mx-auto bg-white/20 rounded-md mb-4" />
+            <div className="h-5 w-2/3 mx-auto bg-white/20 rounded-md" />
+          </div>
+        </section>
+        <section className="py-10 px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid lg:grid-cols-3 gap-8 lg:gap-10">
+              <div className="lg:col-span-2 space-y-8">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <Card key={i} variant="elevated" className="p-6 lg:p-8">
+                    <div className="h-7 w-1/3 bg-bg-secondary/60 animate-pulse rounded-md mb-4" />
+                    <div className="space-y-2">
+                      <div className="h-4 bg-bg-secondary/60 animate-pulse rounded" />
+                      <div className="h-4 w-5/6 bg-bg-secondary/60 animate-pulse rounded" />
+                      <div className="h-4 w-4/5 bg-bg-secondary/60 animate-pulse rounded" />
+                    </div>
+                  </Card>
+                ))}
+              </div>
+              <div className="lg:col-span-1">
+                <Card variant="elevated" className="p-6 sticky top-6">
+                  <div className="h-6 w-24 bg-bg-secondary/60 animate-pulse rounded-md mb-4" />
+                  <div className="space-y-4">
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <div key={i} className="flex justify-between items-center pb-3 border-b border-border">
+                        <div className="h-4 w-32 bg-bg-secondary/60 animate-pulse rounded" />
+                        <div className="h-5 w-20 bg-bg-secondary/60 animate-pulse rounded" />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="h-12 w-full bg-bg-secondary/60 animate-pulse rounded-lg mt-6" />
+                </Card>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card variant="elevated" className="p-10 text-center max-w-md">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500 mb-4">
+            <AlertCircle className="h-8 w-8" />
+          </div>
+          <h1 className="text-3xl font-heading font-bold text-primary mb-2">Error Loading Hall</h1>
+          <p className="text-text-secondary mb-6">{error}</p>
+          <Link href="/hall-booking">
+            <Button variant="gradient">
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back to Halls
+            </Button>
+          </Link>
+        </Card>
+      </div>
+    )
+  }
 
   if (!hall) {
     return (

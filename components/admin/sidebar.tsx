@@ -265,7 +265,7 @@ export function Sidebar({
     if (mobileOpen && onMobileClose) {
       onMobileClose()
     }
-  }, [pathname])
+  }, [pathname, mobileOpen, onMobileClose])
 
   return (
     <>

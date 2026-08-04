@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { successResponse, errorResponse, getAuthUser, checkRole, paginationHelper, auditLog } from "@/lib/api-utils"
+import { hallSchema, type HallInput } from "@/lib/validations"
 
 export async function GET(request: Request) {
   try {
@@ -41,21 +42,23 @@ export async function POST(request: Request) {
       return errorResponse("Unauthorized", 401)
 
     const body = await request.json()
-    if (!body.name || !body.slug) return errorResponse("Name and slug are required", 400)
+    const parsed = hallSchema.safeParse(body)
+    if (!parsed.success) return errorResponse("Validation failed", 400, parsed.error.flatten().fieldErrors as Record<string, string[]>)
 
+    const data = parsed.data
     const hall = await prisma.hall.create({
       data: {
-        name: body.name,
-        slug: body.slug,
-        description: body.description ?? null,
-        capacity: body.capacity ?? null,
-        basePrice: body.basePrice ?? null,
-        pricePerHour: body.pricePerHour ?? null,
-        pricePerDay: body.pricePerDay ?? null,
-        securityDeposit: body.securityDeposit ?? null,
-        amenities: body.amenities ?? null,
-        rules: body.rules ?? null,
-        isActive: body.isActive ?? true,
+        name: data.name,
+        slug: data.slug,
+        description: data.description ?? undefined,
+        capacity: data.capacity ?? undefined,
+        basePrice: data.pricePerHour ?? undefined,
+        pricePerHour: data.pricePerHour ?? undefined,
+        pricePerDay: data.pricePerHour ? data.pricePerHour * 8 : undefined,
+        securityDeposit: undefined,
+        amenities: data.amenities ?? undefined,
+        rules: undefined,
+        isActive: data.isActive ?? true,
         createdBy: user.id,
       },
     })

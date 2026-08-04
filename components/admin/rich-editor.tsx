@@ -23,6 +23,18 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+function sanitizeHtml(html: string): string {
+  const div = document.createElement("div")
+  div.innerHTML = html
+  div.querySelectorAll("script, iframe, object, embed").forEach((el) => el.remove())
+  div.querySelectorAll("[onerror], [onload], [onclick], [onmouseover], [onfocus], [onblur], [oninput], [onchange], [onsubmit], [onkeydown], [onkeyup], [onkeypress]").forEach((el) => {
+    Array.from(el.attributes).forEach((attr) => {
+      if (attr.name.startsWith("on")) el.removeAttribute(attr.name)
+    })
+  })
+  return div.innerHTML
+}
+
 interface RichEditorProps {
   value: string
   onChange: (value: string) => void
@@ -266,7 +278,7 @@ export function RichEditor({
           <div
             className="prose prose-sm max-w-none p-4 min-h-[200px] text-text-primary"
             style={{ minHeight }}
-            dangerouslySetInnerHTML={{ __html: value }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(value) }}
           />
         ) : (
           <EditorContent

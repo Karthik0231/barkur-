@@ -53,7 +53,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     fetch("/api/users").then((r) => r.json()).then((json) => {
-      setUsers(Array.isArray(json) ? json : (json.data ?? []))
+      setUsers(Array.isArray(json) ? json : (json.data?.users ?? []))
     }).finally(() => setLoading(false))
   }, [])
 
@@ -96,7 +96,7 @@ export default function UsersPage() {
     const user = users.find((u) => u.id === id)
     if (!user) return
     try {
-      await fetch(`/api/users/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isActive: !user.isActive }) })
+      await fetch(`/api/users/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isActive: !user.isActive }) })
       setUsers((prev) => prev.map((u) => u.id === id ? { ...u, isActive: !u.isActive } : u))
       toast.success(`User ${user.isActive ? "deactivated" : "activated"}`)
     } catch { toast.error("Failed to toggle status") }

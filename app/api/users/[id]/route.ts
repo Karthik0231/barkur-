@@ -30,9 +30,22 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (!existing || existing.deletedAt) return errorResponse("User not found", 404)
 
     const body = await request.json()
+    const updateData: Record<string, unknown> = { updatedBy: currentUser.id }
+    if (typeof body.name === "string") updateData.name = body.name
+    if (typeof body.email === "string" || body.email === null) updateData.email = body.email
+    if (typeof body.phone === "string" || body.phone === null) updateData.phone = body.phone
+    if (typeof body.image === "string" || body.image === null) updateData.image = body.image
+    if (typeof body.isActive === "boolean") updateData.isActive = body.isActive
+    if (typeof body.role === "string") {
+      if (!checkRole(session, ["SUPER_ADMIN"])) return errorResponse("Only super admins can change roles", 403)
+      const roles = ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER", "ACCOUNTANT", "VOLUNTEER", "RECEPTION", "DEVOTEE"]
+      if (!roles.includes(body.role)) return errorResponse("Invalid role", 400)
+      updateData.role = body.role
+    }
+
     const updated = await prisma.user.update({
       where: { id },
-      data: { ...body, updatedBy: currentUser.id },
+      data: updateData as never,
     })
 
     return successResponse(updated, "User updated successfully")

@@ -79,11 +79,11 @@ export default function BookingDetailPage() {
               <p className="text-text-muted mt-1">{t("bookingDetail.bookingId")}: {booking.bookingId}</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => window.print()}>
                 <Download className="h-4 w-4 mr-1" />
                 {t("bookingDetail.receipt")}
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => window.print()}>
                 <Printer className="h-4 w-4 mr-1" />
                 {t("bookingDetail.print")}
               </Button>

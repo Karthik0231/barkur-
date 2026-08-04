@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { ChevronRight, Download, Eye, Heart, ArrowLeft } from "lucide-react"
@@ -13,67 +14,14 @@ import { useTranslation } from "@/lib/i18n"
 
 interface DonationRecord {
   id: string
-  date: Date
+  date: string
   campaign: string
   campaignSlug: string
   amount: number
   receiptNumber: string
-  status: "successful" | "failed" | "refunded"
+  status: string
   isRecurring: boolean
 }
-
-const donationHistory: DonationRecord[] = [
-  {
-    id: "1",
-    date: new Date(2026, 5, 15),
-    campaign: "Annadanam",
-    campaignSlug: "annadanam",
-    amount: 5001,
-    receiptNumber: "RCP-2026-01024",
-    status: "successful",
-    isRecurring: false,
-  },
-  {
-    id: "2",
-    date: new Date(2026, 4, 28),
-    campaign: "Temple Renovation",
-    campaignSlug: "temple-renovation",
-    amount: 10001,
-    receiptNumber: "RCP-2026-00987",
-    status: "successful",
-    isRecurring: true,
-  },
-  {
-    id: "3",
-    date: new Date(2026, 3, 10),
-    campaign: "Go Seva",
-    campaignSlug: "go-seva",
-    amount: 2500,
-    receiptNumber: "RCP-2026-00765",
-    status: "successful",
-    isRecurring: false,
-  },
-  {
-    id: "4",
-    date: new Date(2026, 2, 5),
-    campaign: "General Donation",
-    campaignSlug: "general-donation",
-    amount: 1100,
-    receiptNumber: "RCP-2026-00543",
-    status: "refunded",
-    isRecurring: false,
-  },
-  {
-    id: "5",
-    date: new Date(2026, 0, 20),
-    campaign: "Education Fund",
-    campaignSlug: "education-fund",
-    amount: 3000,
-    receiptNumber: "RCP-2026-00321",
-    status: "successful",
-    isRecurring: true,
-  },
-]
 
 const statusStyles: Record<string, "success" | "warning" | "destructive"> = {
   successful: "success",
@@ -83,9 +31,65 @@ const statusStyles: Record<string, "success" | "warning" | "destructive"> = {
 
 export default function DonationHistoryPage() {
   const { t } = useTranslation()
-  const totalDonated = donationHistory
+  const [donations, setDonations] = useState<DonationRecord[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+
+  useEffect(() => {
+    async function fetchDonations() {
+      try {
+        const res = await fetch("/api/donations?limit=100")
+        const json = await res.json()
+        if (!res.ok || !json?.success) {
+          setError(json?.message || "Failed to load donation history")
+          setLoading(false)
+          return
+        }
+        const mapped = (json.data?.donations || []).map((d: any) => ({
+          id: d.id,
+          date: d.createdAt,
+          campaign: d.campaign?.name || "General Donation",
+          campaignSlug: d.campaign?.slug || "general",
+          amount: Number(d.amount),
+          receiptNumber: d.receiptNumber || `RCP-${d.id.slice(0, 8)}`,
+          status: d.status === "PAID" ? "successful" : d.status === "REFUNDED" ? "refunded" : "failed",
+          isRecurring: d.isRecurring || false,
+        }))
+        setDonations(mapped)
+        setLoading(false)
+      } catch {
+        setError("Failed to load donation history")
+        setLoading(false)
+      }
+    }
+    fetchDonations()
+  }, [])
+
+  const totalDonated = donations
     .filter((d) => d.status === "successful")
     .reduce((sum, d) => sum + d.amount, 0)
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-bg-secondary/60 animate-pulse mb-4" />
+          <p className="text-text-muted">Loading donation history...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen">
@@ -115,7 +119,7 @@ export default function DonationHistoryPage() {
 
           <div className="grid sm:grid-cols-3 gap-4 mb-10">
             <Card variant="glass" className="p-5 text-center">
-              <p className="text-2xl font-heading font-bold gradient-text">{donationHistory.length}</p>
+              <p className="text-2xl font-heading font-bold gradient-text">{donations.length}</p>
               <p className="text-xs text-text-muted mt-1">Total Donations</p>
             </Card>
             <Card variant="glass" className="p-5 text-center">
@@ -124,7 +128,7 @@ export default function DonationHistoryPage() {
             </Card>
             <Card variant="glass" className="p-5 text-center">
               <p className="text-2xl font-heading font-bold gradient-text">
-                {donationHistory.filter((d) => d.isRecurring).length}
+                {donations.filter((d) => d.isRecurring).length}
               </p>
               <p className="text-xs text-text-muted mt-1">Active Recurring</p>
             </Card>
@@ -142,60 +146,69 @@ export default function DonationHistoryPage() {
                 </Link>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border bg-bg-secondary/50">
-                      <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Date</th>
-                      <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Campaign</th>
-                      <th className="text-right text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Amount</th>
-                      <th className="text-center text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Status</th>
-                      <th className="text-right text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {donationHistory.map((donation, idx) => (
-                      <motion.tr
-                        key={donation.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                        className="border-b border-border/50 hover:bg-bg-secondary/30 transition-colors"
-                      >
-                        <td className="px-6 py-4 text-sm text-text-primary whitespace-nowrap">
-                          {formatDate(donation.date)}
-                          {donation.isRecurring && (
-                            <Badge variant="secondary" size="xs" className="ml-2">Recurring</Badge>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          <Link href={`/donate/${donation.campaignSlug}`} className="text-sm text-primary hover:text-primary-light font-medium transition-colors">
-                            {donation.campaign}
-                          </Link>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-text-primary font-semibold text-right whitespace-nowrap">
-                          {formatPrice(donation.amount)}
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <Badge variant={statusStyles[donation.status]} size="sm">
-                            {donation.status.charAt(0).toUpperCase() + donation.status.slice(1)}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button variant="ghost" size="xs">
-                              <Eye className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button variant="ghost" size="xs">
-                              <Download className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              {donations.length === 0 ? (
+                <div className="p-12 text-center">
+                  <p className="text-text-muted mb-4">No donations found</p>
+                  <Link href="/donate">
+                    <Button variant="primary">Make Your First Donation</Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border bg-bg-secondary/50">
+                        <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Date</th>
+                        <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Campaign</th>
+                        <th className="text-right text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Amount</th>
+                        <th className="text-center text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Status</th>
+                        <th className="text-right text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {donations.map((donation, idx) => (
+                        <motion.tr
+                          key={donation.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                          className="border-b border-border/50 hover:bg-bg-secondary/30 transition-colors"
+                        >
+                          <td className="px-6 py-4 text-sm text-text-primary whitespace-nowrap">
+                            {formatDate(new Date(donation.date))}
+                            {donation.isRecurring && (
+                              <Badge variant="secondary" size="xs" className="ml-2">Recurring</Badge>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <Link href={`/donate/${donation.campaignSlug}`} className="text-sm text-primary hover:text-primary-light font-medium transition-colors">
+                              {donation.campaign}
+                            </Link>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-text-primary font-semibold text-right whitespace-nowrap">
+                            {formatPrice(donation.amount)}
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <Badge variant={statusStyles[donation.status] || "secondary"} size="sm">
+                              {donation.status.charAt(0).toUpperCase() + donation.status.slice(1)}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button variant="ghost" size="xs">
+                                <Eye className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button variant="ghost" size="xs">
+                                <Download className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </Card>
           </AnimatedSection>
         </div>

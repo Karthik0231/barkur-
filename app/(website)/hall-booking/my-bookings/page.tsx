@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { ChevronRight, Building2, CalendarDays, Clock, MapPin, XCircle, Eye, Download, AlertTriangle } from "lucide-react"
@@ -18,93 +18,111 @@ interface BookingRecord {
   hallName: string
   hallSlug: string
   eventName: string
-  eventDate: Date
+  eventDate: string
   startTime: string
   endTime: string
   amount: number
-  status: "confirmed" | "pending" | "cancelled" | "completed"
-  paymentStatus: "paid" | "pending" | "refunded"
+  status: string
+  paymentStatus: string
 }
 
-const myBookings: BookingRecord[] = [
-  {
-    id: "1",
-    bookingId: "HALL-2026-0001",
-    hallName: "Kalikamba Sabha Bhavana",
-    hallSlug: "kalikamba-sabha-bhavana",
-    eventName: "Family Wedding Reception",
-    eventDate: new Date(2026, 7, 15),
-    startTime: "10:00 AM",
-    endTime: "6:00 PM",
-    amount: 35000,
-    status: "confirmed",
-    paymentStatus: "paid",
-  },
-  {
-    id: "2",
-    bookingId: "HALL-2026-0002",
-    hallName: "Shri Madhava Hall",
-    hallSlug: "shri-madhava-hall",
-    eventName: "Community Meeting",
-    eventDate: new Date(2026, 6, 28),
-    startTime: "9:00 AM",
-    endTime: "1:00 PM",
-    amount: 12000,
-    status: "pending",
-    paymentStatus: "pending",
-  },
-  {
-    id: "3",
-    bookingId: "HALL-2026-0003",
-    hallName: "Annapurna Dining Hall",
-    hallSlug: "annapurna-dining-hall",
-    eventName: "Festival Prasadam",
-    eventDate: new Date(2026, 5, 10),
-    startTime: "11:00 AM",
-    endTime: "3:00 PM",
-    amount: 8000,
-    status: "completed",
-    paymentStatus: "paid",
-  },
-  {
-    id: "4",
-    bookingId: "HALL-2026-0004",
-    hallName: "Veda Study Center",
-    hallSlug: "veda-study-center",
-    eventName: "Meditation Retreat",
-    eventDate: new Date(2026, 3, 5),
-    startTime: "6:00 AM",
-    endTime: "10:00 AM",
-    amount: 5000,
-    status: "cancelled",
-    paymentStatus: "refunded",
-  },
-]
-
 const statusColors: Record<string, "success" | "warning" | "destructive" | "primary"> = {
-  confirmed: "success",
-  pending: "warning",
-  cancelled: "destructive",
-  completed: "primary",
+  CONFIRMED: "success",
+  PENDING: "warning",
+  CANCELLED: "destructive",
+  COMPLETED: "primary",
 }
 
 const paymentColors: Record<string, "success" | "warning" | "destructive"> = {
-  paid: "success",
-  pending: "warning",
-  refunded: "destructive",
+  PAID: "success",
+  PENDING: "warning",
+  REFUNDED: "destructive",
 }
 
 export default function MyBookingsPage() {
   const { t } = useTranslation()
+  const [bookings, setBookings] = useState<BookingRecord[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
   const [cancelDialog, setCancelDialog] = useState<string | null>(null)
   const [cancelling, setCancelling] = useState(false)
 
-  const handleCancel = (bookingId: string) => {
+  useEffect(() => {
+    async function fetchBookings() {
+      try {
+        const res = await fetch("/api/hall-bookings?limit=100")
+        const json = await res.json()
+        if (!res.ok || !json?.success) {
+          setError(json?.message || "Failed to load bookings")
+          setLoading(false)
+          return
+        }
+        const mapped = (json.data?.bookings || []).map((b: any) => ({
+          id: b.id,
+          bookingId: b.bookingId,
+          hallName: b.hall?.name || "Unknown Hall",
+          hallSlug: b.hall?.slug || String(b.hallId),
+          eventName: b.eventName,
+          eventDate: b.bookingDate,
+          startTime: new Date(b.startTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
+          endTime: new Date(b.endTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
+          amount: Number(b.finalAmount),
+          status: b.bookingStatus,
+          paymentStatus: b.paymentStatus,
+        }))
+        setBookings(mapped)
+        setLoading(false)
+      } catch {
+        setError("Failed to load bookings")
+        setLoading(false)
+      }
+    }
+    fetchBookings()
+  }, [])
+
+  const handleCancel = async (bookingId: string) => {
     setCancelling(true)
-    setTimeout(() => {
-      setCancelling(false)
+    try {
+      const res = await fetch(`/api/hall-bookings/${bookingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingStatus: "CANCELLED", cancellationReason: "Cancelled by user" }),
+      })
+      const json = await res.json()
+      if (!res.ok || !json?.success) {
+        setError(json?.message || "Failed to cancel booking")
+        setCancelling(false)
+        return
+      }
+      setBookings((prev) => prev.map((b) => b.id === bookingId ? { ...b, status: "CANCELLED" } : b))
       setCancelDialog(null)
-    }, 1500)
+      setCancelling(false)
+    } catch {
+      setError("Network error. Please try again.")
+      setCancelling(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-bg-secondary/60 animate-pulse mb-4" />
+          <p className="text-text-muted">Loading your bookings...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -135,10 +153,10 @@ export default function MyBookingsPage() {
 
           <div className="grid sm:grid-cols-4 gap-4 mb-10">
             {[
-              { label: "Total Bookings", value: myBookings.length, color: "text-primary" },
-              { label: "Confirmed", value: myBookings.filter((b) => b.status === "confirmed").length, color: "text-emerald-600" },
-              { label: "Pending", value: myBookings.filter((b) => b.status === "pending").length, color: "text-amber-600" },
-              { label: "Completed", value: myBookings.filter((b) => b.status === "completed").length, color: "text-blue-600" },
+              { label: "Total Bookings", value: bookings.length, color: "text-primary" },
+              { label: "Confirmed", value: bookings.filter((b) => b.status === "CONFIRMED").length, color: "text-emerald-600" },
+              { label: "Pending", value: bookings.filter((b) => b.status === "PENDING").length, color: "text-amber-600" },
+              { label: "Completed", value: bookings.filter((b) => b.status === "COMPLETED").length, color: "text-blue-600" },
             ].map((stat, idx) => (
               <Card key={idx} variant="glass" className="p-4 text-center">
                 <p className={`text-2xl font-heading font-bold ${stat.color}`}>{stat.value}</p>
@@ -159,87 +177,96 @@ export default function MyBookingsPage() {
                 </Link>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border bg-bg-secondary/50">
-                      <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Booking ID</th>
-                      <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Event</th>
-                      <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Date & Time</th>
-                      <th className="text-right text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Amount</th>
-                      <th className="text-center text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Status</th>
-                      <th className="text-center text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Payment</th>
-                      <th className="text-right text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {myBookings.map((booking, idx) => (
-                      <motion.tr
-                        key={booking.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                        className="border-b border-border/50 hover:bg-bg-secondary/30 transition-colors"
-                      >
-                        <td className="px-6 py-4">
-                          <span className="text-xs font-mono text-text-muted">{booking.bookingId}</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <Link href={`/hall-booking/${booking.hallSlug}`} className="text-sm text-primary hover:text-primary-light font-medium transition-colors">
-                            {booking.hallName}
-                          </Link>
-                          <p className="text-xs text-text-muted mt-0.5">{booking.eventName}</p>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-1 text-xs text-text-primary">
-                            <CalendarDays className="h-3 w-3 text-text-muted" />
-                            {formatDate(booking.eventDate)}
-                          </div>
-                          <div className="flex items-center gap-1 text-xs text-text-muted mt-0.5">
-                            <Clock className="h-3 w-3" />
-                            {booking.startTime} - {booking.endTime}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-text-primary font-semibold text-right whitespace-nowrap">
-                          {formatPrice(booking.amount)}
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <Badge variant={statusColors[booking.status]} size="sm">
-                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <Badge variant={paymentColors[booking.paymentStatus]} size="xs">
-                            {booking.paymentStatus.charAt(0).toUpperCase() + booking.paymentStatus.slice(1)}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Link href={`/hall-booking/thank-you`}>
-                              <Button variant="ghost" size="xs">
-                                <Eye className="h-3.5 w-3.5" />
-                              </Button>
+              {bookings.length === 0 ? (
+                <div className="p-12 text-center">
+                  <p className="text-text-muted mb-4">No bookings found</p>
+                  <Link href="/hall-booking">
+                    <Button variant="primary">Book a Hall</Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border bg-bg-secondary/50">
+                        <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Booking ID</th>
+                        <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Event</th>
+                        <th className="text-left text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Date & Time</th>
+                        <th className="text-right text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Amount</th>
+                        <th className="text-center text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Status</th>
+                        <th className="text-center text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Payment</th>
+                        <th className="text-right text-xs font-semibold text-text-muted uppercase tracking-wider px-6 py-4">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bookings.map((booking, idx) => (
+                        <motion.tr
+                          key={booking.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                          className="border-b border-border/50 hover:bg-bg-secondary/30 transition-colors"
+                        >
+                          <td className="px-6 py-4">
+                            <span className="text-xs font-mono text-text-muted">{booking.bookingId}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <Link href={`/hall-booking/${booking.hallSlug}`} className="text-sm text-primary hover:text-primary-light font-medium transition-colors">
+                              {booking.hallName}
                             </Link>
-                            <Button variant="ghost" size="xs">
-                              <Download className="h-3.5 w-3.5" />
-                            </Button>
-                            {(booking.status === "confirmed" || booking.status === "pending") && (
-                              <Button
-                                variant="ghost"
-                                size="xs"
-                                className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                                onClick={() => setCancelDialog(booking.id)}
-                              >
-                                <XCircle className="h-3.5 w-3.5" />
+                            <p className="text-xs text-text-muted mt-0.5">{booking.eventName}</p>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-1 text-xs text-text-primary">
+                              <CalendarDays className="h-3 w-3 text-text-muted" />
+                              {formatDate(new Date(booking.eventDate))}
+                            </div>
+                            <div className="flex items-center gap-1 text-xs text-text-muted mt-0.5">
+                              <Clock className="h-3 w-3" />
+                              {booking.startTime} - {booking.endTime}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-text-primary font-semibold text-right whitespace-nowrap">
+                            {formatPrice(booking.amount)}
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <Badge variant={statusColors[booking.status] || "secondary"} size="sm">
+                              {booking.status.charAt(0) + booking.status.slice(1).toLowerCase()}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <Badge variant={paymentColors[booking.paymentStatus] || "secondary"} size="xs">
+                              {booking.paymentStatus.charAt(0) + booking.paymentStatus.slice(1).toLowerCase()}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Link href={`/hall-booking/${booking.hallSlug}`}>
+                                <Button variant="ghost" size="xs">
+                                  <Eye className="h-3.5 w-3.5" />
+                                </Button>
+                              </Link>
+                              <Button variant="ghost" size="xs">
+                                <Download className="h-3.5 w-3.5" />
                               </Button>
-                            )}
-                          </div>
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                              {(booking.status === "CONFIRMED" || booking.status === "PENDING") && (
+                                <Button
+                                  variant="ghost"
+                                  size="xs"
+                                  className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                                  onClick={() => setCancelDialog(booking.id)}
+                                >
+                                  <XCircle className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </Card>
           </AnimatedSection>
         </div>

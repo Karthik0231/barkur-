@@ -115,10 +115,14 @@ export async function verifyPayment({
   signature,
 }: VerifyPaymentParams): Promise<VerifyPaymentResult> {
   try {
+    const secret = process.env.RAZORPAY_KEY_SECRET
+    if (!secret) {
+      return { success: false, isValid: false, error: "RAZORPAY_KEY_SECRET is not configured" }
+    }
     const crypto = await import("crypto")
     const body = orderId + "|" + paymentId
     const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET ?? "")
+      .createHmac("sha256", secret)
       .update(body)
       .digest("hex")
 

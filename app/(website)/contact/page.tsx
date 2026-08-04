@@ -16,17 +16,38 @@ export default function ContactPage() {
   const { t } = useTranslation()
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", subject: "", message: "" })
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSubmitted(true)
+    setLoading(true)
+    setError("")
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+      const json = await res.json()
+      if (!res.ok || !json?.success) {
+        setError(json?.message || "Failed to send message")
+        setLoading(false)
+        return
+      }
+      setSubmitted(true)
+      setLoading(false)
+    } catch {
+      setError("Network error. Please try again.")
+      setLoading(false)
+    }
   }
 
   return (
     <div className="min-h-screen">
-      <PageBanner 
-        title={t("contact.visitConnect")} 
-        eyebrow={t("contact.getInTouch")} 
+      <PageBanner
+        title={t("contact.visitConnect")}
+        eyebrow={t("contact.getInTouch")}
         subtitle={t("contact.subtitle")}
       />
 
@@ -132,6 +153,7 @@ export default function ContactPage() {
                 ) : (
                   <Card variant="elevated" className="p-6 lg:p-8">
                     <h3 className="text-xl font-heading font-bold text-primary mb-6">{t("contact.sendMessage")}</h3>
+                    {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
                     <form onSubmit={handleSubmit} className="space-y-5">
                       <div className="grid sm:grid-cols-2 gap-5">
                         <Input label={t("contact.yourName")} placeholder={t("contact.namePlaceholder")} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
@@ -152,9 +174,9 @@ export default function ContactPage() {
                           required
                         />
                       </div>
-                      <Button variant="primary" size="lg" className="w-full">
+                      <Button variant="primary" size="lg" className="w-full" disabled={loading}>
                         <Send className="h-4 w-4" />
-                        {t("contact.send")}
+                        {loading ? "Sending..." : t("contact.send")}
                       </Button>
                     </form>
                   </Card>

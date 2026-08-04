@@ -40,7 +40,7 @@ export default function BookingsPage() {
     fetch("/api/bookings")
       .then((r) => r.json())
       .then((d) => {
-        setBookings(d.data || d || [])
+        setBookings(d.data?.bookings || [])
         setLoading(false)
       })
       .catch(() => setLoading(false))

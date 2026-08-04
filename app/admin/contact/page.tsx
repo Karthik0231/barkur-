@@ -35,7 +35,7 @@ export default function ContactPage() {
     fetch("/api/contact")
       .then((r) => r.json())
       .then((d) => {
-        setMessages(d.data || d || [])
+        setMessages(d.data?.contacts || [])
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -44,7 +44,7 @@ export default function ContactPage() {
   const markAsRead = async (id: string) => {
     try {
       const res = await fetch(`/api/contact/${id}`, {
-        method: "PATCH",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isRead: true }),
       })

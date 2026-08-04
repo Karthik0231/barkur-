@@ -62,11 +62,11 @@ export async function POST(request: Request) {
       data: {
         title: data.title,
         content: data.content,
-        type: (data.priority ?? "NORMAL") as never,
+        type: (data.type ?? "INFO") as never,
         isActive: data.isActive ?? true,
         isPopup: false,
         startDate: new Date(),
-        endDate: data.expiresAt ? new Date(data.expiresAt) : null,
+        endDate: data.endDate ? new Date(data.endDate) : null,
         link: data.link ?? null,
         createdBy: user.id,
       },

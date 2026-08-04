@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
@@ -125,11 +125,14 @@ export default function BookSevaPage() {
 
   const timeStr = selectedTime || t("booking.notSelected")
 
-  const canProceed = useMemo(() => {
-    if (!selectedDate || !selectedTime || quantity < 1) return false
-    if (!devoteeData.name || !devoteeData.phone || !devoteeData.email) return false
-    return true
-  }, [selectedDate, selectedTime, quantity, devoteeData])
+  const canProceed = Boolean(
+    selectedDate &&
+    selectedTime &&
+    quantity >= 1 &&
+    devoteeData.name &&
+    devoteeData.phone &&
+    devoteeData.email,
+  )
 
   const price = Number(seva.price)
   const grandTotal = price * quantity + Math.round(price * quantity * 0.18)
