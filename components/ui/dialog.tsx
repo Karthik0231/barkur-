@@ -144,7 +144,7 @@ export function DialogContent({
   ...props
 }: HTMLAttributes<HTMLDivElement> & { size?: "sm" | "md" | "lg" | "xl" | "full" }) {
   return (
-    <div className={cn("p-5 sm:p-6 flex flex-col overflow-y-auto", sizeStyles[size], className)} {...props}>
+    <div className={cn("p-5 sm:p-6 flex flex-col overflow-y-auto flex-1 min-h-0", sizeStyles[size], className)} {...props}>
       {children}
     </div>
   )

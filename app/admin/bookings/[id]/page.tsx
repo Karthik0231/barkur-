@@ -320,6 +320,7 @@ export default function BookingDetailPage() {
             <h3 className="text-lg font-semibold font-heading text-text-primary mb-4">Add Note</h3>
             <div className="flex gap-2">
               <Input
+                variant="filled"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Internal note..."

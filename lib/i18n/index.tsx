@@ -8,6 +8,7 @@ import {
   useCallback,
   type ReactNode,
 } from "react"
+import { usePathname } from "next/navigation"
 import translations, { type TranslationData } from "./translations"
 
 export type Language = "kn" | "en"
@@ -44,26 +45,36 @@ export function useTranslation() {
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>("kn")
   const [mounted, setMounted] = useState(false)
+  const pathname = usePathname()
+
+  const isAdmin = pathname?.startsWith("/admin")
 
   useEffect(() => {
     setMounted(true)
-    const stored = localStorage.getItem("language") as Language | null
-    if (stored === "kn" || stored === "en") {
-      setLanguageState(stored)
+    if (!isAdmin) {
+      const stored = localStorage.getItem("language") as Language | null
+      if (stored === "kn" || stored === "en") {
+        setLanguageState(stored)
+      }
     }
-  }, [])
+  }, [isAdmin])
 
   useEffect(() => {
     if (!mounted) return
+    if (isAdmin) return
     localStorage.setItem("language", language)
     document.documentElement.lang = language === "kn" ? "kn" : "en"
-  }, [language, mounted])
+  }, [language, mounted, isAdmin])
 
-  const setLanguage = useCallback((lang: Language) => setLanguageState(lang), [])
+  const setLanguage = useCallback((lang: Language) => {
+    if (!isAdmin) {
+      setLanguageState(lang)
+    }
+  }, [isAdmin])
 
   const t = useCallback(
-    (key: string) => resolveTranslation(translations[language], key),
-    [language]
+    (key: string) => resolveTranslation(translations[isAdmin ? "en" : language], key),
+    [language, isAdmin]
   )
 
   if (!mounted) {
@@ -78,7 +89,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   return (
     <I18nContext.Provider
       value={{
-        language,
+        language: isAdmin ? "en" : language,
         setLanguage,
         t,
       }}

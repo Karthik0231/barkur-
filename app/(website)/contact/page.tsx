@@ -18,11 +18,13 @@ export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError("")
+    setFieldErrors({})
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
@@ -31,6 +33,13 @@ export default function ContactPage() {
       })
       const json = await res.json()
       if (!res.ok || !json?.success) {
+        if (json?.errors) {
+          const formattedErrors: Record<string, string> = {}
+          Object.keys(json.errors).forEach(key => {
+            formattedErrors[key] = json.errors[key][0]
+          })
+          setFieldErrors(formattedErrors)
+        }
         setError(json?.message || "Failed to send message")
         setLoading(false)
         return
@@ -156,12 +165,12 @@ export default function ContactPage() {
                     {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
                     <form onSubmit={handleSubmit} className="space-y-5">
                       <div className="grid sm:grid-cols-2 gap-5">
-                        <Input label={t("contact.yourName")} placeholder={t("contact.namePlaceholder")} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
-                        <Input label={t("contact.emailAddress")} type="email" placeholder={t("contact.emailPlaceholder")} value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
+                        <Input variant="premium" label={t("contact.yourName")} placeholder={t("contact.namePlaceholder")} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} error={fieldErrors.name} required />
+                        <Input variant="premium" label={t("contact.emailAddress")} type="email" placeholder={t("contact.emailPlaceholder")} value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} error={fieldErrors.email} required />
                       </div>
                       <div className="grid sm:grid-cols-2 gap-5">
-                        <Input label={t("contact.phone")} type="tel" placeholder={t("contact.phonePlaceholder")} value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
-                        <Input label={t("contact.subject")} placeholder={t("contact.subjectPlaceholder")} value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })} required />
+                        <Input variant="premium" label={t("contact.phone")} type="tel" placeholder={t("contact.phonePlaceholder")} value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} error={fieldErrors.phone} />
+                        <Input variant="premium" label={t("contact.subject")} placeholder={t("contact.subjectPlaceholder")} value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })} error={fieldErrors.subject} required />
                       </div>
                       <div className="flex flex-col gap-1.5 w-full">
                         <label className="text-sm font-medium text-text-primary">{t("contact.messageLabel")}</label>
@@ -169,14 +178,18 @@ export default function ContactPage() {
                           value={formData.message}
                           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                           rows={5}
-                          className="w-full rounded-lg border border-border bg-warm-white dark:bg-bg-secondary p-4 text-sm focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all duration-200 resize-none"
+                          className={`w-full rounded-xl border-2 bg-warm-white dark:bg-bg-secondary p-4 text-sm focus:outline-none transition-all duration-200 resize-none ${fieldErrors.message ? 'border-maroon-500 focus:border-maroon-500 focus:ring-2 focus:ring-maroon-500/20' : 'border-gold-200/30 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/10'}`}
                           placeholder={t("contact.messagePlaceholderLong")}
                           required
                         />
+                        {fieldErrors.message && <p className="text-xs text-maroon-500 mt-1">{fieldErrors.message}</p>}
                       </div>
-                      <Button variant="primary" size="lg" className="w-full" disabled={loading}>
-                        <Send className="h-4 w-4" />
-                        {loading ? "Sending..." : t("contact.send")}
+                      <Button variant="primary" size="lg" className="w-full relative overflow-hidden group" disabled={loading}>
+                        <span className="relative z-10 flex items-center justify-center gap-2">
+                          <Send className="h-4 w-4" />
+                          {loading ? "Sending..." : t("contact.send")}
+                        </span>
+                        <div className="absolute inset-0 bg-gold-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
                       </Button>
                     </form>
                   </Card>

@@ -154,13 +154,13 @@ export default function AdminLayout({
           </header>
 
           <main className="flex-1 overflow-y-auto bg-bg-primary">
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
               <motion.div
                 key={getPathnameKey()}
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.12 }}
+                transition={{ duration: 0.1 }}
                 className="p-4 lg:p-6"
               >
                 {children}

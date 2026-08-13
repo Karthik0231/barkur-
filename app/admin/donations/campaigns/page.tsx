@@ -195,14 +195,18 @@ export default function CampaignsPage() {
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-6 py-4">
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Campaign Name" placeholder="e.g., Temple Renovation" error={errors.name?.message as string} {...register("name")} />
-              <Input label="Slug" placeholder="temple-renovation" error={errors.slug?.message as string} {...register("slug")} />
+              <Input variant="filled" label="Campaign Name" placeholder="e.g., Temple Renovation" error={errors.name?.message as string} {...register("name")} />
+              <Input variant="filled" label="Slug" placeholder="temple-renovation" error={errors.slug?.message as string} {...register("slug")} />
             </div>
-            <Input label="Short Description" placeholder="Brief summary shown on campaign cards..." error={errors.shortDescription?.message as string} {...register("shortDescription")} />
-            <Input label="Description" placeholder="Describe the campaign purpose..." error={errors.description?.message as string} {...register("description")} />
-            <Input label="Banner Image URL" placeholder="https://example.com/banner.jpg" error={errors.banner?.message as string} {...register("banner")} />
+            <Input variant="filled" label="Short Description" placeholder="Brief summary shown on campaign cards..." error={errors.shortDescription?.message as string} {...register("shortDescription")} />
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-text-primary">Description</label>
+              <textarea {...register("description")} placeholder="Describe the campaign purpose..." rows={4} className="w-full rounded-xl border border-border bg-warm-white dark:bg-bg-secondary p-4 text-sm text-text-primary placeholder:text-text-muted focus:border-secondary focus:ring-2 focus:ring-secondary/20 focus-visible:outline-none transition-all resize-none" />
+              {errors.description && <span className="text-xs text-red-500">{errors.description.message as string}</span>}
+            </div>
+            <Input variant="filled" label="Banner Image URL" placeholder="https://example.com/banner.jpg" error={errors.banner?.message as string} {...register("banner")} />
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <Input label="Goal Amount (₹)" type="number" placeholder="1000000" error={errors.goalAmount?.message as string} {...register("goalAmount")} />
+              <Input variant="filled" label="Goal Amount (₹)" type="number" placeholder="1000000" error={errors.goalAmount?.message as string} {...register("goalAmount")} />
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-text-primary">Category</label>
                 <select {...register("category")} className="h-11 rounded-lg border border-border bg-warm-white dark:bg-bg-secondary px-4 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/20">
@@ -215,8 +219,8 @@ export default function CampaignsPage() {
                   <option value="OTHER">Other</option>
                 </select>
               </div>
-              <Input label="Start Date" type="date" error={errors.startDate?.message as string} {...register("startDate")} />
-              <Input label="End Date" type="date" {...register("endDate")} />
+              <Input variant="filled" label="Start Date" type="date" error={errors.startDate?.message as string} {...register("startDate")} />
+              <Input variant="filled" label="End Date" type="date" {...register("endDate")} />
             </div>
             <div className="flex items-center gap-6">
               <label className="flex items-center gap-2 cursor-pointer">

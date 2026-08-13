@@ -33,7 +33,6 @@ import { motion, useInView } from "framer-motion"
 import Link from "next/link"
 import { Sun, Moon, Star, Sparkles, Sunrise, Clock, ArrowRight } from "lucide-react"
 import { useTranslation } from "@/lib/i18n"
-import { TEMPLE_TIMINGS } from "@/lib/constants"
 
 interface PanchangaApiData {
   tithi?: string
@@ -64,37 +63,7 @@ function polar(angleDeg: number, radius: number, cx = 50, cy = 50) {
   return { x: cx + radius * Math.cos(rad), y: cy + radius * Math.sin(rad) }
 }
 
-function RivetPlate({
-  accent,
-  label,
-  icon: Icon,
-  children,
-}: {
-  accent: "brass" | "kumkum"
-  label: string
-  icon: React.ElementType
-  children: React.ReactNode
-}) {
-  const border = accent === "kumkum" ? "border-[#C1432B]/30" : "border-gold-300/40"
-  const rivet = accent === "kumkum" ? "bg-[#C1432B]/50" : "bg-gold-400/60"
-  const iconColor = accent === "kumkum" ? "text-[#C1432B]" : "text-gold-600"
 
-  return (
-    <div className={`relative rounded-md bg-white/70 backdrop-blur-sm border ${border} px-4 py-3.5 sm:px-5 sm:py-4`}>
-      <span className={`absolute top-1.5 left-1.5 h-1 w-1 rounded-full ${rivet}`} />
-      <span className={`absolute top-1.5 right-1.5 h-1 w-1 rounded-full ${rivet}`} />
-      <span className={`absolute bottom-1.5 left-1.5 h-1 w-1 rounded-full ${rivet}`} />
-      <span className={`absolute bottom-1.5 right-1.5 h-1 w-1 rounded-full ${rivet}`} />
-      <div className="flex items-center gap-1.5 mb-2.5">
-        <Icon className={`h-3.5 w-3.5 ${iconColor}`} />
-        <span className="text-[10px] uppercase tracking-[0.14em] text-dark-slate/45 font-semibold">
-          {label}
-        </span>
-      </div>
-      {children}
-    </div>
-  )
-}
 
 export function PanchangaSection() {
   const { t } = useTranslation()
@@ -115,7 +84,7 @@ export function PanchangaSection() {
           karana: p.karana,
         })
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setPanchangaLoading(false))
   }, [])
 
@@ -266,26 +235,7 @@ export function PanchangaSection() {
           })}
         </motion.div>
 
-        {/* PLAQUES */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-14 sm:mt-16 grid sm:grid-cols-2 gap-3 sm:gap-4 max-w-2xl mx-auto"
-        >
-          <RivetPlate accent="brass" label={t("home.darshanaHours")} icon={Sun}>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-center">
-                <p className="text-[9px] uppercase tracking-wider text-gold-700/80 font-semibold">{t("timings.morning")}</p>
-                <p className="text-xs font-medium text-dark-slate mt-0.5 tabular-nums">{TEMPLE_TIMINGS.morning}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-[9px] uppercase tracking-wider text-gold-700/80 font-semibold">{t("timings.evening")}</p>
-                <p className="text-xs font-medium text-dark-slate mt-0.5 tabular-nums">{TEMPLE_TIMINGS.evening}</p>
-              </div>
-            </div>
-          </RivetPlate>
-        </motion.div>
+
 
         <motion.div
           initial={{ opacity: 0 }}

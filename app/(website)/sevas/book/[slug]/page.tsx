@@ -131,7 +131,11 @@ export default function BookSevaPage() {
     quantity >= 1 &&
     devoteeData.name &&
     devoteeData.phone &&
-    devoteeData.email,
+    devoteeData.email &&
+    devoteeData.address &&
+    devoteeData.state &&
+    devoteeData.district &&
+    devoteeData.pincode
   )
 
   const price = Number(seva.price)
