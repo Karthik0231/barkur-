@@ -185,6 +185,7 @@ export default function NewSevaPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
+                  variant="filled"
                   label="Seva Name *"
                   placeholder="e.g., Rudra Abhishekam"
                   error={errors.name?.message as string}
@@ -204,6 +205,7 @@ export default function NewSevaPage() {
                   }}
                 />
                 <Input
+                  variant="filled"
                   label="Slug *"
                   placeholder="rudra-abhishekam"
                   error={errors.slug?.message as string}
@@ -218,7 +220,7 @@ export default function NewSevaPage() {
                   </label>
                   <select
                     {...register("categoryId")}
-                    className="h-11 w-full rounded-lg border border-border bg-warm-white dark:bg-bg-secondary px-4 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
+                    className="h-11 w-full rounded-xl border-2 border-transparent bg-bg-secondary px-4 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
                     disabled={categoriesLoading}
                   >
                     <option value="">
@@ -237,6 +239,7 @@ export default function NewSevaPage() {
                   )}
                 </div>
                 <Input
+                  variant="filled"
                   label="Short Description"
                   placeholder="Brief description (max 300 chars)"
                   error={errors.shortDescription?.message as string}
@@ -260,6 +263,7 @@ export default function NewSevaPage() {
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Input
+                  variant="filled"
                   label="Price (₹) *"
                   type="number"
                   placeholder="2500"
@@ -267,6 +271,7 @@ export default function NewSevaPage() {
                   {...register("price")}
                 />
                 <Input
+                  variant="filled"
                   label="Discounted Price (₹)"
                   type="number"
                   placeholder="2000"
@@ -274,6 +279,7 @@ export default function NewSevaPage() {
                   {...register("originalPrice")}
                 />
                 <Input
+                  variant="filled"
                   label="Duration (mins)"
                   type="number"
                   placeholder="60"
@@ -281,6 +287,7 @@ export default function NewSevaPage() {
                   {...register("duration")}
                 />
                 <Input
+                  variant="filled"
                   label="Booking Notice (hrs)"
                   type="number"
                   placeholder="24"
@@ -296,6 +303,7 @@ export default function NewSevaPage() {
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
+                  variant="filled"
                   label="Max Devotees"
                   type="number"
                   placeholder="10"
@@ -303,6 +311,7 @@ export default function NewSevaPage() {
                   {...register("maxDevotees")}
                 />
                 <Input
+                  variant="filled"
                   label="Min Devotees"
                   type="number"
                   placeholder="1"
@@ -321,7 +330,7 @@ export default function NewSevaPage() {
                   {...register("bookingRules")}
                   rows={6}
                   placeholder="Enter booking rules and guidelines for devotees...&#10;&#10;e.g.,&#10;- Devotees must arrive 30 minutes before the seva&#10;- Traditional attire is required&#10;- No photography during the ritual"
-                  className="w-full rounded-lg border border-border bg-warm-white dark:bg-bg-secondary px-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all resize-y"
+                  className="w-full rounded-xl border-2 border-transparent bg-bg-secondary px-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all resize-y"
                 />
                 {errors.bookingRules && (
                   <p className="text-xs text-red-500">
@@ -362,7 +371,7 @@ export default function NewSevaPage() {
                         onChange={(e) =>
                           updateAvailabilityDate(index, "date", e.target.value)
                         }
-                        className="w-full h-10 pl-10 pr-4 text-sm rounded-lg border border-border bg-warm-white dark:bg-bg-secondary text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
+                        className="w-full h-11 pl-10 pr-4 text-sm rounded-xl border-2 border-transparent bg-bg-secondary text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
                       />
                     </div>
                     <div className="flex items-center gap-1.5">
@@ -383,6 +392,7 @@ export default function NewSevaPage() {
                       </label>
                     </div>
                     <Input
+                      variant="filled"
                       type="number"
                       placeholder="Max"
                       className="w-24"
@@ -478,6 +488,7 @@ export default function NewSevaPage() {
 
               <div className="pt-3 border-t border-border/60">
                 <Input
+                  variant="filled"
                   label="Sort Order"
                   type="number"
                   placeholder="0"

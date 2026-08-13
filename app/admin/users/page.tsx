@@ -210,20 +210,20 @@ export default function UsersPage() {
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-6 py-4">
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Full Name" placeholder="John Doe" error={errors.name?.message as string} {...register("name")} />
-              <Input label="Email" type="email" placeholder="john@temple.org" error={errors.email?.message as string} {...register("email")} />
+              <Input variant="filled" label="Full Name *" placeholder="John Doe" error={errors.name?.message as string} {...register("name")} />
+              <Input variant="filled" label="Email *" type="email" placeholder="john@temple.org" error={errors.email?.message as string} {...register("email")} />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Phone" placeholder="+91 98765 43210" error={errors.phone?.message as string} {...register("phone")} />
+              <Input variant="filled" label="Phone *" placeholder="+91 98765 43210" error={errors.phone?.message as string} {...register("phone")} />
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-text-primary">Role</label>
-                <select {...register("role")} className="h-11 rounded-lg border border-border bg-warm-white dark:bg-bg-secondary px-4 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/20">
+                <label className="text-xs font-semibold text-text-primary uppercase tracking-wider">Role *</label>
+                <select {...register("role")} className="h-11 rounded-xl border-transparent bg-bg-secondary px-4 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/20 transition-all cursor-pointer">
                   {ROLES.map((r) => <option key={r} value={r}>{r.replace(/_/g, " ")}</option>)}
                 </select>
               </div>
             </div>
-            <Input label={editing ? "New Password (leave blank to keep)" : "Password"} type="password" placeholder="Min 8 characters" error={errors.password?.message as string} {...register("password")} />
-            <DialogFooter>
+            <Input variant="filled" label={editing ? "New Password (leave blank to keep)" : "Password *"} type="password" placeholder="Min 8 characters" error={errors.password?.message as string} {...register("password")} />
+            <DialogFooter className="pt-4">
               <Button type="button" variant="outline" size="sm" onClick={() => setDialogOpen(false)}>Cancel</Button>
               <Button type="submit" variant="primary" size="sm">{editing ? "Update" : "Create"}</Button>
             </DialogFooter>

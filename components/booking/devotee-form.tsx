@@ -93,6 +93,7 @@ export function DevoteeForm({ data, onChange }: DevoteeFormProps) {
         </h3>
         <div className="grid sm:grid-cols-2 gap-4">
           <Input
+            variant="premium"
             label="Full Name *"
             placeholder="Enter your full name"
             value={data.name}
@@ -100,6 +101,7 @@ export function DevoteeForm({ data, onChange }: DevoteeFormProps) {
             success={lookupStatus === "found" && data.name ? " " : undefined}
           />
           <Input
+            variant="premium"
             label="Gotra"
             placeholder="e.g. Bharadwaja, Vashishta..."
             value={data.gotra}
@@ -137,6 +139,7 @@ export function DevoteeForm({ data, onChange }: DevoteeFormProps) {
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <Input
+              variant="premium"
               label="Phone Number *"
               type="tel"
               placeholder="Enter your phone number"
@@ -170,6 +173,7 @@ export function DevoteeForm({ data, onChange }: DevoteeFormProps) {
             )}
           </div>
           <Input
+            variant="premium"
             label="Email Address *"
             type="email"
             placeholder="Enter your email address"
@@ -181,7 +185,7 @@ export function DevoteeForm({ data, onChange }: DevoteeFormProps) {
 
       <div>
         <h3 className="text-sm font-semibold text-text-primary mb-3 uppercase tracking-wider">
-          Address
+          Address *
         </h3>
         <div className="space-y-4">
           <textarea
@@ -189,23 +193,26 @@ export function DevoteeForm({ data, onChange }: DevoteeFormProps) {
             onChange={(e) => update("address", e.target.value)}
             placeholder="Enter your full address"
             rows={3}
-            className="w-full rounded-xl border border-border bg-warm-white dark:bg-bg-secondary p-4 text-sm text-text-primary placeholder:text-text-muted focus:border-secondary focus:ring-2 focus:ring-secondary/20 focus-visible:outline-none transition-all resize-none"
+            className="w-full rounded-xl border-2 border-gold-200/30 bg-warm-white p-4 text-sm text-text-primary placeholder:text-text-muted focus:border-gold-500 focus:ring-2 focus:ring-gold-500/10 focus-visible:outline-none transition-all resize-none shadow-premium"
           />
           <div className="grid sm:grid-cols-3 gap-4">
             <Input
-              label="State"
+              variant="premium"
+              label="State *"
               placeholder="e.g. Karnataka"
               value={data.state}
               onChange={(e) => update("state", e.target.value)}
             />
             <Input
-              label="District"
+              variant="premium"
+              label="District *"
               placeholder="e.g. Udupi"
               value={data.district}
               onChange={(e) => update("district", e.target.value)}
             />
             <Input
-              label="Pincode"
+              variant="premium"
+              label="Pincode *"
               placeholder="e.g. 576101"
               value={data.pincode}
               onChange={(e) => update("pincode", e.target.value)}
