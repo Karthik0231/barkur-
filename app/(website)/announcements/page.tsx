@@ -36,7 +36,8 @@ export default function AnnouncementsPage() {
     fetch("/api/announcements")
       .then((r) => r.json())
       .then((data) => {
-        setAnnouncements(data.map((item: any) => ({
+        const items = data?.data?.announcements || data || []
+        setAnnouncements(items.map((item: any) => ({
           id: item.id,
           title: item.title,
           message: item.content,

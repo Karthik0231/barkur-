@@ -77,7 +77,8 @@ export default function FAQPage() {
     fetch("/api/faq")
       .then((r) => r.json())
       .then((data) => {
-        setFaqs(data.map((item: any) => ({
+        const items = data?.data?.faqs || data || []
+        setFaqs(items.map((item: any) => ({
           id: item.id,
           q: item.question,
           a: item.answer,

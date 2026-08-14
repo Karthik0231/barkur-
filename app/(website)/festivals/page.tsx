@@ -28,7 +28,8 @@ export default function FestivalsPage() {
     fetch("/api/festivals")
       .then((r) => r.json())
       .then((data) => {
-        setFestivals(data.map((item: any) => {
+        const items = data?.data?.festivals || data || []
+        setFestivals(items.map((item: any) => {
           const highlights = typeof item.rituals === "string" ? JSON.parse(item.rituals) : (item.rituals || [])
           const desc = item.shortDescription || item.description || ""
           const duration = item.isMultiDay
