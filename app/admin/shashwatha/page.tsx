@@ -35,10 +35,10 @@ export default function ShashwathaPage() {
   const [typeFilter, setTypeFilter] = useState("")
 
   useEffect(() => {
-    fetch("/api/shahsawatha")
+    fetch("/api/shashwatha")
       .then((r) => r.json())
       .then((d) => {
-        setBookings(d.data || d || [])
+        setBookings(d.data?.bookings || d.data || [])
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -46,7 +46,7 @@ export default function ShashwathaPage() {
 
   const handleApproval = async (id: string, status: "APPROVED" | "REJECTED") => {
     try {
-      const res = await fetch(`/api/shahsawatha/${id}`, {
+      const res = await fetch(`/api/shashwatha/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminApproval: status }),
