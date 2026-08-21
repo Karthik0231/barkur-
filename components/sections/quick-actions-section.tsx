@@ -3,7 +3,7 @@
 import { useRef } from "react"
 import { motion, useInView } from "framer-motion"
 import Link from "next/link"
-import { Sparkles, Heart, Play, Calendar, ArrowRight } from "lucide-react"
+import { Sparkles, Heart, Play, Calendar, ArrowRight, Flower2 } from "lucide-react"
 import { useTranslation } from "@/lib/i18n"
 
 export function QuickActionsSection() {
@@ -22,10 +22,10 @@ export function QuickActionsSection() {
       tag: t("home.popular")
     },
     {
-      title: t("home.liveDarshanaTitle"),
-      subtitle: t("home.liveDarshanaSub"),
-      icon: Play,
-      href: "/live",
+      title: t("home.dailyAlankaraTitle"),
+      subtitle: t("home.dailyAlankaraSub"),
+      icon: Flower2,
+      href: "/daily-alankara",
       gradient: "from-dark-slate to-slate-700",
       accent: "text-dark-slate",
       tag: t("home.live")
@@ -34,7 +34,7 @@ export function QuickActionsSection() {
       title: t("home.templeCalendarTitle"),
       subtitle: t("home.templeCalendarSub"),
       icon: Calendar,
-      href: "/calendar",
+      href: "/panchanga",
       gradient: "from-sand-500 to-sand-600",
       accent: "text-sand-700",
       tag: `${new Date().getDate()} ${new Date().toLocaleDateString("en-US", { month: "short" })}`

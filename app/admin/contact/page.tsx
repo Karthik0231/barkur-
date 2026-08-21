@@ -138,7 +138,7 @@ export default function ContactPage() {
       {selectedMessage && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setSelectedMessage(null)}>
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
-          <div className="relative z-10 w-full max-w-2xl rounded-2xl bg-warm-white dark:bg-bg-secondary border border-border shadow-modal p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="relative z-10 w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-warm-white dark:bg-bg-secondary border border-border shadow-modal p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-6">
               <div>
                 <div className="flex items-center gap-2">

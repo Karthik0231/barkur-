@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findManyAnnouncements, countAnnouncements, createAnnouncement } from "@/lib/models/announcement"
 import { announcementSchema } from "@/lib/validations"
 import { successResponse, errorResponse, getAuthUser, checkRole, paginationHelper, auditLog } from "@/lib/api-utils"
 
@@ -10,37 +10,29 @@ export async function GET(request: Request) {
     const session = await auth()
     const user = getAuthUser(session)
     const isAdmin = user && checkRole(session, ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER"])
+    const cacheSeconds = user ? 0 : 60
 
-    const where: Record<string, unknown> = { deletedAt: null }
+    const where: Record<string, unknown> = {}
     if (isAdmin) {
       if (searchParams.get("isActive") !== null) where.isActive = searchParams.get("isActive") === "true"
     } else {
       where.isActive = true
       const now = new Date()
-      where.OR = [
-        { startDate: null },
-        { startDate: { lte: now } },
-      ]
-      where.AND = [
-        { endDate: null },
-        { endDate: { gte: now } },
-      ]
-      delete where.AND
+      where.startDate = { $lte: now }
       where.endDate = null
-      where.startDate = { lte: now }
     }
 
     const [announcements, total] = await Promise.all([
-      prisma.announcement.findMany({
-        where: where as never,
-        skip,
-        take: limit,
-        orderBy: [{ type: "asc" }, { createdAt: "desc" }],
-      }),
-      prisma.announcement.count({ where: where as never }),
+      findManyAnnouncements(where, { skip, limit, sortBy: "type", sortOrder: "asc" }),
+      countAnnouncements(where),
     ])
 
-    return successResponse({ announcements, total, page, limit, totalPages: Math.ceil(total / limit) })
+    announcements.sort((a, b) => {
+      if (a.type !== b.type) return a.type > b.type ? 1 : -1
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
+
+    return successResponse({ announcements, total, page, limit, totalPages: Math.ceil(total / limit) }, "Success", 200, cacheSeconds)
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to fetch announcements", 500)
   }
@@ -58,18 +50,17 @@ export async function POST(request: Request) {
     if (!parsed.success) return errorResponse("Validation failed", 400, parsed.error.flatten().fieldErrors as Record<string, string[]>)
 
     const data = parsed.data
-    const announcement = await prisma.announcement.create({
-      data: {
-        title: data.title,
-        content: data.content,
-        type: (data.type ?? "INFO") as never,
-        isActive: data.isActive ?? true,
-        isPopup: false,
-        startDate: new Date(),
-        endDate: data.endDate ? new Date(data.endDate) : null,
-        link: data.link ?? null,
-        createdBy: user.id,
-      },
+    const announcement = await createAnnouncement({
+      title: data.title,
+      content: data.content,
+      type: (data.type ?? "INFO") as never,
+      isActive: data.isActive ?? true,
+      isPopup: data.isPopup ?? false,
+      startDate: data.startDate ? new Date(data.startDate) : new Date(),
+      endDate: data.endDate ? new Date(data.endDate) : null,
+      link: data.link ?? null,
+      linkText: data.linkText ?? null,
+      createdBy: user.id,
     })
 
     await auditLog("CREATE", "Announcement", announcement.id, { title: announcement.title }, session)

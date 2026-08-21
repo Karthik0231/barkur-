@@ -1,7 +1,7 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { authConfig } from "@/lib/auth.config"
-import { prisma } from "@/lib/prisma"
+import { findUserByEmail, updateUser } from "@/lib/models/user"
 import bcrypt from 'bcryptjs'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -19,9 +19,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string }
-        })
+        const user = await findUserByEmail(credentials.email as string)
 
         if (!user || !user.password) {
           return null
@@ -40,10 +38,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null
         }
 
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { lastLogin: new Date() },
-        })
+        await updateUser(user.id, { lastLogin: new Date() })
 
         return {
           id: user.id,

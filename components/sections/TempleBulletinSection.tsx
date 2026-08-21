@@ -20,7 +20,7 @@ import { motion, AnimatePresence, useInView } from "framer-motion"
 import { Flower2, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n"
-import type { Festival, Announcement } from "@prisma/client"
+import type { Festival, Announcement } from "@/lib/types"
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */

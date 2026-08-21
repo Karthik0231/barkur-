@@ -1,7 +1,13 @@
 import { auth } from "@/lib/auth"
 import { successResponse, errorResponse, getAuthUser, checkRole, paginationHelper } from "@/lib/api-utils"
-import { prisma } from "@/lib/prisma"
+import { findUserByEmail, createUser, findManyUsers, countUsers } from "@/lib/models/user"
+import { findDevoteeDetailByPhone } from "@/lib/models/devoteeDetail"
 import { userSchema, type UserInput } from "@/lib/validations"
+
+/** Escape regex metacharacters so `$regex` behaves like Prisma's literal `contains`. */
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
 
 export async function GET(request: Request) {
   try {
@@ -17,22 +23,15 @@ export async function GET(request: Request) {
         return errorResponse("Unauthorized", 401)
       }
       const normalizedPhone = phone.replace(/\s/g, "")
-      const matchedUser = await prisma.user.findFirst({
-        where: {
-          deletedAt: null,
-          OR: [
-            { phone: { contains: normalizedPhone } },
-            { phone: { contains: phone } },
+      const [matchedUser] = await findManyUsers(
+        {
+          $or: [
+            { phone: { $regex: escapeRegex(normalizedPhone) } },
+            { phone: { $regex: escapeRegex(phone) } },
           ],
         },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone: true,
-          role: true,
-        },
-      })
+        { limit: 1 }
+      )
 
       if (matchedUser) {
         return successResponse({
@@ -50,14 +49,7 @@ export async function GET(request: Request) {
         })
       }
 
-      const matchedDevotee = await prisma.devoteeDetail.findFirst({
-        where: {
-          OR: [
-            { phone: { contains: normalizedPhone } },
-            { phone: { contains: phone } },
-          ],
-        },
-      })
+      const matchedDevotee = await findDevoteeDetailByPhone(normalizedPhone || phone)
 
       if (matchedDevotee) {
         return successResponse({
@@ -88,22 +80,20 @@ export async function GET(request: Request) {
     const role = searchParams.get("role")
     const isActive = searchParams.get("isActive")
 
-    const where: Record<string, unknown> = { deletedAt: null }
+    const where: Record<string, unknown> = {}
     if (role) where.role = role
     if (isActive !== null) where.isActive = isActive === "true"
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mode: "insensitive" } },
-        { phone: { contains: search } },
+      where.$or = [
+        { name: { $regex: escapeRegex(search), $options: "i" } },
+        { email: { $regex: escapeRegex(search), $options: "i" } },
+        { phone: { $regex: escapeRegex(search) } },
       ]
     }
 
-    const orderBy = sortBy ? { [sortBy]: sortOrder } : { createdAt: "desc" as const }
-
     const [users, total] = await Promise.all([
-      prisma.user.findMany({ where: where as any, orderBy, skip, take: limit }),
-      prisma.user.count({ where: where as any }),
+      findManyUsers(where, { skip, limit, sortBy, sortOrder }),
+      countUsers(where),
     ])
 
     return successResponse({ users, total, page, limit, totalPages: Math.ceil(total / limit) })
@@ -124,18 +114,19 @@ export async function POST(request: Request) {
     if (!parsed.success) return errorResponse("Validation failed", 400, parsed.error.flatten().fieldErrors as Record<string, string[]>)
 
     const data = parsed.data
-    const existing = await prisma.user.findUnique({ where: { email: data.email } })
+    const existing = await findUserByEmail(data.email)
     if (existing) return errorResponse("Email already in use", 409)
 
-    const newUser = await prisma.user.create({
-      data: {
-        name: data.name,
-        email: data.email,
-        phone: data.phone || null,
-        role: data.role || "DEVOTEE",
-        isActive: data.isActive ?? true,
-        createdBy: currentUser.id,
-      },
+    const now = new Date()
+    const newUser = await createUser({
+      name: data.name,
+      email: data.email,
+      phone: data.phone || null,
+      role: data.role || "DEVOTEE",
+      isActive: data.isActive ?? true,
+      createdBy: currentUser.id,
+      createdAt: now,
+      updatedAt: now,
     })
 
     return successResponse(newUser, "User created successfully", 201)

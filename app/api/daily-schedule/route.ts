@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findManyDailySchedules, createDailySchedule } from "@/lib/models/dailySchedule"
 import { dailyScheduleSchema } from "@/lib/validations"
 import { successResponse, errorResponse, getAuthUser, checkRole, auditLog } from "@/lib/api-utils"
 
@@ -11,13 +11,12 @@ export async function GET(request: Request) {
     const user = getAuthUser(session)
     const isAdmin = user && checkRole(session, ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER"])
 
-    const where: Record<string, unknown> = {}
-    if (!isAdmin) where.isActive = true
-    if (dayOfWeek !== null) where.dayOfWeek = parseInt(dayOfWeek ?? "0", 10)
+    const filter: Record<string, unknown> = {}
+    if (!isAdmin) filter.isActive = true
+    if (dayOfWeek !== null) filter.dayOfWeek = parseInt(dayOfWeek ?? "0", 10)
 
-    const schedules = await prisma.dailySchedule.findMany({
-      where: where as never,
-      orderBy: [{ dayOfWeek: "asc" }, { sortOrder: "asc" }, { startTime: "asc" }],
+    const schedules = await findManyDailySchedules(filter, {
+      sort: [["dayOfWeek", 1], ["sortOrder", 1], ["startTime", 1]],
     })
 
     return successResponse({ schedules })
@@ -38,16 +37,14 @@ export async function POST(request: Request) {
     if (!parsed.success) return errorResponse("Validation failed", 400, parsed.error.flatten().fieldErrors as Record<string, string[]>)
 
     const data = parsed.data
-    const schedule = await prisma.dailySchedule.create({
-      data: {
-        dayOfWeek: data.dayOfWeek,
-        title: data.title,
-        description: data.description ?? null,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        isActive: data.isActive ?? true,
-        sortOrder: data.sortOrder ?? 0,
-      },
+    const schedule = await createDailySchedule({
+      dayOfWeek: data.dayOfWeek,
+      title: data.title,
+      description: data.description ?? null,
+      startTime: data.startTime,
+      endTime: data.endTime,
+      isActive: data.isActive ?? true,
+      sortOrder: data.sortOrder ?? 0,
     })
 
     await auditLog("CREATE", "DailySchedule", schedule.id, { title: schedule.title }, session)

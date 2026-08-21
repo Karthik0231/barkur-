@@ -1,9 +1,11 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findPaymentByRazorpayOrderId, updatePayment, createPayment } from "@/lib/models/payment"
+import { findBookingById, updateBooking } from "@/lib/models/booking"
+import { createReceipt } from "@/lib/models/receipt"
 import { successResponse, errorResponse, getAuthUser, checkRole } from "@/lib/api-utils"
-import { createOrder, verifyPayment } from "@/lib/payments"
 import { auditLog } from "@/lib/api-utils"
 import { generateReceiptNumber } from "@/lib/utils"
+import { verifyPayment, createOrder } from "@/lib/payments"
 
 export async function POST(request: Request) {
   try {
@@ -19,43 +21,36 @@ export async function POST(request: Request) {
       if (!orderId || !paymentId || !signature)
         return errorResponse("Missing payment verification fields", 400)
 
-      const paymentRecord = await prisma.payment.findUnique({
-        where: { razorpayOrderId: orderId },
-        include: { booking: { select: { userId: true, deletedAt: true } } },
-      })
-      if (!paymentRecord || paymentRecord.booking.deletedAt) return errorResponse("Payment not found", 404)
+      const paymentRecord = await findPaymentByRazorpayOrderId(orderId)
+      if (!paymentRecord) return errorResponse("Payment not found", 404)
+      const booking = await findBookingById(paymentRecord.bookingId)
+      if (!booking || booking.deletedAt) return errorResponse("Payment not found", 404)
       const isAdmin = checkRole(session, ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER", "ACCOUNTANT"])
-      if (!isAdmin && paymentRecord.booking.userId !== user.id) return errorResponse("Unauthorized", 401)
+      if (!isAdmin && booking.userId !== user.id) return errorResponse("Unauthorized", 401)
 
       const result = await verifyPayment({ orderId, paymentId, signature })
       if (!result.success) return errorResponse(result.error ?? "Verification failed", 500)
 
       if (result.isValid) {
-        const payment = await prisma.payment.update({
-          where: { id: paymentRecord.id },
-          data: {
-            razorpayPaymentId: paymentId,
-            razorpaySignature: signature,
-            status: "PAID",
-            paidAt: new Date(),
-          },
+        const payment = await updatePayment(paymentRecord.id, {
+          razorpayPaymentId: paymentId,
+          razorpaySignature: signature,
+          status: "PAID",
+          paidAt: new Date(),
         })
 
-        await prisma.booking.update({
-          where: { id: payment.bookingId },
-          data: { paymentStatus: "PAID" },
-        })
+        if (!payment) return errorResponse("Payment update failed", 500)
 
-        await prisma.receipt.create({
-          data: {
-            bookingId: payment.bookingId,
-            paymentId: payment.id,
-            receiptNumber: generateReceiptNumber(),
-            amount: payment.amount,
-            totalAmount: payment.amount,
-            type: "PAYMENT",
-            issuedAt: new Date(),
-          },
+        await updateBooking(payment.bookingId, { paymentStatus: "PAID" })
+
+        await createReceipt({
+          bookingId: payment.bookingId,
+          paymentId: payment.id,
+          receiptNumber: generateReceiptNumber(),
+          amount: payment.amount,
+          totalAmount: payment.amount,
+          type: "PAYMENT",
+          issuedAt: new Date(),
         })
 
         await auditLog("PAYMENT_VERIFIED", "Payment", payment.id, { bookingId: payment.bookingId }, session)
@@ -68,10 +63,8 @@ export async function POST(request: Request) {
     if (!bookingId) return errorResponse("bookingId is required", 400)
 
     const isAdmin = checkRole(session, ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER", "ACCOUNTANT"])
-    const booking = await prisma.booking.findFirst({
-      where: isAdmin ? { id: bookingId, deletedAt: null } : { id: bookingId, userId: user.id, deletedAt: null },
-    })
-    if (!booking) return errorResponse("Booking not found", 404)
+    const booking = await findBookingById(bookingId)
+    if (!booking || (!isAdmin && booking.userId !== user.id) || booking.deletedAt) return errorResponse("Booking not found", 404)
 
     const payableAmount = Number(booking.finalAmount)
     if (!Number.isFinite(payableAmount) || payableAmount <= 0) return errorResponse("Invalid booking amount", 400)
@@ -86,14 +79,12 @@ export async function POST(request: Request) {
 
     if (!result.success || !result.order) return errorResponse(result.error ?? "Failed to create order", 500)
 
-    const payment = await prisma.payment.create({
-      data: {
-        bookingId,
-        razorpayOrderId: result.order.id,
-        amount: payableAmount,
-        currency: currency ?? "INR",
-        status: "CREATED",
-      },
+    const payment = await createPayment({
+      bookingId,
+      razorpayOrderId: result.order.id,
+      amount: payableAmount,
+      currency: currency ?? "INR",
+      status: "CREATED",
     })
 
     await auditLog("PAYMENT_INITIATED", "Payment", payment.id, { orderId: result.order.id, amount: payableAmount }, session)

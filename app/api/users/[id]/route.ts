@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth"
 import { successResponse, errorResponse, getAuthUser, checkRole } from "@/lib/api-utils"
-import { prisma } from "@/lib/prisma"
+import { findUserById, updateUser } from "@/lib/models/user"
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -10,8 +10,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const found = await prisma.user.findUnique({ where: { id } })
-    if (!found || found.deletedAt) return errorResponse("User not found", 404)
+    const found = await findUserById(id)
+    if (!found) return errorResponse("User not found", 404)
     return successResponse(found)
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to fetch user", 500)
@@ -26,8 +26,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const existing = await prisma.user.findUnique({ where: { id } })
-    if (!existing || existing.deletedAt) return errorResponse("User not found", 404)
+    const existing = await findUserById(id)
+    if (!existing) return errorResponse("User not found", 404)
 
     const body = await request.json()
     const updateData: Record<string, unknown> = { updatedBy: currentUser.id }
@@ -43,10 +43,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       updateData.role = body.role
     }
 
-    const updated = await prisma.user.update({
-      where: { id },
-      data: updateData as never,
-    })
+    const updated = await updateUser(id, updateData)
 
     return successResponse(updated, "User updated successfully")
   } catch (error) {
@@ -64,13 +61,10 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     const { id } = await params
     if (id === currentUser.id) return errorResponse("Cannot delete yourself", 400)
 
-    const existing = await prisma.user.findUnique({ where: { id } })
-    if (!existing || existing.deletedAt) return errorResponse("User not found", 404)
+    const existing = await findUserById(id)
+    if (!existing) return errorResponse("User not found", 404)
 
-    await prisma.user.update({
-      where: { id },
-      data: { deletedAt: new Date(), updatedBy: currentUser.id },
-    })
+    await updateUser(id, { deletedAt: new Date(), updatedBy: currentUser.id })
 
     return successResponse(null, "User deleted successfully")
   } catch (error) {

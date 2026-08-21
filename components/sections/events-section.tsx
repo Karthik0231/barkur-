@@ -24,11 +24,20 @@ export function EventsSection() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch("/api/events?upcoming=true&limit=4")
+    fetch("/api/festivals?isActive=true&limit=4")
       .then((r) => r.json())
       .then((d) => {
-        const list = d.data?.events || d.data || d || []
-        setEvents(Array.isArray(list) ? list : [])
+        const list = d.data?.festivals || d.data || d || []
+        const mapped = Array.isArray(list)
+          ? list.map((f) => ({
+              title: f.name,
+              month: f.startDate
+                ? new Date(f.startDate).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })
+                : "",
+              description: f.shortDescription || f.description || "",
+            }))
+          : []
+        setEvents(mapped)
       })
       .catch(() => {})
       .finally(() => setLoading(false))

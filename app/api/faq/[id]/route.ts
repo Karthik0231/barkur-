@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findFaqById, updateFaq } from "@/lib/models/faq"
 import { successResponse, errorResponse, getAuthUser, checkRole, auditLog } from "@/lib/api-utils"
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -10,7 +10,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const existing = await prisma.fAQ.findFirst({ where: { id, deletedAt: null } })
+    const existing = await findFaqById(id)
     if (!existing) return errorResponse("FAQ not found", 404)
 
     const body = await request.json()
@@ -20,8 +20,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       if (body[key] !== undefined) updateData[key] = body[key]
     }
 
-    const faq = await prisma.fAQ.update({ where: { id }, data: updateData as never })
-    await auditLog("UPDATE", "FAQ", id, { question: faq.question }, session)
+    const faq = await updateFaq(id, updateData)
+    await auditLog("UPDATE", "FAQ", id, { question: faq?.question }, session)
     return successResponse(faq, "FAQ updated successfully")
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to update FAQ", 500)
@@ -36,10 +36,10 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const existing = await prisma.fAQ.findFirst({ where: { id, deletedAt: null } })
+    const existing = await findFaqById(id)
     if (!existing) return errorResponse("FAQ not found", 404)
 
-    await prisma.fAQ.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } })
+    await updateFaq(id, { deletedAt: new Date(), isActive: false })
     await auditLog("DELETE", "FAQ", id, { question: existing.question }, session)
     return successResponse(null, "FAQ deleted successfully")
   } catch (error) {

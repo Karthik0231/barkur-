@@ -2,15 +2,19 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Plus, Edit3, Trash2, Search, Calendar, Bell, ExternalLink } from "lucide-react"
+import { Plus, Edit3, Trash2, Search, Calendar, Bell, ExternalLink, Megaphone } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Select } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
 import { StatusBadge } from "@/components/admin/status-badge"
+import { FormSection, FormGrid } from "@/components/ui/form-section"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { formatDateTime } from "@/lib/utils"
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@/lib/zod-resolver"
@@ -43,7 +47,12 @@ const announcementSchema = z.object({
   linkText: z.string().optional(),
 })
 
-const types = ["INFO", "WARNING", "URGENT", "EVENT"]
+const typeOptions = [
+  { value: "INFO", label: "Informational" },
+  { value: "WARNING", label: "Warning" },
+  { value: "URGENT", label: "Urgent" },
+  { value: "EVENT", label: "Event" },
+]
 
 export default function AnnouncementsPage() {
   const [items, setItems] = useState<Announcement[]>([])
@@ -52,6 +61,7 @@ export default function AnnouncementsPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Announcement | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     ;(async () => {
@@ -64,9 +74,12 @@ export default function AnnouncementsPage() {
     })()
   }, [])
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({
     resolver: zodResolver(announcementSchema),
   })
+
+  const watchedIsActive = watch("isActive")
+  const watchedIsPopup = watch("isPopup")
 
   const openCreate = () => {
     setEditing(null)
@@ -89,6 +102,7 @@ export default function AnnouncementsPage() {
   }
 
   const onSubmit = async (data: any) => {
+    setSubmitting(true)
     try {
       const processed = { ...data, startDate: data.startDate || null, endDate: data.endDate || null, link: data.link || null, linkText: data.linkText || null }
       const url = editing ? `/api/announcements/${editing.id}` : "/api/announcements"
@@ -100,6 +114,7 @@ export default function AnnouncementsPage() {
       setEditing(null)
       reload()
     } catch { toast.error("Failed to save announcement") }
+    finally { setSubmitting(false) }
   }
 
   const handleDelete = async () => {
@@ -160,47 +175,42 @@ export default function AnnouncementsPage() {
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent size="md">
-          <DialogHeader><DialogTitle>{editing ? "Edit Announcement" : "Add Announcement"}</DialogTitle></DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-6 py-4">
-            <Input label="Title" error={errors.title?.message as string} {...register("title")} />
-            <Input label="Content" placeholder="Announcement content..." error={errors.content?.message as string} {...register("content")} />
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-text-primary">Type</label>
-                <select {...register("type")} className="h-11 rounded-lg border border-border bg-warm-white dark:bg-bg-secondary px-4 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/20">
-                  {types.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
+          <DialogHeader>
+            <DialogTitle>{editing ? "Edit Announcement" : "New Announcement"}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <FormSection title="Announcement Details" description="Basic information about the announcement" icon={<Megaphone className="h-4 w-4" />}>
+              <Input label="Title" placeholder="e.g. Maha Shivaratri Special Pooja" helperText="A short, descriptive title for the announcement" error={errors.title?.message as string} {...register("title")} />
+              <Textarea label="Content" placeholder="Describe the announcement details, schedule, and any instructions for devotees..." helperText="Supports plain text. Keep it concise and informative." showCharCount maxLength={2000} error={errors.content?.message as string} {...register("content")} />
+              <Select label="Type" placeholder="Select announcement type" helperText="Determines the visual style and priority level" options={typeOptions} error={errors.type?.message as string} {...register("type")} />
+            </FormSection>
+            <FormSection title="Schedule" description="Set date range for the announcement to be visible" icon={<Calendar className="h-4 w-4" />} divider>
+              <FormGrid columns={2}>
+                <Input label="Start Date" type="date" helperText="When should this announcement start showing?" {...register("startDate")} />
+                <Input label="End Date" type="date" helperText="Leave empty for no end date" {...register("endDate")} />
+              </FormGrid>
+            </FormSection>
+            <FormSection title="External Link" description="Optionally link to a page with more information" icon={<ExternalLink className="h-4 w-4" />} divider>
+              <FormGrid columns={2}>
+                <Input label="Link URL" placeholder="https://example.com/event-details" helperText="Full URL including https://" {...register("link")} />
+                <Input label="Link Text" placeholder="e.g. Learn More, Register Now" helperText="Text to display on the link button" {...register("linkText")} />
+              </FormGrid>
+            </FormSection>
+            <FormSection title="Settings" description="Control visibility and display behavior" icon={<Bell className="h-4 w-4" />} divider>
+              <div className="flex flex-col gap-4">
+                <Switch label="Active" description="Active announcements are visible on the website" checked={watchedIsActive} onChange={(e) => setValue("isActive", e.target.checked)} />
+                <Switch label="Show as Popup" description="Display as a popup modal when visitors load the page" checked={watchedIsPopup} onChange={(e) => setValue("isPopup", e.target.checked)} />
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Input label="Start Date" type="date" {...register("startDate")} />
-              <Input label="End Date" type="date" {...register("endDate")} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Input label="Link URL" placeholder="https://..." {...register("link")} />
-              <Input label="Link Text" placeholder="Learn More" {...register("linkText")} />
-            </div>
-            <div className="flex items-center gap-6">
-              <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" {...register("isActive")} className="h-4 w-4 rounded border-border text-secondary focus:ring-secondary" /><span className="text-sm text-text-primary">Active</span></label>
-              <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" {...register("isPopup")} className="h-4 w-4 rounded border-border text-secondary focus:ring-secondary" /><span className="text-sm text-text-primary">Show as Popup</span></label>
-            </div>
+            </FormSection>
             <DialogFooter>
-              <Button type="button" variant="outline" size="sm" onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button type="submit" variant="primary" size="sm">{editing ? "Update" : "Create"}</Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => setDialogOpen(false)} disabled={submitting}>Cancel</Button>
+              <Button type="submit" variant="primary" size="sm" loading={submitting} loadingText={editing ? "Updating..." : "Creating..."}>{editing ? "Update Announcement" : "Create Announcement"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
-        <DialogContent size="sm">
-          <DialogHeader><DialogTitle>Delete Announcement</DialogTitle><DialogDescription>Are you sure?</DialogDescription></DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDeleteId(null)}>Cancel</Button>
-            <Button variant="destructive" size="sm" onClick={handleDelete}>Delete</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)} title="Delete Announcement" description="This will permanently remove the announcement. This action cannot be undone." variant="danger" confirmText="Delete" onConfirm={handleDelete} />
     </div>
   )
 }

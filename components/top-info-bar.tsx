@@ -51,17 +51,8 @@ export function TopInfoBar() {
         </div>
 
         <div className="flex items-center gap-1 sm:gap-3 shrink-0">
-          <Link href="/live-darshana" className={`${linkClass} hidden sm:inline-block`}>
-            Live Darshana
-          </Link>
-          <Link href="/seva-status" className={`${linkClass} hidden sm:inline-block`}>
-            Seva Status
-          </Link>
-          <Link href="/location" className={`${linkClass} hidden sm:inline-flex items-center gap-1`}>
+          <Link href="/contact" className={`${linkClass} hidden sm:inline-flex items-center gap-1`}>
             <MapPin className="w-3 h-3" />
-            Location
-          </Link>
-          <Link href="/contact" className={`${linkClass} hidden sm:inline-block`}>
             {t("nav.contact")}
           </Link>
           <Link

@@ -32,12 +32,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 
-interface CategoryOption {
-  id: string
-  name: string
-  slug: string
-}
-
 interface AvailabilityDate {
   date: string
   isAvailable: boolean
@@ -48,8 +42,6 @@ export default function EditSevaPage() {
   const router = useRouter()
   const params = useParams()
   const [images, setImages] = useState<ImageItem[]>([])
-  const [categories, setCategories] = useState<CategoryOption[]>([])
-  const [categoriesLoading, setCategoriesLoading] = useState(true)
   const [availabilityDates, setAvailabilityDates] = useState<AvailabilityDate[]>([])
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -73,20 +65,6 @@ export default function EditSevaPage() {
   const isActive = watch("isActive")
 
   useEffect(() => {
-    fetch("/api/categories?type=SEVA&limit=100")
-      .then((r) => r.json())
-      .then((d) => {
-        const cats = d.data?.categories || d.data || d || []
-        setCategories(Array.isArray(cats) ? cats : [])
-        setCategoriesLoading(false)
-      })
-      .catch(() => {
-        setCategories([])
-        setCategoriesLoading(false)
-      })
-  }, [])
-
-  useEffect(() => {
     if (!sevaId) return
     fetch(`/api/sevas/${sevaId}`)
       .then((r) => {
@@ -107,7 +85,6 @@ export default function EditSevaPage() {
         reset({
           name: seva.name,
           slug: seva.slug,
-          categoryId: seva.categoryId || "",
           shortDescription: seva.shortDescription || "",
           description: seva.description,
           price: seva.price,
@@ -377,31 +354,7 @@ export default function EditSevaPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-text-primary">
-                    Category *
-                  </label>
-                  <select
-                    {...register("categoryId")}
-                    className="h-11 w-full rounded-lg border border-border bg-warm-white dark:bg-bg-secondary px-4 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
-                    disabled={categoriesLoading}
-                  >
-                    <option value="">
-                      {categoriesLoading ? "Loading..." : "Select category"}
-                    </option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.categoryId && (
-                    <p className="text-xs text-red-500">
-                      {String(errors.categoryId.message ?? "")}
-                    </p>
-                  )}
-                </div>
+              <div className="flex flex-col gap-1.5">
                 <Input
                   label="Short Description"
                   placeholder="Brief description (max 300 chars)"

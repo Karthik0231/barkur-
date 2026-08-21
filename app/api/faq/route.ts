@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findManyFaqs, countFaqs, createFaq } from "@/lib/models/faq"
 import { faqSchema } from "@/lib/validations"
 import { successResponse, errorResponse, getAuthUser, checkRole, paginationHelper, auditLog } from "@/lib/api-utils"
 
@@ -12,18 +12,17 @@ export async function GET(request: Request) {
     const user = getAuthUser(session)
     const isAdmin = user && checkRole(session, ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER"])
 
-    const where: Record<string, unknown> = { deletedAt: null }
-    if (!isAdmin) where.isActive = true
-    if (category) where.category = category
+    const filter: Record<string, unknown> = {}
+    if (!isAdmin) filter.isActive = true
+    if (category) filter.category = category
 
     const [faqs, total] = await Promise.all([
-      prisma.fAQ.findMany({
-        where: where as never,
+      findManyFaqs(filter, {
         skip,
-        take: limit,
-        orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+        limit,
+        sort: [["sortOrder", 1], ["createdAt", -1]],
       }),
-      prisma.fAQ.count({ where: where as never }),
+      countFaqs(filter),
     ])
 
     return successResponse({ faqs, total, page, limit, totalPages: Math.ceil(total / limit) })
@@ -44,14 +43,12 @@ export async function POST(request: Request) {
     if (!parsed.success) return errorResponse("Validation failed", 400, parsed.error.flatten().fieldErrors as Record<string, string[]>)
 
     const data = parsed.data
-    const faq = await prisma.fAQ.create({
-      data: {
-        question: data.question,
-        answer: data.answer,
-        category: data.category,
-        sortOrder: data.sortOrder ?? 0,
-        isActive: data.isPublished ?? true,
-      },
+    const faq = await createFaq({
+      question: data.question,
+      answer: data.answer,
+      category: data.category,
+      sortOrder: data.sortOrder ?? 0,
+      isActive: data.isPublished ?? true,
     })
 
     await auditLog("CREATE", "FAQ", faq.id, { question: faq.question }, session)

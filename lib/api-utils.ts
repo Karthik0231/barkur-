@@ -1,15 +1,22 @@
 import type { Session } from "@auth/core/types"
-import { prisma } from "@/lib/prisma"
+import { createAuditLog } from "@/lib/models/auditLog"
 type SessionLike = Session | null
 
 export function successResponse<T>(
   data: T,
   message = "Success",
-  statusCode = 200
+  statusCode = 200,
+  cacheSeconds?: number
 ) {
+  const init: ResponseInit = { status: statusCode }
+  if (cacheSeconds && cacheSeconds > 0) {
+    init.headers = {
+      "Cache-Control": `public, max-age=${cacheSeconds}, s-maxage=${cacheSeconds}, stale-while-revalidate=${cacheSeconds * 2}`,
+    }
+  }
   return Response.json(
     { success: true, message, data },
-    { status: statusCode }
+    init
   )
 }
 
@@ -53,6 +60,37 @@ export function paginationHelper(searchParams: URLSearchParams) {
   return { page, limit, skip, search, sortBy, sortOrder }
 }
 
+/** Escape special regex characters so user input is treated as a literal string. */
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
+/** MongoDB-compatible case-insensitive substring filter (Prisma has no mode: insensitive on Mongo). */
+export function containsFilter(value: string) {
+  return { $regex: escapeRegex(value), $options: "i" }
+}
+
+/** Build OR clauses for searching multiple string fields. */
+export function searchOrClauses(search: string, fields: string[]) {
+  return fields.map((field) => ({ [field]: containsFilter(search) }))
+}
+
+/** Safely serialize metadata for audit logs. Handles circular references, BigInt, and undefined values. */
+function safeSerialize(obj: unknown): Record<string, unknown> {
+  const seen = new WeakSet()
+  return JSON.parse(
+    JSON.stringify(obj, (key, value) => {
+      if (typeof value === "bigint") return value.toString()
+      if (typeof value === "function") return undefined
+      if (typeof value === "object" && value !== null) {
+        if (seen.has(value)) return "[Circular]"
+        seen.add(value)
+      }
+      return value
+    })
+  )
+}
+
 export async function auditLog(
   action: string,
   entity: string,
@@ -61,13 +99,11 @@ export async function auditLog(
   session?: SessionLike
 ) {
   const user = getAuthUser(session ?? null)
-  await prisma.auditLog.create({
-    data: {
-      userId: user?.id ?? null,
-      action,
-      entity,
-      entityId,
-      metadata: metadata ? JSON.parse(JSON.stringify(metadata)) : undefined,
-    },
+  await createAuditLog({
+    userId: user?.id ?? null,
+    action,
+    entity,
+    entityId,
+    metadata: metadata ? safeSerialize(metadata) : undefined,
   })
 }

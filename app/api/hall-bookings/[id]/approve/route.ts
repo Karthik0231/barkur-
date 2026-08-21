@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findHallBookingById, updateHallBooking } from "@/lib/models/hallBooking"
 import { successResponse, errorResponse, getAuthUser, checkRole, auditLog } from "@/lib/api-utils"
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -13,33 +13,27 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const body = await request.json()
     const action = body.action as string
 
-    const booking = await prisma.hallBooking.findFirst({ where: { id, deletedAt: null } })
+    const booking = await findHallBookingById(id)
     if (!booking) return errorResponse("Hall booking not found", 404)
 
     if (action === "approve") {
-      await prisma.hallBooking.update({
-        where: { id },
-        data: {
-          adminApproval: "APPROVED",
-          bookingStatus: "CONFIRMED",
-          approvedBy: user.id,
-          approvedAt: new Date(),
-        },
+      await updateHallBooking(id, {
+        adminApproval: "APPROVED",
+        bookingStatus: "CONFIRMED",
+        approvedBy: user.id,
+        approvedAt: new Date(),
       })
       await auditLog("APPROVE", "HallBooking", id, {}, session)
       return successResponse(null, "Hall booking approved successfully")
     } else if (action === "reject") {
       if (!body.reason) return errorResponse("Rejection reason is required", 400)
 
-      await prisma.hallBooking.update({
-        where: { id },
-        data: {
-          adminApproval: "REJECTED",
-          bookingStatus: "CANCELLED",
-          approvedBy: user.id,
-          approvedAt: new Date(),
-          cancellationReason: body.reason,
-        },
+      await updateHallBooking(id, {
+        adminApproval: "REJECTED",
+        bookingStatus: "CANCELLED",
+        approvedBy: user.id,
+        approvedAt: new Date(),
+        cancellationReason: body.reason,
       })
       await auditLog("REJECT", "HallBooking", id, { reason: body.reason }, session)
       return successResponse(null, "Hall booking rejected successfully")

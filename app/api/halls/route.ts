@@ -1,7 +1,8 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findManyHalls, countHalls, createHall } from "@/lib/models/hall"
 import { successResponse, errorResponse, getAuthUser, checkRole, paginationHelper, auditLog } from "@/lib/api-utils"
-import { hallSchema, type HallInput } from "@/lib/validations"
+import { escapeRegex } from "@/lib/models/utils"
+import { hallSchema } from "@/lib/validations"
 
 export async function GET(request: Request) {
   try {
@@ -11,21 +12,16 @@ export async function GET(request: Request) {
     const user = getAuthUser(session)
     const isAdmin = user && checkRole(session, ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER"])
 
-    const where: Record<string, unknown> = { deletedAt: null }
+    const where: Record<string, unknown> = {}
     if (!isAdmin) where.isActive = true
-    if (search) where.OR = [
-      { name: { contains: search, mode: "insensitive" } },
-      { description: { contains: search, mode: "insensitive" } },
+    if (search) where.$or = [
+      { name: { $regex: escapeRegex(search), $options: "i" } },
+      { description: { $regex: escapeRegex(search), $options: "i" } },
     ]
 
     const [halls, total] = await Promise.all([
-      prisma.hall.findMany({
-        where: where as never,
-        skip,
-        take: limit,
-        orderBy: { name: "asc" },
-      }),
-      prisma.hall.count({ where: where as never }),
+      findManyHalls(where, { skip, limit, sortBy: "name", sortOrder: "asc" }),
+      countHalls(where),
     ])
 
     return successResponse({ halls, total, page, limit, totalPages: Math.ceil(total / limit) })
@@ -46,21 +42,19 @@ export async function POST(request: Request) {
     if (!parsed.success) return errorResponse("Validation failed", 400, parsed.error.flatten().fieldErrors as Record<string, string[]>)
 
     const data = parsed.data
-    const hall = await prisma.hall.create({
-      data: {
-        name: data.name,
-        slug: data.slug,
-        description: data.description ?? undefined,
-        capacity: data.capacity ?? undefined,
-        basePrice: data.pricePerHour ?? undefined,
-        pricePerHour: data.pricePerHour ?? undefined,
-        pricePerDay: data.pricePerHour ? data.pricePerHour * 8 : undefined,
-        securityDeposit: undefined,
-        amenities: data.amenities ?? undefined,
-        rules: undefined,
-        isActive: data.isActive ?? true,
-        createdBy: user.id,
-      },
+    const hall = await createHall({
+      name: data.name,
+      slug: data.slug,
+      description: data.description ?? undefined,
+      capacity: data.capacity ?? undefined,
+      basePrice: data.pricePerHour ?? undefined,
+      pricePerHour: data.pricePerHour ?? undefined,
+      pricePerDay: data.pricePerHour ? data.pricePerHour * 8 : undefined,
+      securityDeposit: undefined,
+      amenities: data.amenities ?? undefined,
+      rules: undefined,
+      isActive: data.isActive ?? true,
+      createdBy: user.id,
     })
 
     await auditLog("CREATE", "Hall", hall.id, { name: hall.name }, session)

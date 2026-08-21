@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth"
-import { successResponse, errorResponse, getAuthUser, auditLog } from "@/lib/api-utils"
+import { successResponse, errorResponse, getAuthUser, checkRole, auditLog } from "@/lib/api-utils"
 import { v2 as cloudinary } from "cloudinary"
 
 cloudinary.config({
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   try {
     const session = await auth()
     const user = getAuthUser(session)
-    if (!user) return errorResponse("Unauthorized", 401)
+    if (!user || !checkRole(session, ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER"])) return errorResponse("Unauthorized", 401)
 
     const formData = await request.formData()
     const file = formData.get("file") as File | null
@@ -77,7 +77,7 @@ export async function DELETE(request: Request) {
   try {
     const session = await auth()
     const user = getAuthUser(session)
-    if (!user) return errorResponse("Unauthorized", 401)
+    if (!user || !checkRole(session, ["SUPER_ADMIN", "ADMIN"])) return errorResponse("Unauthorized", 401)
 
     const body = await request.json()
     const { publicId } = body

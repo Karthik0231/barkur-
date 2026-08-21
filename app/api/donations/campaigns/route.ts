@@ -1,7 +1,9 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findManyDonationCampaigns, countDonationCampaigns, createDonationCampaign } from "@/lib/models/donationCampaign"
+import { countDonations } from "@/lib/models/donation"
 import { campaignSchema } from "@/lib/validations"
 import { successResponse, errorResponse, getAuthUser, checkRole, paginationHelper, auditLog } from "@/lib/api-utils"
+import { escapeRegex } from "@/lib/models/utils"
 
 export async function GET(request: Request) {
   try {
@@ -11,24 +13,25 @@ export async function GET(request: Request) {
     const user = getAuthUser(session)
     const isAdmin = user && checkRole(session, ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER", "ACCOUNTANT"])
 
-    const where: Record<string, unknown> = { deletedAt: null }
+    const where: Record<string, unknown> = {}
     if (!isAdmin) where.isActive = true
-    if (search) where.OR = [
-      { name: { contains: search, mode: "insensitive" } },
-      { slug: { contains: search, mode: "insensitive" } },
-      { description: { contains: search, mode: "insensitive" } },
+    if (search) where.$or = [
+      { name: { $regex: escapeRegex(search), $options: "i" } },
+      { slug: { $regex: escapeRegex(search), $options: "i" } },
+      { description: { $regex: escapeRegex(search), $options: "i" } },
     ]
 
     const [campaigns, total] = await Promise.all([
-      prisma.donationCampaign.findMany({
-        where: where as never,
-        skip,
-        take: limit,
-        orderBy: [{ isFeatured: "desc" }, { [sortBy]: sortOrder }],
-        include: { _count: { select: { donations: true } } },
-      }),
-      prisma.donationCampaign.count({ where: where as never }),
+      findManyDonationCampaigns(where, { skip, limit, sortBy, sortOrder }),
+      countDonationCampaigns(where),
     ])
+
+    const donationCounts = await Promise.all(
+      campaigns.map(c => countDonations({ campaignId: c.id }))
+    )
+    campaigns.forEach((campaign, index) => {
+      campaign._count = { donations: donationCounts[index] }
+    })
 
     return successResponse({ campaigns, total, page, limit, totalPages: Math.ceil(total / limit) })
   } catch (error) {
@@ -48,21 +51,19 @@ export async function POST(request: Request) {
     if (!parsed.success) return errorResponse("Validation failed", 400, parsed.error.flatten().fieldErrors as Record<string, string[]>)
 
     const data = parsed.data
-    const campaign = await prisma.donationCampaign.create({
-      data: {
-        name: data.name,
-        slug: data.slug,
-        description: data.description,
-        shortDescription: data.shortDescription,
-        goalAmount: data.goalAmount,
-        startDate: new Date(data.startDate),
-        endDate: data.endDate ? new Date(data.endDate) : null,
-        banner: data.banner ?? null,
-        category: data.category as never,
-        isActive: data.isActive ?? true,
-        isFeatured: data.isFeatured ?? false,
-        createdBy: user.id,
-      },
+    const campaign = await createDonationCampaign({
+      name: data.name,
+      slug: data.slug,
+      description: data.description,
+      shortDescription: data.shortDescription,
+      goalAmount: data.goalAmount,
+      startDate: new Date(data.startDate),
+      endDate: data.endDate ? new Date(data.endDate) : null,
+      banner: data.banner ?? null,
+      category: data.category as never,
+      isActive: data.isActive ?? true,
+      isFeatured: data.isFeatured ?? false,
+      createdBy: user.id,
     })
 
     await auditLog("CREATE", "Campaign", campaign.id, { name: campaign.name }, session)

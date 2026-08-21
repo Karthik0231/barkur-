@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma"
+import { findManyFestivals, findManyAnnouncements, findManyDailySchedules, findManyGalleries } from "@/lib/models"
 import { HeroSection } from "@/components/sections/hero-section"
 import { QuickActionsSection } from "@/components/sections/quick-actions-section"
 import { PanchangaSection } from "@/components/sections/panchanga-section"
@@ -12,23 +12,21 @@ import { TestimonialsSection } from "@/components/sections/testimonials-section"
 import { VisitSection } from "@/components/sections/visit-section"
 import { TempleBulletinSection } from "@/components/sections/TempleBulletinSection"
 
+export const dynamic = "force-dynamic"
+
 export default async function HomePage() {
-  const [festivals, announcements, dailySchedules, galleryItems] = await Promise.all([
-    prisma.festival.findMany({
-      where: { isActive: true, deletedAt: null },
-      orderBy: [{ isFeatured: "desc" }, { startDate: "asc" }],
+  const [festivals, announcements, dailySchedules, galleryItems] = await Promise.all<any[]>([
+    findManyFestivals({ isActive: true }, {
+      sort: [["isFeatured", -1], ["startDate", 1]],
     }),
-    prisma.announcement.findMany({
-      where: { isActive: true, deletedAt: null },
-      orderBy: [{ type: "asc" }, { createdAt: "desc" }],
+    findManyAnnouncements({ isActive: true }, {
+      sort: [["type", 1], ["createdAt", -1]],
     }),
-    prisma.dailySchedule.findMany({
-      where: { isActive: true },
-      orderBy: [{ dayOfWeek: "asc" }, { sortOrder: "asc" }],
+    findManyDailySchedules({ isActive: true }, {
+      sort: [["dayOfWeek", 1], ["sortOrder", 1]],
     }),
-    prisma.gallery.findMany({
-      where: { isPublished: true, deletedAt: null },
-      orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }],
+    findManyGalleries({ isPublished: true }, {
+      sort: [["isFeatured", -1], ["sortOrder", 1]],
     }),
   ])
 
@@ -37,14 +35,9 @@ export default async function HomePage() {
       <HeroSection dailySchedules={dailySchedules} />
       <QuickActionsSection />
       <PanchangaSection />
-      {/* <FeaturedSevasSection /> */}
       <TempleStorySection />
       <TempleBulletinSection festivals={festivals} announcements={announcements} />
-      {/* <UpcomingEventsSection /> */}
-      {/* <AnnouncementsSection /> */}
-      {/* <DonationsSection /> */}
       <GallerySection galleryItems={galleryItems} />
-      {/* <TestimonialsSection /> */}
       <VisitSection />
     </main>
   )

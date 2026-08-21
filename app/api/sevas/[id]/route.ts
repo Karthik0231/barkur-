@@ -1,40 +1,42 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findSevaById, findSevaBySlug, updateSeva } from "@/lib/models/seva"
+import { db } from "@/lib/mongodb"
 import { sevaSchema } from "@/lib/validations"
 import { successResponse, errorResponse, getAuthUser, checkRole, auditLog } from "@/lib/api-utils"
 
 async function findSevaByIdOrSlug(identifier: string) {
-  const seva = await prisma.seva.findFirst({
-    where: {
-      OR: [
-        { id: identifier },
-        { slug: identifier },
-      ],
-      deletedAt: null,
-    },
-  })
-  return seva
+  try {
+    const seva = await findSevaById(identifier)
+    return seva
+  } catch {
+    return await findSevaBySlug(identifier)
+  }
 }
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const seva = await prisma.seva.findFirst({
-      where: {
-        OR: [
-          { id },
-          { slug: id },
-        ],
-        deletedAt: null,
-      },
-      include: {
-        category: true,
-        sevaDates: { where: { isAvailable: true }, take: 30, orderBy: { date: "asc" } },
-        sevaTimeSlots: { where: { isAvailable: true }, take: 30, orderBy: { startTime: "asc" } },
-      },
-    })
+    const seva = await findSevaByIdOrSlug(id)
     if (!seva) return errorResponse("Seva not found", 404)
-    return successResponse(seva)
+
+    const [sevaDates, sevaTimeSlots] = await Promise.all([
+      db.collection("sevaDates")
+        .find({ sevaId: seva.id, isAvailable: true })
+        .sort({ date: 1 })
+        .limit(30)
+        .toArray(),
+      db.collection("sevaTimeSlots")
+        .find({ sevaId: seva.id, isAvailable: true })
+        .sort({ startTime: 1 })
+        .limit(30)
+        .toArray(),
+    ])
+
+    return successResponse({
+      ...seva,
+      sevaDates,
+      sevaTimeSlots,
+    })
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to fetch seva", 500)
   }
@@ -59,7 +61,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const updateData: Record<string, unknown> = { updatedBy: user.id }
     if (validFields.name !== undefined) updateData.name = validFields.name
     if (validFields.slug !== undefined) updateData.slug = validFields.slug
-    if (validFields.categoryId !== undefined) updateData.categoryId = validFields.categoryId
     if (validFields.description !== undefined) updateData.description = validFields.description
     if (validFields.shortDescription !== undefined) updateData.shortDescription = validFields.shortDescription
     if (validFields.price !== undefined) updateData.price = validFields.price
@@ -86,12 +87,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       updateData.specialInstructions = JSON.parse(JSON.stringify({ items: body.instructions }))
     }
 
-    const seva = await prisma.seva.update({
-      where: { id: existing.id },
-      data: updateData as never,
-    })
+    const seva = await updateSeva(existing.id, updateData)
 
-    await auditLog("UPDATE", "Seva", existing.id, { name: seva.name }, session)
+    await auditLog("UPDATE", "Seva", existing.id, { name: seva?.name }, session)
     return successResponse(seva, "Seva updated successfully")
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to update seva", 500)
@@ -117,7 +115,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const updateData: Record<string, unknown> = { updatedBy: user.id }
     if (validFields.name !== undefined) updateData.name = validFields.name
     if (validFields.slug !== undefined) updateData.slug = validFields.slug
-    if (validFields.categoryId !== undefined) updateData.categoryId = validFields.categoryId
     if (validFields.description !== undefined) updateData.description = validFields.description
     if (validFields.shortDescription !== undefined) updateData.shortDescription = validFields.shortDescription
     if (validFields.price !== undefined) updateData.price = validFields.price
@@ -144,12 +141,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       updateData.specialInstructions = JSON.parse(JSON.stringify({ items: body.instructions }))
     }
 
-    const seva = await prisma.seva.update({
-      where: { id: existing.id },
-      data: updateData as never,
-    })
+    const seva = await updateSeva(existing.id, updateData)
 
-    await auditLog("PATCH", "Seva", existing.id, { name: seva.name, ...body }, session)
+    await auditLog("PATCH", "Seva", existing.id, { name: seva?.name, ...body }, session)
     return successResponse(seva, "Seva updated successfully")
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to update seva", 500)
@@ -167,10 +161,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     const existing = await findSevaByIdOrSlug(id)
     if (!existing) return errorResponse("Seva not found", 404)
 
-    await prisma.seva.update({
-      where: { id: existing.id },
-      data: { deletedAt: new Date(), isActive: false, updatedBy: user.id },
-    })
+    await updateSeva(existing.id, { deletedAt: new Date(), isActive: false, updatedBy: user.id })
 
     await auditLog("DELETE", "Seva", existing.id, { name: existing.name }, session)
     return successResponse(null, "Seva deleted successfully")

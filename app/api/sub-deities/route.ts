@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findManySubDeities, countSubDeities, createSubDeity } from "@/lib/models/subDeity"
+import { subDeitySchema } from "@/lib/validations"
 import { successResponse, errorResponse, getAuthUser, checkRole, paginationHelper, auditLog } from "@/lib/api-utils"
 import slugify from "slugify"
 
@@ -11,17 +12,16 @@ export async function GET(request: Request) {
     const user = getAuthUser(session)
     const isAdmin = user && checkRole(session, ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER"])
 
-    const where: Record<string, unknown> = { deletedAt: null }
-    if (!isAdmin) where.isActive = true
+    const filter: Record<string, unknown> = {}
+    if (!isAdmin) filter.isActive = true
 
     const [deities, total] = await Promise.all([
-      prisma.subDeity.findMany({
-        where: where as never,
+      findManySubDeities(filter, {
         skip,
-        take: limit,
-        orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+        limit,
+        sort: [["sortOrder", 1], ["name", 1]],
       }),
-      prisma.subDeity.count({ where: where as never }),
+      countSubDeities(filter),
     ])
 
     return successResponse({ deities, total, page, limit, totalPages: Math.ceil(total / limit) })
@@ -38,21 +38,21 @@ export async function POST(request: Request) {
       return errorResponse("Unauthorized", 401)
 
     const body = await request.json()
-    if (!body.name) return errorResponse("Name is required", 400)
+    const parsed = subDeitySchema.safeParse(body)
+    if (!parsed.success) return errorResponse("Validation failed", 400, parsed.error.flatten().fieldErrors as Record<string, string[]>)
 
-    const slug = slugify(body.name, { lower: true, strict: true })
-    const deity = await prisma.subDeity.create({
-      data: {
-        name: body.name,
-        slug: `${slug}-${Date.now().toString(36)}`,
-        description: body.description ?? null,
-        significance: body.significance ?? null,
-        history: body.history ?? null,
-        image: body.imageUrl ?? body.image ?? null,
-        templeLocation: body.templeLocation ?? null,
-        isActive: body.isActive ?? true,
-        sortOrder: body.sortOrder ?? 0,
-      },
+    const data = parsed.data
+    const slug = slugify(data.name, { lower: true, strict: true })
+    const deity = await createSubDeity({
+      name: data.name,
+      slug: `${slug}-${Date.now().toString(36)}`,
+      description: data.description ?? null,
+      significance: data.significance ?? null,
+      history: data.history ?? null,
+      image: data.imageUrl ?? null,
+      templeLocation: data.templeLocation ?? null,
+      isActive: data.isActive ?? true,
+      sortOrder: data.sortOrder ?? 0,
     })
 
     await auditLog("CREATE", "SubDeity", deity.id, { name: deity.name }, session)

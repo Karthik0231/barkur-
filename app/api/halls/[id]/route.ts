@@ -1,16 +1,20 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findHallById, updateHall } from "@/lib/models/hall"
+import { findManyHallAvailabilities } from "@/lib/models/hallAvailability"
 import { successResponse, errorResponse, getAuthUser, checkRole, auditLog } from "@/lib/api-utils"
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const hall = await prisma.hall.findFirst({
-      where: { id, deletedAt: null },
-      include: { availabilities: { where: { isAvailable: true }, take: 30, orderBy: { date: "asc" } } },
-    })
+    const hall = await findHallById(id)
     if (!hall) return errorResponse("Hall not found", 404)
-    return successResponse(hall)
+
+    const availabilities = await findManyHallAvailabilities(
+      { hallId: id, isAvailable: true },
+      { limit: 30, sortBy: "date", sortOrder: "asc" }
+    )
+
+    return successResponse({ ...hall, availabilities })
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to fetch hall", 500)
   }
@@ -24,7 +28,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const existing = await prisma.hall.findFirst({ where: { id, deletedAt: null } })
+    const existing = await findHallById(id)
     if (!existing) return errorResponse("Hall not found", 404)
 
     const body = await request.json()
@@ -34,8 +38,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       if (body[key] !== undefined) updateData[key] = body[key]
     }
 
-    const hall = await prisma.hall.update({ where: { id }, data: updateData as never })
-    await auditLog("UPDATE", "Hall", id, { name: hall.name }, session)
+    const hall = await updateHall(id, updateData)
+    await auditLog("UPDATE", "Hall", id, { name: hall?.name }, session)
     return successResponse(hall, "Hall updated successfully")
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to update hall", 500)
@@ -50,10 +54,10 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const existing = await prisma.hall.findFirst({ where: { id, deletedAt: null } })
+    const existing = await findHallById(id)
     if (!existing) return errorResponse("Hall not found", 404)
 
-    await prisma.hall.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } })
+    await updateHall(id, { deletedAt: new Date(), isActive: false })
     await auditLog("DELETE", "Hall", id, { name: existing.name }, session)
     return successResponse(null, "Hall deleted successfully")
   } catch (error) {

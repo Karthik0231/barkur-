@@ -187,7 +187,7 @@ export default function DailySchedulePage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent size="md">
           <DialogHeader><DialogTitle>{editing ? "Edit Schedule" : "Add Schedule"}</DialogTitle></DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-6 py-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input label="Title" placeholder="e.g., Suprabhata Seva" error={errors.title?.message as string} {...register("title")} />
             <Input label="Description" placeholder="Brief description..." {...register("description")} />
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

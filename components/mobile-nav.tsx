@@ -8,6 +8,7 @@ import { X, ChevronDown, ChevronRight, Landmark, Globe, Camera, Video, Sparkles 
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n"
 import { LanguageSwitcher } from "@/lib/i18n/language-switcher"
+import { SOCIAL_LINKS } from "@/lib/constants"
 
 interface NavItem {
   label: string
@@ -60,9 +61,9 @@ const sectionConfig: { title: string; items: NavItem[] }[] = [
 ]
 
 const socialLinks = [
-  { label: "social.facebook", href: "#", icon: Globe },
-  { label: "social.instagram", href: "#", icon: Camera },
-  { label: "social.youtube", href: "#", icon: Video },
+  { label: "social.facebook", href: SOCIAL_LINKS.facebook || "#", icon: Globe },
+  { label: "social.instagram", href: SOCIAL_LINKS.instagram || "#", icon: Camera },
+  { label: "social.youtube", href: SOCIAL_LINKS.youtube || "#", icon: Video },
 ]
 
 const springTransition = {

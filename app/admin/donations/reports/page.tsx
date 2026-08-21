@@ -20,12 +20,28 @@ export default function DonationReportsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch("/api/donations/reports")
+    fetch("/api/donations?limit=1000")
       .then((r) => r.json())
       .then((d) => {
-        const data = d.data || d
-        setMonthlyData(data.monthly || data.monthlyData || [])
-        setCategoryData(data.categories || data.categoryData || [])
+        const donations = d.data?.donations || []
+        const byMonth = new Map<string, { month: string; amount: number; count: number }>()
+        const byCat = new Map<string, number>()
+        for (const dn of donations) {
+          const amount = Number(dn.amount) || 0
+          const dts = dn.createdAt ? new Date(dn.createdAt) : null
+          const key = dts ? dts.toISOString().slice(0, 7) : "unknown"
+          const label = dts
+            ? dts.toLocaleDateString("en-IN", { month: "short", year: "numeric" })
+            : "Unknown"
+          const bucket = byMonth.get(key) || { month: label, amount: 0, count: 0 }
+          bucket.amount += amount
+          bucket.count += 1
+          byMonth.set(key, bucket)
+          const cat = dn.campaign?.name || "General"
+          byCat.set(cat, (byCat.get(cat) || 0) + amount)
+        }
+        setMonthlyData([...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, v]) => v))
+        setCategoryData([...byCat.entries()].map(([name, value]) => ({ name, value })))
         setLoading(false)
       })
       .catch(() => setLoading(false))

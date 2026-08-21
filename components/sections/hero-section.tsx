@@ -48,7 +48,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "@/lib/i18n"
 import bannerimage from "@/components/sections/image.png"
-import type { DailySchedule } from "@prisma/client"
+import type { DailySchedule } from "@/lib/types"
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -287,11 +287,8 @@ export function HeroSection({ dailySchedules }: { dailySchedules: DailySchedule[
               <RibbonButton href="/donate" icon={Heart} tone="outline">
                 {t("hero.donate")}
               </RibbonButton>
-              <RibbonButton href="/sevas" tone="ghost" live>
-                {t("hero.liveDarshana")}
-              </RibbonButton>
-              <RibbonButton href="/donate" icon={PlayCircle} tone="outline">
-                {t("hero.donate")}
+              <RibbonButton href="/daily-alankara" tone="ghost" live>
+                {t("hero.dailyAlankara")}
               </RibbonButton>
             </motion.div>
           </div>

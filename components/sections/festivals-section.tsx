@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n"
-import type { Festival } from "@prisma/client"
+import type { Festival } from "@/lib/types"
 
 function getIconForFestival(name: string) {
   const lower = name.toLowerCase()

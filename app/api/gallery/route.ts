@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findManyGalleries, countGalleries, createGallery } from "@/lib/models/gallery"
 import { successResponse, errorResponse, getAuthUser, checkRole, paginationHelper, auditLog } from "@/lib/api-utils"
 import slugify from "slugify"
 import { v2 as cloudinary } from "cloudinary"
@@ -28,21 +28,16 @@ export async function GET(request: Request) {
     const category = searchParams.get("category")
     const type = searchParams.get("type")
 
-    const where: Record<string, unknown> = { deletedAt: null, isPublished: true }
+    const where: Record<string, unknown> = { isPublished: true }
     if (category) where.category = category
     if (type) where.type = type
 
     const [gallery, total] = await Promise.all([
-      prisma.gallery.findMany({
-        where: where as never,
-        skip,
-        take: limit,
-        orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
-      }),
-      prisma.gallery.count({ where: where as never }),
+      findManyGalleries(where, { skip, limit, sortBy: "sortOrder", sortOrder: "asc" }),
+      countGalleries(where),
     ])
 
-    return successResponse({ gallery, total, page, limit, totalPages: Math.ceil(total / limit) })
+    return successResponse({ gallery, total, page, limit, totalPages: Math.ceil(total / limit) }, "Success", 200, 120)
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to fetch gallery", 500)
   }
@@ -103,21 +98,18 @@ export async function POST(request: Request) {
         const slug = slugify(title, { lower: true, strict: true })
         const uniqueSlug = `${slug}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
 
-        const galleryItem = await prisma.gallery.create({
-          data: {
-            title,
-            slug: uniqueSlug,
-            description: parsed.data?.description ?? null,
-            image: uploadResult.secure_url,
-            images: [uploadResult.secure_url],
-            type: (parsed.data?.type as never) || "IMAGE",
-            category: (parsed.data?.category as never) || "OTHER",
-            tags: undefined,
-            isFeatured: parsed.data?.isFeatured ?? false,
-            isPublished: parsed.data?.isPublished ?? true,
-            sortOrder: parsed.data?.sortOrder ?? 0,
-            createdBy: user.id,
-          },
+        const galleryItem = await createGallery({
+          title,
+          slug: uniqueSlug,
+          description: parsed.data?.description ?? null,
+          image: uploadResult.secure_url,
+          images: [uploadResult.secure_url],
+          type: (parsed.data?.type as never) || "IMAGE",
+          category: (parsed.data?.category as never) || "OTHER",
+          isFeatured: parsed.data?.isFeatured ?? false,
+          isPublished: parsed.data?.isPublished ?? true,
+          sortOrder: parsed.data?.sortOrder ?? 0,
+          createdBy: user.id,
         })
 
         uploadedItems.push(galleryItem)
@@ -131,21 +123,18 @@ export async function POST(request: Request) {
     if (!body.title || !body.image) return errorResponse("Title and image are required", 400)
 
     const slug = slugify(body.title, { lower: true, strict: true })
-    const gallery = await prisma.gallery.create({
-      data: {
-        title: body.title,
-        slug: `${slug}-${Date.now()}`,
-        description: body.description ?? null,
-        image: body.image,
-        images: [body.image],
-        type: body.type ?? "IMAGE",
-        category: body.category ?? "OTHER",
-        tags: body.tags ?? undefined,
-        isFeatured: body.isFeatured ?? false,
-        isPublished: body.isPublished ?? true,
-        sortOrder: body.sortOrder ?? 0,
-        createdBy: user.id,
-      },
+    const gallery = await createGallery({
+      title: body.title,
+      slug: `${slug}-${Date.now()}`,
+      description: body.description ?? null,
+      image: body.image,
+      images: [body.image],
+      type: body.type ?? "IMAGE",
+      category: body.category ?? "OTHER",
+      isFeatured: body.isFeatured ?? false,
+      isPublished: body.isPublished ?? true,
+      sortOrder: body.sortOrder ?? 0,
+      createdBy: user.id,
     })
 
     await auditLog("CREATE", "Gallery", gallery.id, { title: gallery.title }, session)

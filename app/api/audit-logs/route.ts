@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findManyAuditLogs, countAuditLogs } from "@/lib/models/auditLog"
 import { successResponse, errorResponse, getAuthUser, checkRole, paginationHelper } from "@/lib/api-utils"
+import { db } from "@/lib/mongodb"
+import { toObjectId } from "@/lib/models/utils"
 
 export async function GET(request: Request) {
   try {
@@ -15,23 +17,34 @@ export async function GET(request: Request) {
     const action = searchParams.get("action")
     const userId = searchParams.get("userId")
 
-    const where: Record<string, unknown> = {}
-    if (entity) where.entity = entity
-    if (action) where.action = action
-    if (userId) where.userId = userId
+    const filter: Record<string, unknown> = {}
+    if (entity) filter.entity = entity
+    if (action) filter.action = action
+    if (userId) filter.userId = userId
 
     const [logs, total] = await Promise.all([
-      prisma.auditLog.findMany({
-        where: where as never,
-        include: { user: { select: { id: true, name: true, email: true } } },
+      findManyAuditLogs(filter, {
         skip,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder },
+        limit,
+        sort: sortBy ? [[sortBy, sortOrder === "asc" ? 1 : -1]] : undefined,
       }),
-      prisma.auditLog.count({ where: where as never }),
+      countAuditLogs(filter),
     ])
 
-    return successResponse({ logs, total, page, limit, totalPages: Math.ceil(total / limit) })
+    const userIds = [...new Set(logs.map((l) => l.userId).filter(Boolean))]
+    let usersMap: Record<string, { id: string; name: string; email: string }> = {}
+    if (userIds.length > 0) {
+      const objectIds = userIds.map((uid) => toObjectId(uid))
+      const users = await db.collection("users").find({ _id: { $in: objectIds } }, { projection: { name: 1, email: 1 } }).toArray()
+      usersMap = Object.fromEntries(users.map((u) => [u._id.toHexString(), { id: u._id.toHexString(), name: u.name, email: u.email }]))
+    }
+
+    const enrichedLogs = logs.map((log) => ({
+      ...log,
+      user: log.userId ? usersMap[log.userId] : null,
+    }))
+
+    return successResponse({ logs: enrichedLogs, total, page, limit, totalPages: Math.ceil(total / limit) })
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to fetch audit logs", 500)
   }

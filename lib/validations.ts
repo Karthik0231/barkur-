@@ -232,21 +232,9 @@ export const campaignSchema = z.object({
   { message: "End date must be after start date", path: ["endDate"] }
 )
 
-export const categorySchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters").max(100),
-  slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
-  description: z.string().max(500).optional(),
-  type: z.string().min(1, "Category type is required"),
-  parentId: z.string().optional(),
-  sortOrder: z.coerce.number().int().optional(),
-  isActive: z.boolean().optional(),
-  imageUrl: z.string().optional(),
-})
-
 export const sevaSchema = z.object({
   name: z.string().min(2, "Seva name must be at least 2 characters").max(200),
   slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
-  categoryId: z.string().min(1, "Category is required"),
   description: z.string().min(20, "Description must be at least 20 characters").max(5000),
   shortDescription: z.string().max(300).optional(),
   price: z.coerce.number().positive("Price must be greater than zero"),
@@ -298,11 +286,12 @@ export const festivalSchema = z.object({
   description: z.string().min(20, "Description must be at least 20 characters").max(5000),
   shortDescription: z.string().max(300).optional(),
   startDate: z.string().min(1, "Start date is required"),
-  endDate: z.string().min(1, "End date is required"),
+  endDate: z.string().optional(),
   significance: z.string().max(2000).optional(),
   rituals: z.string().max(3000).optional(),
   specialSevas: z.array(z.string()).optional(),
   imageUrl: z.string().optional(),
+  category: z.string().optional(),
   isActive: z.boolean().optional(),
   isFeatured: z.boolean().optional(),
 }).refine(
@@ -318,8 +307,11 @@ export const announcementSchema = z.object({
   content: z.string().min(10, "Content must be at least 10 characters").max(2000),
   type: z.enum(["INFO", "WARNING", "URGENT", "EVENT"] as const).optional(),
   isActive: z.boolean().optional(),
+  isPopup: z.boolean().optional(),
+  startDate: z.string().optional(),
   endDate: z.string().optional(),
   link: z.string().optional(),
+  linkText: z.string().optional(),
 })
 
 export const newsSchema = z.object({
@@ -338,16 +330,16 @@ export const newsSchema = z.object({
 
 export const staffSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
+  role: z.string().max(100).optional(),
   designation: z.string().min(2, "Designation must be at least 2 characters").max(100),
-  department: z.string().min(2, "Department must be at least 2 characters").max(100),
+  type: z.string().optional(),
+  biography: z.string().max(2000).optional(),
   phone: z.string().regex(/^\+?[\d\s-]{10,15}$/, "Please enter a valid phone number"),
-  email: z.email("Please enter a valid email address").optional(),
+  email: z.email("Please enter a valid email address").optional().or(z.literal("")),
   photoUrl: z.string().optional(),
-  joinedAt: z.string().min(1, "Join date is required"),
+  joinedAt: z.string().optional(),
   isActive: z.boolean().optional(),
   sortOrder: z.number().int().optional(),
-  address: z.string().max(500).optional(),
-  qualifications: z.string().max(500).optional(),
 })
 
 export const dailyScheduleSchema = z.object({
@@ -372,6 +364,7 @@ export const subDeitySchema = z.object({
   sanskritName: z.string().optional(),
   description: z.string().min(20, "Description must be at least 20 characters").max(3000),
   significance: z.string().max(2000).optional(),
+  history: z.string().max(3000).optional(),
   imageUrl: z.string().optional(),
   templeLocation: z.string().max(200).optional(),
   isActive: z.boolean().optional(),
@@ -451,7 +444,6 @@ export type GalleryInput = z.input<typeof gallerySchema>
 export type CommitteeInput = z.input<typeof committeeSchema>
 export type FaqInput = z.input<typeof faqSchema>
 export type CampaignInput = z.input<typeof campaignSchema>
-export type CategoryInput = z.input<typeof categorySchema>
 export type SevaInput = z.input<typeof sevaSchema>
 export type SettingInput = z.input<typeof settingSchema>
 export type PageContentInput = z.input<typeof pageContentSchema>

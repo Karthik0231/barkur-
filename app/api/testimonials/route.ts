@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findManyTestimonials, countTestimonials, createTestimonial } from "@/lib/models/testimonial"
 import { testimonialSchema } from "@/lib/validations"
 import { successResponse, errorResponse, getAuthUser, checkRole, paginationHelper, auditLog } from "@/lib/api-utils"
 
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     const user = getAuthUser(session)
     const isAdmin = user && checkRole(session, ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER"])
 
-    const where: Record<string, unknown> = { deletedAt: null }
+    const where: Record<string, unknown> = {}
     if (isAdmin) {
       if (searchParams.get("isApproved") !== null) where.isApproved = searchParams.get("isApproved") === "true"
     } else {
@@ -19,14 +19,15 @@ export async function GET(request: Request) {
     }
 
     const [testimonials, total] = await Promise.all([
-      prisma.testimonial.findMany({
-        where: where as never,
-        skip,
-        take: limit,
-        orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { createdAt: "desc" }],
-      }),
-      prisma.testimonial.count({ where: where as never }),
+      findManyTestimonials(where, { skip, limit, sortBy: "sortOrder", sortOrder: "asc" }),
+      countTestimonials(where),
     ])
+
+    testimonials.sort((a, b) => {
+      if (a.isFeatured !== b.isFeatured) return b.isFeatured ? 1 : -1
+      if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
 
     return successResponse({ testimonials, total, page, limit, totalPages: Math.ceil(total / limit) })
   } catch (error) {
@@ -46,15 +47,13 @@ export async function POST(request: Request) {
     const data = parsed.data
     const isAdmin = user && checkRole(session, ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER"])
 
-    const testimonial = await prisma.testimonial.create({
-      data: {
-        name: data.name,
-        content: data.content,
-        rating: data.rating,
-        isApproved: data.isApproved ?? isAdmin ? true : false,
-        isFeatured: false,
-        sortOrder: 0,
-      },
+    const testimonial = await createTestimonial({
+      name: data.name,
+      content: data.content,
+      rating: data.rating,
+      isApproved: data.isApproved ?? !!isAdmin,
+      isFeatured: false,
+      sortOrder: 0,
     })
 
     await auditLog("CREATE", "Testimonial", testimonial.id, { name: testimonial.name }, session)

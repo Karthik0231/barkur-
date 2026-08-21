@@ -33,8 +33,6 @@ interface Seva {
   id: string
   name: string
   slug: string
-  category: string
-  categoryId: string
   price: number
   originalPrice: number | null
   duration: number | null
@@ -49,18 +47,12 @@ interface Seva {
   createdAt: string
 }
 
-interface CategoryOption {
-  id: string
-  name: string
-}
-
 const PAGE_SIZE = 10
 
 export default function SevasPage() {
   const [sevas, setSevas] = useState<Seva[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
   const [deleteDialog, setDeleteDialog] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -68,8 +60,6 @@ export default function SevasPage() {
   const [page, setPage] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
-
-  const [categories, setCategories] = useState<CategoryOption[]>([])
 
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [bulkActionLoading, setBulkActionLoading] = useState(false)
@@ -81,7 +71,6 @@ export default function SevasPage() {
       params.set("page", String(page))
       params.set("limit", String(PAGE_SIZE))
       if (searchQuery) params.set("search", searchQuery)
-      if (categoryFilter) params.set("categoryId", categoryFilter)
       if (statusFilter) params.set("isActive", statusFilter === "active" ? "true" : "false")
 
       const res = await fetch(`/api/sevas?${params.toString()}`)
@@ -91,11 +80,7 @@ export default function SevasPage() {
       const total = payload.total ?? sevaList.length
       const tp = payload.totalPages ?? Math.ceil(total / PAGE_SIZE)
 
-      const mapped: Seva[] = sevaList.map((s: any) => ({
-        ...s,
-        category: s.category?.name || s.category || "Uncategorized",
-        categoryId: s.categoryId || s.category?.id || "",
-      }))
+      const mapped: Seva[] = sevaList.map((s: any) => ({ ...s }))
 
       setSevas(mapped)
       setTotalItems(total)
@@ -107,27 +92,7 @@ export default function SevasPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, searchQuery, categoryFilter, statusFilter])
-
-  const fetchCategories = useCallback(async () => {
-    try {
-      const res = await fetch("/api/categories?type=SEVA&limit=200")
-      const d = await res.json()
-      const cats = d.data?.categories || d.data || d || []
-      setCategories(
-        (Array.isArray(cats) ? cats : []).map((c: any) => ({
-          id: c.id,
-          name: c.name,
-        }))
-      )
-    } catch {
-      setCategories([])
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchCategories()
-  }, [fetchCategories])
+  }, [page, searchQuery, statusFilter])
 
   useEffect(() => {
     fetchSevas()
@@ -135,7 +100,7 @@ export default function SevasPage() {
 
   useEffect(() => {
     setPage(1)
-  }, [searchQuery, categoryFilter, statusFilter])
+  }, [searchQuery, statusFilter])
 
   useEffect(() => {
     setSelectedRows([])
@@ -243,17 +208,6 @@ export default function SevasPage() {
           </div>
         </div>
       ),
-    },
-    {
-      key: "category",
-      header: "Category",
-      sortable: true,
-      render: (item) => (
-        <Badge variant="subtle" size="sm">
-          {item.category}
-        </Badge>
-      ),
-      hideOnMobile: true,
     },
     {
       key: "price",
@@ -406,18 +360,6 @@ export default function SevasPage() {
           onPageChange={setPage}
           filters={
             <>
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="h-9 px-3 text-sm rounded-lg border border-border bg-warm-white dark:bg-bg-secondary text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/20"
-              >
-                <option value="">All Categories</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}

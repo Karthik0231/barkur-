@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findBookingById, updateBooking } from "@/lib/models/booking"
+import { findUserById } from "@/lib/models/user"
 import { successResponse, errorResponse, getAuthUser, checkRole, auditLog } from "@/lib/api-utils"
 import { sendBookingConfirmation } from "@/lib/emails"
 
@@ -14,28 +15,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const body = await request.json()
     const action = body.action as string
 
-    const booking = await prisma.booking.findFirst({
-      where: { id, deletedAt: null },
-      include: { user: { select: { id: true, name: true, email: true } } },
-    })
+    const booking = await findBookingById(id)
     if (!booking) return errorResponse("Booking not found", 404)
 
+    const userData = booking.userId ? await findUserById(booking.userId) : null
+
     if (action === "approve") {
-      await prisma.booking.update({
-        where: { id },
-        data: {
-          adminApproval: "APPROVED",
-          bookingStatus: "CONFIRMED",
-          status: "CONFIRMED",
-          approvedBy: user.id,
-          approvedAt: new Date(),
-        },
+      await updateBooking(id, {
+        adminApproval: "APPROVED",
+        bookingStatus: "CONFIRMED",
+        status: "CONFIRMED",
+        approvedBy: user.id,
+        approvedAt: new Date(),
       })
 
-      if (booking.user?.email) {
+      if (userData?.email) {
         await sendBookingConfirmation(
           { id: booking.bookingId, type: "Seva Booking", date: booking.preferredDate?.toISOString() ?? "", amount: Number(booking.finalAmount) },
-          { email: booking.user.email, name: booking.user.name ?? "Devotee" }
+          { email: userData.email, name: userData.name ?? "Devotee" }
         )
       }
 
@@ -44,16 +41,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     } else if (action === "reject") {
       if (!body.reason) return errorResponse("Rejection reason is required", 400)
 
-      await prisma.booking.update({
-        where: { id },
-        data: {
-          adminApproval: "REJECTED",
-          bookingStatus: "CANCELLED",
-          status: "CANCELLED",
-          approvedBy: user.id,
-          approvedAt: new Date(),
-          cancellationReason: body.reason,
-        },
+      await updateBooking(id, {
+        adminApproval: "REJECTED",
+        bookingStatus: "CANCELLED",
+        status: "CANCELLED",
+        approvedBy: user.id,
+        approvedAt: new Date(),
+        cancellationReason: body.reason,
       })
 
       await auditLog("REJECT", "Booking", id, { reason: body.reason }, session)
