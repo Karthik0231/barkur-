@@ -1,19 +1,26 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findDonationCampaignById, updateDonationCampaign } from "@/lib/models/donationCampaign"
+import { countDonations, findManyDonations } from "@/lib/models/donation"
 import { successResponse, errorResponse, getAuthUser, checkRole, auditLog } from "@/lib/api-utils"
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const campaign = await prisma.donationCampaign.findFirst({
-      where: { id, deletedAt: null },
-      include: {
-        _count: { select: { donations: true } },
-        donations: { take: 10, orderBy: { createdAt: "desc" }, select: { amount: true, donorName: true, createdAt: true } },
-      },
-    })
+    const campaign = await findDonationCampaignById(id)
     if (!campaign) return errorResponse("Campaign not found", 404)
-    return successResponse(campaign)
+
+    const [recentDonations, totalDonations] = await Promise.all([
+      findManyDonations({ campaignId: id }, { limit: 10, sortBy: "createdAt", sortOrder: "desc" }),
+      countDonations({ campaignId: id }),
+    ])
+
+    const formattedDonations = recentDonations.map(d => ({
+      amount: d.amount,
+      donorName: d.donorName,
+      createdAt: d.createdAt,
+    }))
+
+    return successResponse({ ...campaign, _count: { donations: totalDonations }, donations: formattedDonations })
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to fetch campaign", 500)
   }
@@ -27,7 +34,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const existing = await prisma.donationCampaign.findFirst({ where: { id, deletedAt: null } })
+    const existing = await findDonationCampaignById(id)
     if (!existing) return errorResponse("Campaign not found", 404)
 
     const body = await request.json()
@@ -44,8 +51,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (body.coverImage) updateData.banner = body.coverImage
     if (body.category) updateData.category = body.category
 
-    const campaign = await prisma.donationCampaign.update({ where: { id }, data: updateData as never })
-    await auditLog("UPDATE", "Campaign", id, { name: campaign.name }, session)
+    const campaign = await updateDonationCampaign(id, updateData)
+    await auditLog("UPDATE", "Campaign", id, { name: campaign?.name }, session)
     return successResponse(campaign, "Campaign updated successfully")
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to update campaign", 500)
@@ -60,13 +67,10 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const existing = await prisma.donationCampaign.findFirst({ where: { id, deletedAt: null } })
+    const existing = await findDonationCampaignById(id)
     if (!existing) return errorResponse("Campaign not found", 404)
 
-    await prisma.donationCampaign.update({
-      where: { id },
-      data: { deletedAt: new Date(), isActive: false },
-    })
+    await updateDonationCampaign(id, { deletedAt: new Date(), isActive: false })
     await auditLog("DELETE", "Campaign", id, { name: existing.name }, session)
     return successResponse(null, "Campaign deleted successfully")
   } catch (error) {

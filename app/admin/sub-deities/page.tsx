@@ -52,7 +52,7 @@ export default function SubDeitiesPage() {
       try {
         const res = await fetch("/api/sub-deities")
         const data = await res.json()
-        setDeities(data.subDeities || [])
+        setDeities(data.data?.deities || data.deities || data.subDeities || [])
       } catch { toast.error("Failed to load sub-deities") }
       finally { setLoading(false) }
     })()
@@ -80,7 +80,7 @@ export default function SubDeitiesPage() {
     try {
       const res = await fetch("/api/sub-deities")
       const data = await res.json()
-      setDeities(data.subDeities || [])
+      setDeities(data.data?.deities || data.deities || data.subDeities || [])
     } catch { toast.error("Failed to load sub-deities") }
   }
 
@@ -165,7 +165,7 @@ export default function SubDeitiesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent size="md">
           <DialogHeader><DialogTitle>{editing ? "Edit Deity" : "Add Deity"}</DialogTitle></DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-6 py-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <Input label="Deity Name" error={errors.name?.message as string} {...register("name")} />
               <Input label="Sanskrit Name" placeholder="देवता नाम" {...register("sanskritName")} />

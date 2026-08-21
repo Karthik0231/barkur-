@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findAnnouncementById, updateAnnouncement } from "@/lib/models/announcement"
 import { successResponse, errorResponse, getAuthUser, checkRole, auditLog } from "@/lib/api-utils"
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -10,7 +10,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const existing = await prisma.announcement.findFirst({ where: { id, deletedAt: null } })
+    const existing = await findAnnouncementById(id)
     if (!existing) return errorResponse("Announcement not found", 404)
 
     const body = await request.json()
@@ -22,8 +22,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (body.expiresAt) updateData.endDate = new Date(body.expiresAt)
     if (body.priority) updateData.type = body.priority
 
-    const announcement = await prisma.announcement.update({ where: { id }, data: updateData as never })
-    await auditLog("UPDATE", "Announcement", id, { title: announcement.title }, session)
+    const announcement = await updateAnnouncement(id, updateData)
+    await auditLog("UPDATE", "Announcement", id, { title: announcement?.title }, session)
     return successResponse(announcement, "Announcement updated successfully")
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to update announcement", 500)
@@ -38,10 +38,10 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const existing = await prisma.announcement.findFirst({ where: { id, deletedAt: null } })
+    const existing = await findAnnouncementById(id)
     if (!existing) return errorResponse("Announcement not found", 404)
 
-    await prisma.announcement.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } })
+    await updateAnnouncement(id, { deletedAt: new Date(), isActive: false })
     await auditLog("DELETE", "Announcement", id, { title: existing.title }, session)
     return successResponse(null, "Announcement deleted successfully")
   } catch (error) {

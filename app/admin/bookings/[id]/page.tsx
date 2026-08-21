@@ -78,7 +78,7 @@ export default function BookingDetailPage() {
           updatedAt: raw.updatedAt,
           seva: {
             name: firstSeva.name || "Unknown Seva",
-            category: firstSeva.category?.name || firstSeva.category || "General",
+            category: firstSeva.category || "General",
             duration: firstSeva.duration || null,
           },
           devotee: {

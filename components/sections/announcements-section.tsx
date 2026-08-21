@@ -5,7 +5,7 @@ import { motion, useInView } from "framer-motion"
 import { Bell, ArrowRight, Calendar } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n"
-import type { Announcement } from "@prisma/client"
+import type { Announcement } from "@/lib/types"
 
 function SmallCard({
   item,

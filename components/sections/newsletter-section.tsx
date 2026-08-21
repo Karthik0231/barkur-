@@ -35,9 +35,24 @@ export function NewsletterSection() {
     }
 
     setStatus("loading")
-    await new Promise((r) => setTimeout(r, 1500))
-    setStatus("success")
-    setEmail("")
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+      const json = await res.json()
+      if (!json.success) {
+        setStatus("error")
+        setErrorMsg(json.message || t("newsletter.subscribeFailed"))
+        return
+      }
+      setStatus("success")
+      setEmail("")
+    } catch {
+      setStatus("error")
+      setErrorMsg(t("newsletter.subscribeFailed"))
+    }
   }
 
   return (

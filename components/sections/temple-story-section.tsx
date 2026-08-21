@@ -35,7 +35,7 @@
  */
 
 import { motion, useInView } from "framer-motion"
-import { useRef, useState, useEffect } from "react"
+import { useRef } from "react"
 import { Landmark, Waves, Sparkles as SparklesIcon, Sunrise, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { useTranslation } from "@/lib/i18n"
@@ -169,25 +169,8 @@ export function TempleStorySection() {
   const sectionRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: "-80px" })
   const { t } = useTranslation()
-  const [milestones, setMilestones] = useState<MilestoneItem[]>(fallbackMilestones)
-  const [facts, setFacts] = useState<FactItem[]>(fallbackFacts)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch("/api/page-content?page=about&section=history")
-      .then((r) => r.json())
-      .then((d) => {
-        const data = d.data || d
-        if (data?.milestones) {
-          setMilestones(Array.isArray(data.milestones) ? data.milestones : fallbackMilestones)
-        }
-        if (data?.facts) {
-          setFacts(Array.isArray(data.facts) ? data.facts : fallbackFacts)
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
+  const milestones = fallbackMilestones
+  const facts = fallbackFacts
 
   return (
     <section
@@ -243,13 +226,6 @@ export function TempleStorySection() {
           </p>
         </motion.div>
 
-        {loading && (
-          <div className="flex justify-center py-16">
-            <span className="text-sm text-dark-slate/60">{t("common.loading")}</span>
-          </div>
-        )}
-        {!loading && (
-        <>
         <div className="mt-8 sm:mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {facts.map((f, i) => (
             <RivetPlate
@@ -329,8 +305,6 @@ export function TempleStorySection() {
             ))}
           </div>
         </div>
-        </>
-        )}
         {/* Closing link — same construction as Panchanga's "View Full Panchanga" line */}
         <motion.div
           initial={{ opacity: 0 }}

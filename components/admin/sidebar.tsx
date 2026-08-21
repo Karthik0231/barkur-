@@ -73,6 +73,7 @@ const navGroups: { group: string; items: NavItem[]; roles?: string[] }[] = [
   {
     group: "Temple",
     items: [
+      { label: "Daily Alankara", href: "/admin/daily-alankara", icon: Flower2 },
       { label: "Daily Schedule", href: "/admin/daily-schedule", icon: Clock },
       { label: "Festivals", href: "/admin/festivals", icon: PartyPopper },
       { label: "Sub Deities", href: "/admin/sub-deities", icon: Church },

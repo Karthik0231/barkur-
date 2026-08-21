@@ -40,7 +40,6 @@ import {
 const quickActions = [
   { label: "New Seva", href: "/admin/sevas/new", icon: Plus, color: "bg-primary text-warm-white" },
   { label: "New User", href: "/admin/users", icon: Users, color: "bg-secondary text-dark-slate" },
-  { label: "Add Category", href: "/admin/categories", icon: Flower2, color: "bg-emerald-500 text-white" },
   { label: "View Donations", href: "/admin/donations", icon: IndianRupee, color: "bg-amber-500 text-white" },
 ]
 
@@ -141,7 +140,7 @@ export default function AdminDashboard() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" iconLeft={<Calendar className="h-4 w-4" />}>
-            Jul 2, 2026
+            {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
           </Button>
           <Button variant="primary" size="sm" iconLeft={<Bell className="h-4 w-4" />}>
             Notifications

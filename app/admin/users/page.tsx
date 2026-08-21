@@ -208,7 +208,7 @@ export default function UsersPage() {
             <DialogTitle>{editing ? "Edit User" : "Create User"}</DialogTitle>
             <DialogDescription>{editing ? "Update user details and role" : "Add a new admin user"}</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-6 py-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <Input variant="filled" label="Full Name *" placeholder="John Doe" error={errors.name?.message as string} {...register("name")} />
               <Input variant="filled" label="Email *" type="email" placeholder="john@temple.org" error={errors.email?.message as string} {...register("email")} />

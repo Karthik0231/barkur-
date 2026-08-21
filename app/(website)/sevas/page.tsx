@@ -60,7 +60,6 @@ export default function SevasPage() {
   const router = useRouter()
   const [sevas, setSevas] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeCategory, setActiveCategory] = useState("All")
   const [searchQuery, setSearchQuery] = useState("")
   const [cart, setCart] = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
@@ -79,6 +78,14 @@ export default function SevasPage() {
   useEffect(() => {
     setCart(getCart())
   }, [])
+
+  // Lock body scroll when cart is open
+  useEffect(() => {
+    if (cartOpen) {
+      document.body.style.overflow = "hidden"
+      return () => { document.body.style.overflow = "" }
+    }
+  }, [cartOpen])
 
   const handleAddToCart = useCallback((seva: any) => {
     const updated = addToCart({
@@ -116,19 +123,13 @@ export default function SevasPage() {
   const cartTotal = getCartTotal(cart)
   const cartGrandTotal = cartTotal + Math.round(cartTotal * 0.18)
 
-  const categories = useMemo(() => {
-    const cats = new Set(sevas.map((s) => s.category?.name).filter(Boolean))
-    return ["All", ...Array.from(cats)]
-  }, [sevas])
-
   const filteredSevas = useMemo(() => {
     return sevas.filter((seva) => {
-      const matchesCategory = activeCategory === "All" || seva.category?.name === activeCategory
       const matchesSearch = seva.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (seva.description || seva.shortDescription || "").toLowerCase().includes(searchQuery.toLowerCase())
-      return matchesCategory && matchesSearch
+      return matchesSearch
     })
-  }, [activeCategory, searchQuery, sevas])
+  }, [searchQuery, sevas])
 
   return (
     <div className="min-h-screen">
@@ -150,27 +151,7 @@ export default function SevasPage() {
             <span className="text-text-primary font-medium">{t("nav.sevas")}</span>
           </motion.div>
 
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
-            <div className="flex flex-wrap items-center gap-2">
-              {categories.map((cat) => (
-                <motion.button
-                  key={cat}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setActiveCategory(cat)}
-                  className={cn(
-                    "px-4 py-2 rounded-full text-sm font-medium transition-all duration-300",
-                    activeCategory === cat
-                      ? "bg-primary text-warm-white shadow-md shadow-primary/20"
-                      : "bg-bg-secondary text-text-secondary hover:bg-bg-tertiary border border-border",
-                  )}
-                >
-                  {cat === "All" ? <Filter className="h-3.5 w-3.5 inline mr-1" /> : null}
-                  {cat}
-                </motion.button>
-              ))}
-            </div>
-            <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
               <div className="w-full lg:w-72">
                 <Input
                   placeholder={t("sevas.searchPlaceholder")}
@@ -184,9 +165,8 @@ export default function SevasPage() {
                 variant="gradient"
                 onClick={() => setCartOpen(true)}
                 className="relative shrink-0"
-                iconLeft={<ShoppingCart className="h-4 w-4" />}
-              >
-                Cart
+                iconLeft={<ShoppingCart className="h-4 w-4" />}                >
+                {t("sevas.cart")}
                 {cartCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-maroon-600 text-warm-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center ring-2 ring-warm-white">
                     {cartCount}
@@ -194,8 +174,8 @@ export default function SevasPage() {
                 )}
               </Button>
             </div>
-          </div>
 
+          <div>
           <AnimatePresence mode="wait">
             {loading ? (
               <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-center py-20">
@@ -217,7 +197,7 @@ export default function SevasPage() {
               </motion.div>
             ) : (
               <motion.div
-                key={activeCategory + searchQuery}
+                key={searchQuery}
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
@@ -291,7 +271,7 @@ export default function SevasPage() {
                                 onClick={(e) => { e.preventDefault(); handleAddToCart(seva) }}
                                 iconLeft={<ShoppingCart className="h-3.5 w-3.5" />}
                               >
-                                Add to Cart
+                                {t("sevas.addToCart")}
                               </Button>
                               <Link href={`/sevas/book/${seva.slug || seva.id}`}>
                                 <Button variant="gradient" size="sm" className="w-full group/btn rounded-lg">
@@ -309,6 +289,7 @@ export default function SevasPage() {
               </motion.div>
             )}
           </AnimatePresence>
+          </div>
         </div>
       </section>
 

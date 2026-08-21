@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma"
+import { findUserByEmail, findUserByPhone, createUser } from "@/lib/models/user"
 import { registerSchema } from "@/lib/validations"
 import { successResponse, errorResponse, auditLog } from "@/lib/api-utils"
 import bcrypt from "bcryptjs"
@@ -10,24 +10,30 @@ export async function POST(request: Request) {
     if (!parsed.success) return errorResponse("Validation failed", 400, parsed.error.flatten().fieldErrors as Record<string, string[]>)
 
     const data = parsed.data
-    const existingEmail = await prisma.user.findUnique({ where: { email: data.email } })
+    const existingEmail = await findUserByEmail(data.email)
     if (existingEmail) return errorResponse("Email already registered", 409)
 
-    const existingPhone = data.phone ? await prisma.user.findFirst({ where: { phone: data.phone } }) : null
+    const existingPhone = data.phone ? await findUserByPhone(data.phone) : null
     if (existingPhone) return errorResponse("Phone number already registered", 409)
 
     const hashedPassword = await bcrypt.hash(data.password, 12)
-    const user = await prisma.user.create({
-      data: {
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        password: hashedPassword,
-        role: "DEVOTEE",
-        isActive: true,
-      },
-      select: { id: true, name: true, email: true, phone: true, role: true, createdAt: true },
+    const created = await createUser({
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      password: hashedPassword,
+      role: "DEVOTEE",
+      isActive: true,
     })
+
+    const user = {
+      id: created.id,
+      name: created.name,
+      email: created.email,
+      phone: created.phone,
+      role: created.role,
+      createdAt: created.createdAt,
+    }
 
     await auditLog("REGISTER", "User", user.id, { email: user.email })
     return successResponse({ user }, "Registration successful", 201)

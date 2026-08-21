@@ -46,18 +46,18 @@ export function generateBookingId(type: string, count: number) {
   return `${type.toUpperCase()}-${year}-${padded}`
 }
 
-const receiptCounter = { value: 1000 }
 export function generateReceiptNumber() {
   const year = new Date().getFullYear()
-  receiptCounter.value++
-  return `RCP-${year}-${String(receiptCounter.value).padStart(5, "0")}`
+  const rand = crypto.getRandomValues(new Uint32Array(1))[0]
+  const seq = String(rand % 90000 + 10000)
+  return `RCP-${year}-${seq}`
 }
 
-const certCounter = { value: 1000 }
 export function generateCertificateNumber() {
   const year = new Date().getFullYear()
-  certCounter.value++
-  return `CERT-${year}-${String(certCounter.value).padStart(5, "0")}`
+  const rand = crypto.getRandomValues(new Uint32Array(1))[0]
+  const seq = String(rand % 90000 + 10000)
+  return `CERT-${year}-${seq}`
 }
 
 export function generateOTP() {

@@ -50,6 +50,7 @@ export interface TranslationData {
     scrollDown: string
     donate: string
     liveDarshana: string
+    dailyAlankara: string
   }
   stats: {
     yearsOfHeritage: string
@@ -91,6 +92,8 @@ export interface TranslationData {
     premium: string
     notFound: string
     backToSevas: string
+    addToCart: string
+    cart: string
     relatedSevas: string
     sacredOfferings: string
     subtitle: string
@@ -333,6 +336,8 @@ export interface TranslationData {
     popular: string
     liveDarshanaTitle: string
     liveDarshanaSub: string
+    dailyAlankaraTitle: string
+    dailyAlankaraSub: string
     live: string
     templeCalendarTitle: string
     templeCalendarSub: string
@@ -514,11 +519,26 @@ export interface TranslationData {
     subtitle: string
     emailPlaceholder: string
     subscribed: string
+    subscribeFailed: string
     weeklyUpdates: string
     noSpam: string
     unsubscribe: string
     emailRequired: string
     emailInvalid: string
+  }
+  dailyAlankara: {
+    title: string
+    eyebrow: string
+    subtitle: string
+    noData: string
+    checkBack: string
+    liveAlankara: string
+    watchingLive: string
+    todaySpecial: string
+    nityaPoojaParties: string
+    todaysDevotees: string
+    bookSeva: string
+    viewPanchanga: string
   }
   reviews: {
     googleReviews: string
@@ -785,6 +805,7 @@ const translations: Record<string, TranslationData> = {
       scrollDown: "ಕೆಳಗೆ ಸ್ಕ್ರಾಲ್ ಮಾಡಿ",
       donate: "ದೇಣಿಗೆ",
       liveDarshana: "ಲೈವ್ ದರ್ಶನ",
+      dailyAlankara: "ದೈನಂದಿನ ಅಲಂಕಾರ",
     },
     stats: {
       yearsOfHeritage: "ವರ್ಷಗಳ ಪರಂಪರೆ",
@@ -826,6 +847,8 @@ const translations: Record<string, TranslationData> = {
       premium: "ಪ್ರೀಮಿಯಂ",
       notFound: "ಸೇವೆ ಕಂಡುಬಂದಿಲ್ಲ",
       backToSevas: "ಸೇವೆಗಳಿಗೆ ಹಿಂತಿರುಗಿ",
+      addToCart: "ಕಾರ್ಟ್‌ಗೆ ಸೇರಿಸಿ",
+      cart: "ಕಾರ್ಟ್",
       relatedSevas: "ಸಂಬಂಧಿತ ಸೇವೆಗಳು",
       sacredOfferings: "ಪವಿತ್ರ ಅರ್ಪಣೆಗಳು",
       subtitle: "ಶ್ರೀ ಕಾಳಿಕಾಂಬಾ ದೇವಿಯ ದಿವ್ಯ ಆಶೀರ್ವಾದ ಪಡೆಯಲು ಪವಿತ್ರ ಸೇವೆಗಳು ಮತ್ತು ಪೂಜೆಗಳನ್ನು ಬುಕ್ ಮಾಡಿ",
@@ -1068,6 +1091,8 @@ const translations: Record<string, TranslationData> = {
       popular: "ಜನಪ್ರಿಯ",
       liveDarshanaTitle: "ಲೈವ್ ದರ್ಶನ",
       liveDarshanaSub: "ದಿವ್ಯ ಅನುಭವ",
+      dailyAlankaraTitle: "ದೈನಂದಿನ ಅಲಂಕಾರ",
+      dailyAlankaraSub: "ಇಂದಿನ ಅಲಂಕಾರ ಮತ್ತು ಸೇವೆ ನೋಡಿ",
       live: "ಲೈವ್",
       templeCalendarTitle: "ದೇವಸ್ಥಾನ ಕ್ಯಾಲೆಂಡರ್",
       templeCalendarSub: "ಹಬ್ಬ ಮತ್ತು ಕಾರ್ಯಕ್ರಮಗಳು",
@@ -1249,11 +1274,26 @@ const translations: Record<string, TranslationData> = {
       subtitle: "ದೇವಸ್ಥಾನದ ನವೀಕರಣಗಳು, ಕಾರ್ಯಕ್ರಮದ ಅಧಿಸೂಚನೆಗಳು, ಆಧ್ಯಾತ್ಮಿಕ ಒಳನೋಟಗಳು ಮತ್ತು ದಿವ್ಯ ಆಶೀರ್ವಾದಗಳನ್ನು ನೇರವಾಗಿ ನಿಮ್ಮ ಇನ್‌ಬಾಕ್ಸ್‌ನಲ್ಲಿ ಸ್ವೀಕರಿಸಲು ಚಂದಾದಾರರಾಗಿ.",
       emailPlaceholder: "ನಿಮ್ಮ ಇಮೇಲ್ ವಿಳಾಸ",
       subscribed: "ಧನ್ಯವಾದಗಳು! ನೀವು ಚಂದಾದಾರರಾಗಿದ್ದೀರಿ.",
+      subscribeFailed: "ಚಂದಾದಾರಿಕೆ ವಿಫಲವಾಗಿದೆ. ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
       weeklyUpdates: "ಸಾಪ್ತಾಹಿಕ ನವೀಕರಣಗಳು",
       noSpam: "ಸ್ಪ್ಯಾಮ್ ಇಲ್ಲ",
       unsubscribe: "ಯಾವುದೇ ಸಮಯದಲ್ಲಿ ಸದಸ್ಯತ್ವ ತ್ಯಜಿಸಿ",
       emailRequired: "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಇಮೇಲ್ ವಿಳಾಸ ನಮೂದಿಸಿ",
       emailInvalid: "ದಯವಿಟ್ಟು ಮಾನ್ಯ ಇಮೇಲ್ ವಿಳಾಸ ನಮೂದಿಸಿ",
+    },
+    dailyAlankara: {
+      title: "ದೈನಂದಿನ ಅಲಂಕಾರ",
+      eyebrow: "ಇಂದಿನ ದೇವಸ್ಥಾನ",
+      subtitle: "ಪ್ರತಿದಿನದ ಅಲಂಕಾರ ವೀಡಿಯೊ, ವಿಶೇಷ ಸೂಚನೆಗಳು ಮತ್ತು ನಿತ್ಯ ಪೂಜಾ ಸೇವಾ ಪಕ್ಷಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
+      noData: "ಇಂದು ಯಾವುದೇ ಅಲಂಕಾರ ಲಭ್ಯವಿಲ್ಲ",
+      checkBack: "ದಯವಿಟ್ಟು ನಂತರ ಮತ್ತೆ ಪರಿಶೀಲಿಸಿ",
+      liveAlankara: "ಇಂದಿನ ಅಲಂಕಾರ",
+      watchingLive: "ದೇವಸ್ಥಾನದಿಂದ ನೇರ ಪ್ರಸಾರ",
+      todaySpecial: "ಇಂದಿನ ವಿಶೇಷ",
+      nityaPoojaParties: "ನಿತ್ಯ ಪೂಜಾ ಸೇವಾ ಪಕ್ಷಗಳು",
+      todaysDevotees: "ಇಂದಿನ ಭಕ್ತರು",
+      bookSeva: "ಸೇವೆ ಬುಕ್ ಮಾಡಿ",
+      viewPanchanga: "ಪಂಚಾಂಗ ವೀಕ್ಷಿಸಿ",
     },
     reviews: {
       googleReviews: "ಗೂಗಲ್ ವಿಮರ್ಶೆಗಳು",
@@ -1603,6 +1643,7 @@ const translations: Record<string, TranslationData> = {
       scrollDown: "Scroll Down",
       donate: "Donate",
       liveDarshana: "Live Darshana",
+      dailyAlankara: "Daily Alankara",
     },
     stats: {
       yearsOfHeritage: "Years of Heritage",
@@ -1644,6 +1685,8 @@ const translations: Record<string, TranslationData> = {
       premium: "Premium",
       notFound: "Seva not found",
       backToSevas: "Back to Sevas",
+      addToCart: "Add to Cart",
+      cart: "Cart",
       relatedSevas: "Related Sevas",
       sacredOfferings: "Sacred Offerings",
       subtitle: "Book sacred sevas and poojas to receive the divine blessings of Sri Kalikamba Devi",
@@ -1886,6 +1929,8 @@ const translations: Record<string, TranslationData> = {
       popular: "Popular",
       liveDarshanaTitle: "Live Darshana",
       liveDarshanaSub: "Experience divinity",
+      dailyAlankaraTitle: "Daily Alankara",
+      dailyAlankaraSub: "View today's alankara and seva details",
       live: "Live",
       templeCalendarTitle: "Temple Calendar",
       templeCalendarSub: "Festival & Events",
@@ -2067,11 +2112,26 @@ const translations: Record<string, TranslationData> = {
       subtitle: "Subscribe to receive temple updates, event notifications, spiritual insights, and divine blessings directly in your inbox.",
       emailPlaceholder: "Your email address",
       subscribed: "Thank you! You have been subscribed.",
+      subscribeFailed: "Subscription failed. Please try again later.",
       weeklyUpdates: "Weekly updates",
       noSpam: "No spam",
       unsubscribe: "Unsubscribe anytime",
       emailRequired: "Please enter your email address",
       emailInvalid: "Please enter a valid email address",
+    },
+    dailyAlankara: {
+      title: "Daily Alankara",
+      eyebrow: "Today's Temple",
+      subtitle: "View today's alankara video, special notes, and nitya pooja seva parties",
+      noData: "No alankara available today",
+      checkBack: "Please check back later",
+      liveAlankara: "Today's Alankara",
+      watchingLive: "Live from the temple",
+      todaySpecial: "Today's Special",
+      nityaPoojaParties: "Nitya Pooja Seva Parties",
+      todaysDevotees: "Today's Devotees",
+      bookSeva: "Book Seva",
+      viewPanchanga: "View Panchanga",
     },
     reviews: {
       googleReviews: "Google Reviews",

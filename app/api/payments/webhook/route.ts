@@ -1,11 +1,15 @@
-import crypto from "crypto"
-import { prisma } from "@/lib/prisma"
+import crypto from "node:crypto"
+import { findPaymentByRazorpayOrderId, updatePayment } from "@/lib/models/payment"
+import { updateBooking } from "@/lib/models/booking"
+import { createPaymentLog } from "@/lib/models/paymentLog"
 import { successResponse, errorResponse } from "@/lib/api-utils"
 
 function verifyWebhookSignature(body: string, signature: string, secret: string): boolean {
+  if (!secret || !signature) return false
   try {
     const expected = crypto.createHmac("sha256", secret).update(body).digest("hex")
-    return expected === signature
+    if (expected.length !== signature.length) return false
+    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
   } catch {
     return false
   }
@@ -31,31 +35,23 @@ export async function POST(request: Request) {
       const status = paymentEntity.status
 
       if (status === "captured") {
-        const payment = await prisma.payment.findUnique({ where: { razorpayOrderId: orderId } })
+        const payment = await findPaymentByRazorpayOrderId(orderId)
         if (payment && payment.status !== "PAID") {
-          await prisma.payment.update({
-            where: { id: payment.id },
-            data: {
-              razorpayPaymentId: paymentId,
-              status: "PAID",
-              method: paymentEntity.method,
-              gatewayResponse: paymentEntity,
-              paidAt: new Date(),
-            },
+          await updatePayment(payment.id, {
+            razorpayPaymentId: paymentId,
+            status: "PAID",
+            method: paymentEntity.method,
+            gatewayResponse: paymentEntity,
+            paidAt: new Date(),
           })
 
-          await prisma.booking.update({
-            where: { id: payment.bookingId },
-            data: { paymentStatus: "PAID" },
-          })
+          await updateBooking(payment.bookingId, { paymentStatus: "PAID" })
 
-          await prisma.paymentLog.create({
-            data: {
-              paymentId: payment.id,
-              action: "WEBHOOK_CAPTURED",
-              status: "PAID",
-              response: paymentEntity,
-            },
+          await createPaymentLog({
+            paymentId: payment.id,
+            action: "WEBHOOK_CAPTURED",
+            status: "PAID",
+            response: paymentEntity,
           })
         }
       }
@@ -63,20 +59,15 @@ export async function POST(request: Request) {
       const paymentEntity = payload.payment.entity
       const orderId = paymentEntity.order_id
 
-      const payment = await prisma.payment.findUnique({ where: { razorpayOrderId: orderId } })
+      const payment = await findPaymentByRazorpayOrderId(orderId)
       if (payment) {
-        await prisma.payment.update({
-          where: { id: payment.id },
-          data: { status: "FAILED", gatewayResponse: paymentEntity },
-        })
+        await updatePayment(payment.id, { status: "FAILED", gatewayResponse: paymentEntity })
 
-        await prisma.paymentLog.create({
-          data: {
-            paymentId: payment.id,
-            action: "WEBHOOK_FAILED",
-            status: "FAILED",
-            response: paymentEntity,
-          },
+        await createPaymentLog({
+          paymentId: payment.id,
+          action: "WEBHOOK_FAILED",
+          status: "FAILED",
+          response: paymentEntity,
         })
       }
     }

@@ -153,7 +153,7 @@ export default function FAQPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent size="md">
           <DialogHeader><DialogTitle>{editing ? "Edit FAQ" : "Add FAQ"}</DialogTitle></DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-6 py-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input label="Question" placeholder="Enter the question..." error={errors.question?.message as string} {...register("question")} />
             <Input label="Answer" placeholder="Enter the answer..." error={errors.answer?.message as string} {...register("answer")} />
             <div className="flex flex-col gap-1.5">

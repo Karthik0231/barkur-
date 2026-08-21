@@ -494,11 +494,11 @@ export default function PanchangaClient({ festivals }: { festivals: any[] }) {
           sunset: raw.sunset || "—",
           moonrise: raw.moonrise || "—",
           moonset: raw.moonset || "—",
-          rahuKala: raw.rahuKala && raw.rahuKala.start ? raw.rahuKala : { start: raw.rahuKalaStart || "—", end: raw.rahuKalaEnd || "—" },
-          yamaganda: raw.yamaganda && raw.yamaganda.start ? raw.yamaganda : { start: raw.yamagandaStart || "—", end: raw.yamagandaEnd || "—" },
-          gulika: raw.gulika && raw.gulika.start ? raw.gulika : { start: raw.gulikaStart || "—", end: raw.gulikaEnd || "—" },
-          amritaKala: raw.amritaKala && raw.amritaKala.start ? raw.amritaKala : { start: raw.amritaKalaStart || "—", end: raw.amritaKalaEnd || "—" },
-          abhijitMuhurta: raw.abhijitMuhurta && raw.abhijitMuhurta.start ? raw.abhijitMuhurta : { start: raw.abhijitMuhurtaStart || "—", end: raw.abhijitMuhurtaEnd || "—" },
+          rahuKala: { start: "—", end: "—" },
+          yamaganda: { start: "—", end: "—" },
+          gulika: { start: "—", end: "—" },
+          amritaKala: { start: "—", end: "—" },
+          abhijitMuhurta: { start: "—", end: "—" },
           isEkadashi: !!raw.isEkadashi,
           isAmavasya: !!raw.isAmavasya,
           isPournami: !!raw.isPournami,
@@ -576,21 +576,12 @@ export default function PanchangaClient({ festivals }: { festivals: any[] }) {
   const todayCards = useMemo(() => {
     if (!panchanga) return []
     return [
-      { label: t("panchanga.tithi"), value: panchanga.tithi, icon: Moon },
-      { label: t("panchanga.nakshatra"), value: `${panchanga.nakshatra} (Pada ${panchanga.nakshatraPada})`, icon: Star },
-      { label: t("panchanga.yoga"), value: panchanga.yoga, icon: Zap },
-      { label: t("panchanga.karana"), value: panchanga.karana, icon: Clock },
-      { label: t("panchanga.masa"), value: panchanga.masa, icon: CalendarDays },
-      { label: t("panchanga.paksha"), value: panchanga.paksha, icon: Sun },
-      { label: t("panchanga.sunrise"), value: panchanga.sunrise, icon: Sun },
-      { label: t("panchanga.sunset"), value: panchanga.sunset, icon: Sun },
-      { label: t("panchanga.moonrise"), value: panchanga.moonrise, icon: Moon },
-      { label: t("panchanga.moonset"), value: panchanga.moonset, icon: Moon },
-      { label: t("panchanga.rahuKala"), value: `${panchanga.rahuKala.start} – ${panchanga.rahuKala.end}`, icon: Clock },
-      { label: t("panchanga.yamaganda"), value: `${panchanga.yamaganda.start} – ${panchanga.yamaganda.end}`, icon: Clock },
-      { label: t("panchanga.gulika"), value: `${panchanga.gulika.start} – ${panchanga.gulika.end}`, icon: Clock },
-      { label: t("panchanga.amritaKala"), value: `${panchanga.amritaKala.start} – ${panchanga.amritaKala.end}`, icon: Sparkles, sparkle: true },
-      { label: t("panchanga.abhijit"), value: `${panchanga.abhijitMuhurta.start} – ${panchanga.abhijitMuhurta.end}`, icon: Sparkles, sparkle: true },
+      { label: t("panchanga.tithi"), value: panchanga.tithi, icon: Moon, sparkle: false },
+      { label: t("panchanga.nakshatra"), value: `${panchanga.nakshatra} (Pada ${panchanga.nakshatraPada})`, icon: Star, sparkle: false },
+      { label: t("panchanga.yoga"), value: panchanga.yoga, icon: Zap, sparkle: false },
+      { label: t("panchanga.karana"), value: panchanga.karana, icon: Clock, sparkle: false },
+      { label: t("panchanga.masa"), value: panchanga.masa, icon: CalendarDays, sparkle: false },
+      { label: t("panchanga.paksha"), value: panchanga.paksha, icon: Sun, sparkle: false },
     ]
   }, [panchanga, t])
 
@@ -630,7 +621,7 @@ export default function PanchangaClient({ festivals }: { festivals: any[] }) {
           />
         </AnimatedSection>
 
-        <div className="mt-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-3">
+        <div className="mt-10 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
           {loading
             ? Array.from({ length: 15 }).map((_, i) => (
               <Card key={i} variant="glass" className="p-4 min-h-[100px]">

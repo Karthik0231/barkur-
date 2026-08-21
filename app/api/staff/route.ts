@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findManyTempleStaff, countTempleStaff, createTempleStaff } from "@/lib/models/templeStaff"
+import { staffSchema } from "@/lib/validations"
 import { successResponse, errorResponse, getAuthUser, checkRole, paginationHelper, auditLog } from "@/lib/api-utils"
 
 export async function GET(request: Request) {
@@ -11,18 +12,17 @@ export async function GET(request: Request) {
     const user = getAuthUser(session)
     const isAdmin = user && checkRole(session, ["SUPER_ADMIN", "ADMIN"])
 
-    const where: Record<string, unknown> = { deletedAt: null }
-    if (!isAdmin) where.isActive = true
-    if (type) where.type = type
+    const filter: Record<string, unknown> = {}
+    if (!isAdmin) filter.isActive = true
+    if (type) filter.type = type
 
     const [staff, total] = await Promise.all([
-      prisma.templeStaff.findMany({
-        where: where as never,
+      findManyTempleStaff(filter, {
         skip,
-        take: limit,
-        orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+        limit,
+        sort: [["sortOrder", 1], ["name", 1]],
       }),
-      prisma.templeStaff.count({ where: where as never }),
+      countTempleStaff(filter),
     ])
 
     return successResponse({ staff, total, page, limit, totalPages: Math.ceil(total / limit) })
@@ -39,21 +39,22 @@ export async function POST(request: Request) {
       return errorResponse("Unauthorized", 401)
 
     const body = await request.json()
-    if (!body.name) return errorResponse("Name is required", 400)
+    const parsed = staffSchema.safeParse(body)
+    if (!parsed.success) return errorResponse("Validation failed", 400, parsed.error.flatten().fieldErrors as Record<string, string[]>)
 
-    const staff = await prisma.templeStaff.create({
-      data: {
-        name: body.name,
-        role: body.designation ?? body.role ?? null,
-        designation: body.designation ?? null,
-        photo: body.photoUrl ?? body.photo ?? null,
-        biography: body.address ?? body.biography ?? null,
-        email: body.email ?? null,
-        phone: body.phone ?? null,
-        type: body.type ?? "OTHER",
-        sortOrder: body.sortOrder ?? 0,
-        isActive: body.isActive ?? true,
-      },
+    const data = parsed.data
+    const staff = await createTempleStaff({
+      name: data.name,
+      role: data.designation ?? data.role ?? null,
+      designation: data.designation ?? null,
+      photo: data.photoUrl ?? null,
+      biography: data.biography ?? null,
+      email: data.email || null,
+      phone: data.phone,
+      type: data.type ?? "OTHER",
+      joinedAt: data.joinedAt ? new Date(data.joinedAt) : null,
+      sortOrder: data.sortOrder ?? 0,
+      isActive: data.isActive ?? true,
     })
 
     await auditLog("CREATE", "Staff", staff.id, { name: staff.name }, session)

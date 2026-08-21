@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findContactById, updateContact } from "@/lib/models/contact"
 import { successResponse, errorResponse, getAuthUser, checkRole, auditLog } from "@/lib/api-utils"
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -10,7 +10,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const existing = await prisma.contact.findFirst({ where: { id, deletedAt: null } })
+    const existing = await findContactById(id)
     if (!existing) return errorResponse("Contact not found", 404)
 
     const body = await request.json()
@@ -21,7 +21,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       updateData.repliedBy = user.id
     }
 
-    const contact = await prisma.contact.update({ where: { id }, data: updateData as never })
+    const contact = await updateContact(id, updateData)
     await auditLog("UPDATE", "Contact", id, { isRead: body.isRead }, session)
     return successResponse(contact, "Contact updated successfully")
   } catch (error) {

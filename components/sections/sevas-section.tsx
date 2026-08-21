@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n"
 
 interface CategoryItem {
-  id?: string
   name: string
   title?: string
   description?: string
@@ -48,19 +47,7 @@ export function SevasSection() {
   const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: "-80px" })
-  const [categories, setCategories] = useState<CategoryItem[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch("/api/sevas/categories?isActive=true")
-      .then((r) => r.json())
-      .then((d) => {
-        const list = d.data?.categories || d.data || d || []
-        setCategories(Array.isArray(list) && list.length > 0 ? list : fallbackCategories)
-      })
-      .catch(() => setCategories(fallbackCategories))
-      .finally(() => setLoading(false))
-  }, [])
+  const categories = fallbackCategories
 
   return (
     <section ref={ref} className="relative py-24 overflow-hidden bg-gradient-to-b from-warm-ivory to-gold-50/30">
@@ -84,19 +71,13 @@ export function SevasSection() {
           </div>
         </motion.div>
 
-        {loading && (
-          <div className="flex justify-center py-16">
-            <span className="text-sm text-dark-slate/60">{t("common.loading")}</span>
-          </div>
-        )}
-        {!loading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {categories.map((category, index) => {
             const Icon = fallbackIcons[index % fallbackIcons.length]
             const fc = fallbackCategories[index % fallbackCategories.length]
             return (
               <motion.div
-                key={category.id || category.title || category.name || index}
+                key={index}
                 initial={{ opacity: 0, y: 40 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, delay: index * 0.12, ease: [0.16, 1, 0.3, 1] }}
@@ -119,11 +100,11 @@ export function SevasSection() {
                     </div>
 
                     <h3 className="text-xl font-heading font-bold text-dark-slate group-hover:text-primary transition-colors">
-                      {category.title || category.name}
+                      {category.name}
                     </h3>
 
                     <p className="mt-3 text-sm text-dark-slate/60 leading-relaxed">
-                      {category.description || ""}
+                      {category.description || fc.description}
                     </p>
 
                     <div className="mt-8">
@@ -141,7 +122,6 @@ export function SevasSection() {
             )
           })}
         </div>
-        )}
 
         <motion.div
           initial={{ opacity: 0 }}

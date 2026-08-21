@@ -60,27 +60,7 @@ export function StatsSection() {
   const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: "-80px" })
-  const [stats, setStats] = useState<StatItem[]>(defaultStats)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch("/api/admin/stats")
-      .then((r) => r.json())
-      .then((d) => {
-        const data = d.data || d
-        if (data && typeof data === "object") {
-          const mapped: StatItem[] = [
-            { icon: Landmark, value: data.yearsOfHeritage ?? data.years ?? 800, suffix: "+", label: "stats.yearsOfHeritage" },
-            { icon: Flower2, value: data.dailyPoojas ?? data.poojas ?? 250, suffix: "+", label: "stats.dailyPoojas" },
-            { icon: Users, value: data.divineBlessings ?? data.devotees ?? 10, suffix: "K+", label: "stats.divineBlessings" },
-            { icon: CalendarDays, value: data.annualFestivals ?? data.festivals ?? 500, suffix: "+", label: "stats.annualFestivals" },
-          ]
-          setStats(mapped)
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
+  const stats = defaultStats
 
   return (
     <section ref={ref} className="relative py-24 sm:py-32 overflow-hidden bg-primary">
@@ -121,20 +101,6 @@ export function StatsSection() {
           </h2>
         </motion.div>
 
-        {loading && (
-          <div className="flex justify-center py-16">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 w-full">
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="rounded-2xl border border-gold-500/10 bg-white/5 backdrop-blur-sm p-6 sm:p-8">
-                  <div className="mx-auto mb-5 h-16 w-16 rounded-full bg-gold-500/10 animate-pulse" />
-                  <div className="h-10 w-24 mx-auto rounded bg-gold-500/10 animate-pulse" />
-                  <div className="mt-3 h-4 w-20 mx-auto rounded bg-gold-500/10 animate-pulse" />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        {!loading && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
           {stats.map((stat, index) => {
             const Icon = stat.icon
@@ -165,7 +131,6 @@ export function StatsSection() {
             )
           })}
         </div>
-        )}
       </div>
     </section>
   )

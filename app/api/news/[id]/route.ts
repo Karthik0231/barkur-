@@ -1,13 +1,13 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findNewsById, updateNews, incrementNewsViewCount } from "@/lib/models/news"
 import { successResponse, errorResponse, getAuthUser, checkRole, auditLog } from "@/lib/api-utils"
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const news = await prisma.news.findFirst({ where: { id, deletedAt: null } })
+    const news = await findNewsById(id)
     if (!news) return errorResponse("News not found", 404)
-    await prisma.news.update({ where: { id }, data: { viewCount: { increment: 1 } } }).catch(() => {})
+    incrementNewsViewCount(id).catch(() => {})
     return successResponse(news)
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to fetch news", 500)
@@ -22,7 +22,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const existing = await prisma.news.findFirst({ where: { id, deletedAt: null } })
+    const existing = await findNewsById(id)
     if (!existing) return errorResponse("News not found", 404)
 
     const body = await request.json()
@@ -33,8 +33,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
     if (body.isPublished && !existing.publishedAt) updateData.publishedAt = new Date()
 
-    const news = await prisma.news.update({ where: { id }, data: updateData as never })
-    await auditLog("UPDATE", "News", id, { title: news.title }, session)
+    const news = await updateNews(id, updateData)
+    await auditLog("UPDATE", "News", id, { title: news?.title }, session)
     return successResponse(news, "News updated successfully")
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to update news", 500)
@@ -49,10 +49,10 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const existing = await prisma.news.findFirst({ where: { id, deletedAt: null } })
+    const existing = await findNewsById(id)
     if (!existing) return errorResponse("News not found", 404)
 
-    await prisma.news.update({ where: { id }, data: { deletedAt: new Date() } })
+    await updateNews(id, { deletedAt: new Date() })
     await auditLog("DELETE", "News", id, { title: existing.title }, session)
     return successResponse(null, "News deleted successfully")
   } catch (error) {

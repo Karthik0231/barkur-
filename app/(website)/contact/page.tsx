@@ -204,7 +204,7 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto">
           <AnimatedSection>
             <h2 className="text-2xl font-heading font-bold text-primary mb-6">{t("contact.findUs")}</h2>
-            <div className="aspect-[21/9] rounded-2xl bg-gradient-to-br from-primary/5 to-secondary/5 border border-border flex items-center justify-center">
+            <div className="aspect-video sm:aspect-[21/9] rounded-2xl bg-gradient-to-br from-primary/5 to-secondary/5 border border-border flex items-center justify-center">
               <div className="text-center">
                 <MapPin className="h-10 w-10 text-secondary/40 mx-auto mb-2" />
                 <p className="text-text-muted text-sm">{TEMPLE_NAME}</p>

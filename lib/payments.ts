@@ -119,16 +119,17 @@ export async function verifyPayment({
     if (!secret) {
       return { success: false, isValid: false, error: "RAZORPAY_KEY_SECRET is not configured" }
     }
-    const crypto = await import("crypto")
+    const nodeCrypto = await import("crypto")
     const body = orderId + "|" + paymentId
-    const expectedSignature = crypto
+    const expectedSignature = nodeCrypto
       .createHmac("sha256", secret)
       .update(body)
       .digest("hex")
 
+    if (expectedSignature.length !== signature.length) return { success: true, isValid: false }
     return {
       success: true,
-      isValid: expectedSignature === signature,
+      isValid: nodeCrypto.timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(signature)),
     }
   } catch (error) {
     console.error("Razorpay verify payment failed:", error)

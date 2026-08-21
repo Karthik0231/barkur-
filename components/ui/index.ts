@@ -43,3 +43,15 @@ export type { TooltipProps } from "./tooltip"
 
 export { Calendar } from "./calendar"
 export type { CalendarProps } from "./calendar"
+
+export { Textarea } from "./textarea"
+export type { TextareaProps } from "./textarea"
+
+export { Switch } from "./switch"
+export type { SwitchProps } from "./switch"
+
+export { FormSection, FormGrid } from "./form-section"
+export type { FormSectionProps, FormGridProps } from "./form-section"
+
+export { ConfirmDialog } from "./confirm-dialog"
+export type { ConfirmDialogProps } from "./confirm-dialog"

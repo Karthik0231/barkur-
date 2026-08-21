@@ -1,7 +1,8 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findManyContacts, createContact, countContacts } from "@/lib/models/contact"
 import { contactSchema } from "@/lib/validations"
 import { successResponse, errorResponse, getAuthUser, checkRole, paginationHelper, auditLog } from "@/lib/api-utils"
+import { escapeRegex } from "@/lib/models/utils"
 
 export async function GET(request: Request) {
   try {
@@ -14,23 +15,22 @@ export async function GET(request: Request) {
     const { page, limit, skip, search, sortBy, sortOrder } = paginationHelper(searchParams)
     const isRead = searchParams.get("isRead")
 
-    const where: Record<string, unknown> = { deletedAt: null }
-    if (isRead !== null) where.isRead = isRead === "true"
-    if (search) where.OR = [
-      { name: { contains: search, mode: "insensitive" } },
-      { email: { contains: search, mode: "insensitive" } },
-      { subject: { contains: search, mode: "insensitive" } },
-      { message: { contains: search, mode: "insensitive" } },
+    const filter: Record<string, unknown> = {}
+    if (isRead !== null) filter.isRead = isRead === "true"
+    if (search) filter.$or = [
+      { name: { $regex: escapeRegex(search), $options: "i" } },
+      { email: { $regex: escapeRegex(search), $options: "i" } },
+      { subject: { $regex: escapeRegex(search), $options: "i" } },
+      { message: { $regex: escapeRegex(search), $options: "i" } },
     ]
 
     const [contacts, total] = await Promise.all([
-      prisma.contact.findMany({
-        where: where as never,
+      findManyContacts(filter, {
         skip,
-        take: limit,
-        orderBy: [{ isRead: "asc" }, { [sortBy]: sortOrder }],
+        limit,
+        sort: sortBy ? [[sortBy, sortOrder === "asc" ? 1 : -1], ["isRead", 1]] : undefined,
       }),
-      prisma.contact.count({ where: where as never }),
+      countContacts(filter),
     ])
 
     return successResponse({ contacts, total, page, limit, totalPages: Math.ceil(total / limit) })
@@ -46,14 +46,12 @@ export async function POST(request: Request) {
     if (!parsed.success) return errorResponse("Validation failed", 400, parsed.error.flatten().fieldErrors as Record<string, string[]>)
 
     const data = parsed.data
-    const contact = await prisma.contact.create({
-      data: {
-        name: data.name,
-        email: data.email,
-        phone: data.phone ?? null,
-        subject: data.subject,
-        message: data.message,
-      },
+    const contact = await createContact({
+      name: data.name,
+      email: data.email,
+      phone: data.phone ?? null,
+      subject: data.subject,
+      message: data.message,
     })
 
     return successResponse(contact, "Message sent successfully", 201)

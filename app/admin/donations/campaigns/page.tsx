@@ -193,7 +193,7 @@ export default function CampaignsPage() {
             <DialogTitle>{editing ? "Edit Campaign" : "Create Campaign"}</DialogTitle>
             <DialogDescription>Set up a new donation campaign</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-6 py-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <Input variant="filled" label="Campaign Name" placeholder="e.g., Temple Renovation" error={errors.name?.message as string} {...register("name")} />
               <Input variant="filled" label="Slug" placeholder="temple-renovation" error={errors.slug?.message as string} {...register("slug")} />

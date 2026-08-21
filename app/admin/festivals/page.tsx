@@ -83,7 +83,7 @@ export default function FestivalsPage() {
     try {
       const res = await fetch("/api/festivals")
       const data = await res.json()
-      setFestivals(data.festivals || [])
+      setFestivals(data.data?.festivals || data.festivals || [])
     } catch { toast.error("Failed to load festivals") }
   }
 
@@ -179,7 +179,7 @@ export default function FestivalsPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent size="md">
           <DialogHeader><DialogTitle>{editing ? "Edit Festival" : "Add Festival"}</DialogTitle><DialogDescription>Manage festival details</DialogDescription></DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-6 py-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <Input label="Festival Name" placeholder="e.g., Maha Shivaratri" error={errors.name?.message as string} {...register("name")} />
               <Input label="Slug" placeholder="maha-shivaratri" error={errors.slug?.message as string} {...register("slug")} />

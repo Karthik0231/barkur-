@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findTestimonialById, updateTestimonial } from "@/lib/models/testimonial"
 import { successResponse, errorResponse, getAuthUser, checkRole, auditLog } from "@/lib/api-utils"
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -10,7 +10,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const existing = await prisma.testimonial.findFirst({ where: { id, deletedAt: null } })
+    const existing = await findTestimonialById(id)
     if (!existing) return errorResponse("Testimonial not found", 404)
 
     const body = await request.json()
@@ -22,9 +22,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (body.rating !== undefined) updateData.rating = body.rating
     if (body.sortOrder !== undefined) updateData.sortOrder = body.sortOrder
 
-    const testimonial = await prisma.testimonial.update({ where: { id }, data: updateData as never })
+    const testimonial = await updateTestimonial(id, updateData)
     const action = body.isApproved === true ? "APPROVE" : body.isApproved === false ? "REJECT" : "UPDATE"
-    await auditLog(action, "Testimonial", id, { name: testimonial.name, isApproved: testimonial.isApproved }, session)
+    await auditLog(action, "Testimonial", id, { name: testimonial?.name, isApproved: testimonial?.isApproved }, session)
     return successResponse(testimonial, "Testimonial updated successfully")
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to update testimonial", 500)
@@ -39,10 +39,10 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const existing = await prisma.testimonial.findFirst({ where: { id, deletedAt: null } })
+    const existing = await findTestimonialById(id)
     if (!existing) return errorResponse("Testimonial not found", 404)
 
-    await prisma.testimonial.update({ where: { id }, data: { deletedAt: new Date() } })
+    await updateTestimonial(id, { deletedAt: new Date() })
     await auditLog("DELETE", "Testimonial", id, { name: existing.name }, session)
     return successResponse(null, "Testimonial deleted successfully")
   } catch (error) {

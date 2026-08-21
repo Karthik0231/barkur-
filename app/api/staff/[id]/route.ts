@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findTempleStaffById, updateTempleStaff } from "@/lib/models/templeStaff"
 import { successResponse, errorResponse, getAuthUser, checkRole, auditLog } from "@/lib/api-utils"
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -10,7 +10,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const existing = await prisma.templeStaff.findFirst({ where: { id, deletedAt: null } })
+    const existing = await findTempleStaffById(id)
     if (!existing) return errorResponse("Staff member not found", 404)
 
     const body = await request.json()
@@ -20,8 +20,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       if (body[key] !== undefined) updateData[key] = body[key]
     }
 
-    const staff = await prisma.templeStaff.update({ where: { id }, data: updateData as never })
-    await auditLog("UPDATE", "Staff", id, { name: staff.name }, session)
+    const staff = await updateTempleStaff(id, updateData)
+    await auditLog("UPDATE", "Staff", id, { name: staff?.name }, session)
     return successResponse(staff, "Staff updated successfully")
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to update staff", 500)
@@ -36,10 +36,10 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       return errorResponse("Unauthorized", 401)
 
     const { id } = await params
-    const existing = await prisma.templeStaff.findFirst({ where: { id, deletedAt: null } })
+    const existing = await findTempleStaffById(id)
     if (!existing) return errorResponse("Staff member not found", 404)
 
-    await prisma.templeStaff.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } })
+    await updateTempleStaff(id, { deletedAt: new Date(), isActive: false })
     await auditLog("DELETE", "Staff", id, { name: existing.name }, session)
     return successResponse(null, "Staff member deleted successfully")
   } catch (error) {

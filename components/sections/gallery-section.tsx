@@ -5,7 +5,7 @@ import Link from "next/link"
 import { motion, useInView } from "framer-motion"
 import { Camera, Sparkles } from "lucide-react"
 import { useTranslation } from "@/lib/i18n"
-import type { Gallery } from "@prisma/client"
+import type { Gallery } from "@/lib/types"
 
 const ScrollRow = ({ items, direction = "left", speed = 30 }: { items: Gallery[]; direction?: "left" | "right"; speed?: number }) => {
   const duplicatedItems = [...items, ...items]

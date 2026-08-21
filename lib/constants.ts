@@ -29,7 +29,6 @@ export const ADMIN_NAV_ITEMS = {
   bookings: { label: "All Bookings", href: "/admin/bookings" },
   hallBooking: { label: "Hall Booking", href: "/admin/hall-booking" },
   shashwatha: { label: "Shashwatha", href: "/admin/shashwatha" },
-  categories: { label: "Categories", href: "/admin/categories" },
   sevas: { label: "Sevas", href: "/admin/sevas" },
   donations: { label: "Donations", href: "/admin/donations" },
   campaigns: { label: "Campaigns", href: "/admin/donations/campaigns" },

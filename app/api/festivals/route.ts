@@ -1,7 +1,8 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { findManyFestivals, countFestivals, createFestival } from "@/lib/models/festival"
 import { festivalSchema } from "@/lib/validations"
 import { successResponse, errorResponse, getAuthUser, checkRole, paginationHelper, auditLog } from "@/lib/api-utils"
+import { escapeRegex } from "@/lib/models/utils"
 
 export async function GET(request: Request) {
   try {
@@ -10,25 +11,32 @@ export async function GET(request: Request) {
     const session = await auth()
     const user = getAuthUser(session)
     const isAdmin = user && checkRole(session, ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER"])
+    const cacheSeconds = user ? 0 : 60
 
-    const where: Record<string, unknown> = { deletedAt: null }
+    const where: Record<string, unknown> = {}
     if (!isAdmin) where.isActive = true
-    if (search) where.OR = [
-      { name: { contains: search, mode: "insensitive" } },
-      { description: { contains: search, mode: "insensitive" } },
+    if (search) where.$or = [
+      { name: { $regex: escapeRegex(search), $options: "i" } },
+      { description: { $regex: escapeRegex(search), $options: "i" } },
     ]
 
     const [festivals, total] = await Promise.all([
-      prisma.festival.findMany({
-        where: where as never,
-        skip,
-        take: limit,
-        orderBy: [{ isFeatured: "desc" }, { [sortBy]: sortOrder }],
-      }),
-      prisma.festival.count({ where: where as never }),
+      findManyFestivals(where, { skip, limit, sortBy: isAdmin ? sortBy : "isFeatured", sortOrder: isAdmin ? sortOrder : "desc" }),
+      countFestivals(where),
     ])
 
-    return successResponse({ festivals, total, page, limit, totalPages: Math.ceil(total / limit) })
+    if (!isAdmin) {
+      festivals.sort((a, b) => {
+        if (a.isFeatured !== b.isFeatured) return b.isFeatured ? 1 : -1
+        const aVal = (a as Record<string, unknown>)[sortBy] as string
+        const bVal = (b as Record<string, unknown>)[sortBy] as string
+        if (aVal === bVal) return 0
+        if (sortOrder === "asc") return aVal > bVal ? 1 : -1
+        return aVal < bVal ? 1 : -1
+      })
+    }
+
+    return successResponse({ festivals, total, page, limit, totalPages: Math.ceil(total / limit) }, "Success", 200, cacheSeconds)
   } catch (error) {
     return errorResponse(error instanceof Error ? error.message : "Failed to fetch festivals", 500)
   }
@@ -46,22 +54,21 @@ export async function POST(request: Request) {
     if (!parsed.success) return errorResponse("Validation failed", 400, parsed.error.flatten().fieldErrors as Record<string, string[]>)
 
     const data = parsed.data
-    const festival = await prisma.festival.create({
-      data: {
-        name: data.name,
-        slug: data.slug,
-        description: data.description,
-        shortDescription: data.shortDescription,
-        startDate: data.startDate ? new Date(data.startDate) : null,
-        endDate: data.endDate ? new Date(data.endDate) : null,
-        isMultiDay: !!data.endDate,
-        significance: data.significance ?? null,
-        rituals: data.rituals ? JSON.parse(JSON.stringify(data.rituals)) : null,
-        image: data.imageUrl ?? null,
-        isActive: data.isActive ?? true,
-        isFeatured: data.isFeatured ?? false,
-        createdBy: user.id,
-      },
+    const festival = await createFestival({
+      name: data.name,
+      slug: data.slug,
+      description: data.description,
+      shortDescription: data.shortDescription,
+      startDate: data.startDate ? new Date(data.startDate) : null,
+      endDate: data.endDate ? new Date(data.endDate) : null,
+      isMultiDay: !!data.endDate,
+      significance: data.significance ?? null,
+      rituals: data.rituals ? JSON.parse(JSON.stringify(data.rituals)) : null,
+      image: data.imageUrl ?? null,
+      category: data.category ?? null,
+      isActive: data.isActive ?? true,
+      isFeatured: data.isFeatured ?? false,
+      createdBy: user.id,
     })
 
     await auditLog("CREATE", "Festival", festival.id, { name: festival.name }, session)
