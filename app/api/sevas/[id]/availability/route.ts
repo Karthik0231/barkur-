@@ -1,5 +1,5 @@
 import { findSevaById } from "@/lib/models/seva"
-import { db } from "@/lib/mongodb"
+import { getDb } from "@/lib/mongodb"
 import { successResponse, errorResponse } from "@/lib/api-utils"
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -16,13 +16,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     if (startDate) dateFilter.date = { $gte: new Date(startDate) }
     if (endDate) dateFilter.date = { ...(dateFilter.date as object || {}), $lte: new Date(endDate) }
 
-    const dates = await db.collection("sevaDates")
+    const dates = await (await getDb()).collection("sevaDates")
       .find(dateFilter)
       .sort({ date: 1 })
       .toArray()
 
     const dateIds = dates.map((d) => d._id)
-    const timeSlots = await db.collection("sevaTimeSlots")
+    const timeSlots = await (await getDb()).collection("sevaTimeSlots")
       .find({
         dateId: { $in: dateIds },
         isAvailable: true,
@@ -42,7 +42,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       timeSlots: slotsByDateId[date._id.toHexString()] || [],
     }))
 
-    const slots = await db.collection("sevaTimeSlots")
+    const slots = await (await getDb()).collection("sevaTimeSlots")
       .find({
         sevaId: id,
         isAvailable: true,

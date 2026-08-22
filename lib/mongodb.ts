@@ -35,6 +35,9 @@ function getClient(): MongoClient {
 
 let dbInstance: Db | null = null
 let connectPromise: Promise<Db> | null = null
+let retryCount = 0
+const MAX_RETRIES = 5
+const RETRY_DELAY_MS = 2000
 
 function initDb(): Promise<Db> {
   return getClient()
@@ -45,6 +48,7 @@ function initDb(): Promise<Db> {
         // Index creation must never block the app from starting.
         console.error("Failed to create MongoDB indexes:", err)
       })
+      retryCount = 0 // Reset on success
       return database
     })
 }
@@ -61,11 +65,32 @@ export function getDb(): Promise<Db> {
       })
       .catch((err) => {
         connectPromise = null // Allow retry on next call
-        console.error("❌ MongoDB connection failed:", err.message)
+        retryCount++
+        console.error(`❌ MongoDB connection failed (attempt ${retryCount}/${MAX_RETRIES}):`, err.message)
         throw err
       })
   }
   return connectPromise
+}
+
+/**
+ * Wait for an in-progress connection to resolve, with a timeout.
+ * Useful in request handlers where we need to ensure the DB is ready.
+ */
+export async function waitForDb(timeoutMs = 15000): Promise<Db> {
+  if (dbInstance) return dbInstance
+  if (!connectPromise) {
+    getDb().catch(() => {})
+  }
+  if (connectPromise) {
+    return Promise.race([
+      connectPromise,
+      new Promise<Db>((_, reject) =>
+        setTimeout(() => reject(new Error(`Database connection timed out after ${timeoutMs}ms`)), timeoutMs)
+      ),
+    ])
+  }
+  throw new Error("Database not connected and no connection attempt in progress")
 }
 
 /**
@@ -95,6 +120,9 @@ if (process.env.NEXT_RUNTIME !== "build") {
  * importing this module never triggers a connection (which would break
  * `next build`). At runtime the eager connection above starts immediately;
  * the Proxy auto-triggers a connection attempt on first access as a safety net.
+ *
+ * NOTE: All model functions now use `await getDb()` instead of this Proxy.
+ * This Proxy is kept as a fallback for any remaining direct usages.
  */
 export const db: Db = new Proxy({} as Db, {
   get(_target, prop, _receiver) {
@@ -106,7 +134,7 @@ export const db: Db = new Proxy({} as Db, {
     }
 
     throw new Error(
-      "Database not connected yet. " +
+      "Database not connected yet. All model functions should use `await getDb()` instead of the `db` Proxy. " +
       "Ensure connectToDatabase() is called at startup (e.g. in instrumentation.ts).",
     )
   },

@@ -4,7 +4,7 @@ import { findManyBookingItems, createBookingItem } from "@/lib/models/bookingIte
 import { findManySevas, findSevaById } from "@/lib/models/seva"
 import { findManyUsers } from "@/lib/models/user"
 import { findManyPayments } from "@/lib/models/payment"
-import { db } from "@/lib/mongodb"
+import { getDb } from "@/lib/mongodb"
 import { toObjectId, escapeRegex } from "@/lib/models/utils"
 import { sevaBookingSchema } from "@/lib/validations"
 import { z } from "zod"
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
         findManyUsers({ _id: { $in: userIds.map((id) => toObjectId(id)) } }),
         findManyPayments({ bookingId: { $in: bookingIds } }),
         sevaDateIds.length > 0
-          ? db.collection("sevaDates").find({ _id: { $in: sevaDateIds.map((id) => toObjectId(id)) } }).toArray()
+          ? (await getDb()).collection("sevaDates").find({ _id: { $in: sevaDateIds.map((id) => toObjectId(id)) } }).toArray()
           : Promise.resolve([]),
       ])
 

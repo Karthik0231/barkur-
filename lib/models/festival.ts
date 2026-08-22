@@ -1,21 +1,21 @@
-import { db } from "@/lib/mongodb"
+import { getDb } from "@/lib/mongodb"
 import { toObjectId, objectIdToString, softDeleteFilter, type MongoDoc } from "./utils"
 
 const COLLECTION = "festivals"
 
 export async function findFestivalById(id: string): Promise<MongoDoc | null> {
-  const festival = await db.collection(COLLECTION).findOne({ _id: toObjectId(id), ...softDeleteFilter() })
+  const festival = await (await getDb()).collection(COLLECTION).findOne({ _id: toObjectId(id), ...softDeleteFilter() })
   return festival ? { ...festival, id: objectIdToString(festival._id) } as MongoDoc : null
 }
 
 export async function findFestivalBySlug(slug: string): Promise<MongoDoc | null> {
-  const festival = await db.collection(COLLECTION).findOne({ slug, ...softDeleteFilter() })
+  const festival = await (await getDb()).collection(COLLECTION).findOne({ slug, ...softDeleteFilter() })
   return festival ? { ...festival, id: objectIdToString(festival._id) } as MongoDoc : null
 }
 
 export async function findManyFestivals(filter: Record<string, unknown> = {}, options: { skip?: number; limit?: number; sortBy?: string; sortOrder?: string; sort?: [string, 1 | -1][] } = {}): Promise<MongoDoc[]> {
   const { skip, limit, sortBy = "createdAt", sortOrder = "desc", sort } = options
-  const cursor = db.collection(COLLECTION).find({ ...softDeleteFilter(), ...filter })
+  const cursor = (await getDb()).collection(COLLECTION).find({ ...softDeleteFilter(), ...filter })
   if (sort && sort.length) {
     cursor.sort(Object.fromEntries(sort))
   } else if (sortBy) {
@@ -28,17 +28,17 @@ export async function findManyFestivals(filter: Record<string, unknown> = {}, op
 }
 
 export async function countFestivals(filter: Record<string, unknown> = {}) {
-  return db.collection(COLLECTION).countDocuments({ ...softDeleteFilter(), ...filter })
+  return (await getDb()).collection(COLLECTION).countDocuments({ ...softDeleteFilter(), ...filter })
 }
 
 export async function createFestival(data: Record<string, unknown>): Promise<MongoDoc> {
   const doc = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined))
-  const result = await db.collection(COLLECTION).insertOne(doc)
+  const result = await (await getDb()).collection(COLLECTION).insertOne(doc)
   return { id: result.insertedId.toHexString(), ...doc } as MongoDoc
 }
 
 export async function updateFestival(id: string, data: Record<string, unknown>): Promise<MongoDoc | null> {
-  await db.collection(COLLECTION).updateOne(
+  await (await getDb()).collection(COLLECTION).updateOne(
     { _id: toObjectId(id) },
     { $set: { ...data, updatedAt: new Date() } }
   )
@@ -46,5 +46,5 @@ export async function updateFestival(id: string, data: Record<string, unknown>):
 }
 
 export async function findEventsByFestivalId(festivalId: string) {
-  return db.collection("events").find({ festivalId, isActive: true, ...softDeleteFilter() }).sort({ date: 1 }).toArray()
+  return (await getDb()).collection("events").find({ festivalId, isActive: true, ...softDeleteFilter() }).sort({ date: 1 }).toArray()
 }

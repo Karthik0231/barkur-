@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth"
 import { findSevaById, findSevaBySlug, updateSeva } from "@/lib/models/seva"
-import { db } from "@/lib/mongodb"
+import { getDb } from "@/lib/mongodb"
 import { sevaSchema } from "@/lib/validations"
 import { successResponse, errorResponse, getAuthUser, checkRole, auditLog } from "@/lib/api-utils"
 
@@ -20,12 +20,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     if (!seva) return errorResponse("Seva not found", 404)
 
     const [sevaDates, sevaTimeSlots] = await Promise.all([
-      db.collection("sevaDates")
+      (await getDb()).collection("sevaDates")
         .find({ sevaId: seva.id, isAvailable: true })
         .sort({ date: 1 })
         .limit(30)
         .toArray(),
-      db.collection("sevaTimeSlots")
+      (await getDb()).collection("sevaTimeSlots")
         .find({ sevaId: seva.id, isAvailable: true })
         .sort({ startTime: 1 })
         .limit(30)

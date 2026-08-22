@@ -1,21 +1,21 @@
-import { db } from "@/lib/mongodb"
+import { getDb } from "@/lib/mongodb"
 import { toObjectId, objectIdToString, softDeleteFilter, type MongoDoc } from "./utils"
 
 const COLLECTION = "gallery"
 
 export async function findGalleryById(id: string): Promise<MongoDoc | null> {
-  const item = await db.collection(COLLECTION).findOne({ _id: toObjectId(id), ...softDeleteFilter() })
+  const item = await (await getDb()).collection(COLLECTION).findOne({ _id: toObjectId(id), ...softDeleteFilter() })
   return item ? { ...item, id: objectIdToString(item._id) } as MongoDoc : null
 }
 
 export async function findGalleryBySlug(slug: string): Promise<MongoDoc | null> {
-  const item = await db.collection(COLLECTION).findOne({ slug, ...softDeleteFilter() })
+  const item = await (await getDb()).collection(COLLECTION).findOne({ slug, ...softDeleteFilter() })
   return item ? { ...item, id: objectIdToString(item._id) } as MongoDoc : null
 }
 
 export async function findManyGalleries(filter: Record<string, unknown> = {}, options: { skip?: number; limit?: number; sortBy?: string; sortOrder?: string; sort?: [string, 1 | -1][] } = {}): Promise<MongoDoc[]> {
   const { skip, limit, sortBy = "sortOrder", sortOrder = "asc", sort } = options
-  const cursor = db.collection(COLLECTION).find({ ...softDeleteFilter(), ...filter })
+  const cursor = (await getDb()).collection(COLLECTION).find({ ...softDeleteFilter(), ...filter })
   if (sort && sort.length) {
     cursor.sort(Object.fromEntries(sort))
   } else if (sortBy) {
@@ -28,17 +28,17 @@ export async function findManyGalleries(filter: Record<string, unknown> = {}, op
 }
 
 export async function countGalleries(filter: Record<string, unknown> = {}) {
-  return db.collection(COLLECTION).countDocuments({ ...softDeleteFilter(), ...filter })
+  return (await getDb()).collection(COLLECTION).countDocuments({ ...softDeleteFilter(), ...filter })
 }
 
 export async function createGallery(data: Record<string, unknown>): Promise<MongoDoc> {
   const doc = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined))
-  const result = await db.collection(COLLECTION).insertOne(doc)
+  const result = await (await getDb()).collection(COLLECTION).insertOne(doc)
   return { id: result.insertedId.toHexString(), ...doc } as MongoDoc
 }
 
 export async function updateGallery(id: string, data: Record<string, unknown>): Promise<MongoDoc | null> {
-  await db.collection(COLLECTION).updateOne(
+  await (await getDb()).collection(COLLECTION).updateOne(
     { _id: toObjectId(id) },
     { $set: { ...data, updatedAt: new Date() } }
   )

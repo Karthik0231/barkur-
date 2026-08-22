@@ -6,7 +6,7 @@ import { findUserById } from "@/lib/models/user"
 import { findManyPayments } from "@/lib/models/payment"
 import { findManyCertificates } from "@/lib/models/certificate"
 import { findManyReceipts } from "@/lib/models/receipt"
-import { db } from "@/lib/mongodb"
+import { getDb } from "@/lib/mongodb"
 import { toObjectId } from "@/lib/models/utils"
 import { successResponse, errorResponse, getAuthUser, checkRole, auditLog } from "@/lib/api-utils"
 
@@ -24,7 +24,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     const [items, payments, sevaDate, certificates, receipts] = await Promise.all([
       findManyBookingItems({ bookingId: id }),
       findManyPayments({ bookingId: id }),
-      booking.sevaDateId ? db.collection("sevaDates").findOne({ _id: toObjectId(booking.sevaDateId) }).then((d) => d ? { ...d, id: d._id.toHexString() } : null) : Promise.resolve(null),
+      booking.sevaDateId ? (await getDb()).collection("sevaDates").findOne({ _id: toObjectId(booking.sevaDateId) }).then((d) => d ? { ...d, id: d._id.toHexString() } : null) : Promise.resolve(null),
       findManyCertificates({ bookingId: id }),
       findManyReceipts({ bookingId: id }),
     ])
@@ -85,7 +85,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const [items, payments, sevaDate, certificates, receipts] = await Promise.all([
       findManyBookingItems({ bookingId: id }),
       findManyPayments({ bookingId: id }),
-      refreshedBooking?.sevaDateId ? db.collection("sevaDates").findOne({ _id: toObjectId(refreshedBooking.sevaDateId) }).then((d) => d ? { ...d, id: d._id.toHexString() } : null) : Promise.resolve(null),
+      refreshedBooking?.sevaDateId ? (await getDb()).collection("sevaDates").findOne({ _id: toObjectId(refreshedBooking.sevaDateId) }).then((d) => d ? { ...d, id: d._id.toHexString() } : null) : Promise.resolve(null),
       findManyCertificates({ bookingId: id }),
       findManyReceipts({ bookingId: id }),
     ])

@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth"
 import { findSevaBySlug, findManySevas, countSevas, createSeva } from "@/lib/models/seva"
-import { db } from "@/lib/mongodb"
+import { getDb } from "@/lib/mongodb"
 import { softDeleteFilter, escapeRegex } from "@/lib/models/utils"
 import { sevaSchema } from "@/lib/validations"
 import {
@@ -192,7 +192,7 @@ export async function POST(request: Request) {
           }))
 
       if (availabilityData.length > 0) {
-        await db.collection("sevaDates").insertMany(availabilityData)
+        await (await getDb()).collection("sevaDates").insertMany(availabilityData)
       }
     }
 
