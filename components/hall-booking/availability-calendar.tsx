@@ -63,18 +63,6 @@ export function AvailabilityCalendar({
     const booked: Date[] = []
     const partial: Date[] = []
 
-    const currentDate = startOfMonth(today)
-    const endDate = endOfMonth(addDays(today, 180))
-
-    // Sundays are always unavailable
-    let d = new Date(currentDate)
-    while (isBefore(d, endDate) || d.getTime() === endDate.getTime()) {
-      if (d.getDay() === 0) {
-        unavailable.push(new Date(d))
-      }
-      d = addDays(d, 1)
-    }
-
     // Add real booked dates from the API — these are UNAVAILABLE (blocked)
     for (const bd of bookedDatesFromApi) {
       const dateStr = bd.toDateString()
@@ -134,7 +122,6 @@ export function AvailabilityCalendar({
       )}
 
       <div className="text-xs text-text-muted">
-        <p>* Sundays are unavailable</p>
         <p>* Bookings available up to 6 months in advance</p>
       </div>
     </div>
