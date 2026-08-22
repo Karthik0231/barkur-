@@ -14,20 +14,29 @@ import { TempleBulletinSection } from "@/components/sections/TempleBulletinSecti
 
 export const dynamic = "force-dynamic"
 
+async function safeFind<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await fn()
+  } catch (error) {
+    console.error("Database query failed:", error)
+    return fallback
+  }
+}
+
 export default async function HomePage() {
-  const [festivals, announcements, dailySchedules, galleryItems] = await Promise.all<any[]>([
-    findManyFestivals({ isActive: true }, {
+  const [festivals, announcements, dailySchedules, galleryItems] = await Promise.all([
+    safeFind(() => findManyFestivals({ isActive: true }, {
       sort: [["isFeatured", -1], ["startDate", 1]],
-    }),
-    findManyAnnouncements({ isActive: true }, {
+    }), [] as any[]),
+    safeFind(() => findManyAnnouncements({ isActive: true }, {
       sort: [["type", 1], ["createdAt", -1]],
-    }),
-    findManyDailySchedules({ isActive: true }, {
+    }), [] as any[]),
+    safeFind(() => findManyDailySchedules({ isActive: true }, {
       sort: [["dayOfWeek", 1], ["sortOrder", 1]],
-    }),
-    findManyGalleries({ isPublished: true }, {
+    }), [] as any[]),
+    safeFind(() => findManyGalleries({ isPublished: true }, {
       sort: [["isFeatured", -1], ["sortOrder", 1]],
-    }),
+    }), [] as any[]),
   ])
 
   return (
