@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth"
 import { findManyAuditLogs, countAuditLogs } from "@/lib/models/auditLog"
 import { successResponse, errorResponse, getAuthUser, checkRole, paginationHelper } from "@/lib/api-utils"
-import { db } from "@/lib/mongodb"
+import { getDb } from "@/lib/mongodb"
 import { toObjectId } from "@/lib/models/utils"
 
 export async function GET(request: Request) {
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
     let usersMap: Record<string, { id: string; name: string; email: string }> = {}
     if (userIds.length > 0) {
       const objectIds = userIds.map((uid) => toObjectId(uid))
-      const users = await db.collection("users").find({ _id: { $in: objectIds } }, { projection: { name: 1, email: 1 } }).toArray()
+      const users = await (await getDb()).collection("users").find({ _id: { $in: objectIds } }, { projection: { name: 1, email: 1 } }).toArray()
       usersMap = Object.fromEntries(users.map((u) => [u._id.toHexString(), { id: u._id.toHexString(), name: u.name, email: u.email }]))
     }
 

@@ -1,21 +1,21 @@
-import { db } from "@/lib/mongodb"
+import { getDb } from "@/lib/mongodb"
 import { toObjectId, objectIdToString, softDeleteFilter, type MongoDoc } from "./utils"
 
 const COLLECTION = "news"
 
 export async function findNewsById(id: string): Promise<MongoDoc | null> {
-  const news = await db.collection(COLLECTION).findOne({ _id: toObjectId(id), ...softDeleteFilter() })
+  const news = await (await getDb()).collection(COLLECTION).findOne({ _id: toObjectId(id), ...softDeleteFilter() })
   return news ? { ...news, id: objectIdToString(news._id) } as MongoDoc : null
 }
 
 export async function findNewsBySlug(slug: string): Promise<MongoDoc | null> {
-  const doc = await db.collection(COLLECTION).findOne({ slug, ...softDeleteFilter() })
+  const doc = await (await getDb()).collection(COLLECTION).findOne({ slug, ...softDeleteFilter() })
   return doc ? { ...doc, id: objectIdToString(doc._id) } as MongoDoc : null
 }
 
 export async function findManyNews(filter: Record<string, unknown> = {}, options: { skip?: number; limit?: number; sortBy?: string; sortOrder?: string } = {}): Promise<MongoDoc[]> {
   const { skip, limit, sortBy = "createdAt", sortOrder = "desc" } = options
-  const cursor = db.collection(COLLECTION).find({ ...softDeleteFilter(), ...filter })
+  const cursor = (await getDb()).collection(COLLECTION).find({ ...softDeleteFilter(), ...filter })
   if (sortBy) cursor.sort({ [sortBy]: sortOrder === "asc" ? 1 : -1 })
   if (skip) cursor.skip(skip)
   if (limit) cursor.limit(limit)
@@ -24,17 +24,17 @@ export async function findManyNews(filter: Record<string, unknown> = {}, options
 }
 
 export async function countNews(filter: Record<string, unknown> = {}) {
-  return db.collection(COLLECTION).countDocuments({ ...softDeleteFilter(), ...filter })
+  return (await getDb()).collection(COLLECTION).countDocuments({ ...softDeleteFilter(), ...filter })
 }
 
 export async function createNews(data: Record<string, unknown>): Promise<MongoDoc> {
   const doc = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined))
-  const result = await db.collection(COLLECTION).insertOne(doc)
+  const result = await (await getDb()).collection(COLLECTION).insertOne(doc)
   return { id: result.insertedId.toHexString(), ...doc } as MongoDoc
 }
 
 export async function updateNews(id: string, data: Record<string, unknown>): Promise<MongoDoc | null> {
-  await db.collection(COLLECTION).updateOne(
+  await (await getDb()).collection(COLLECTION).updateOne(
     { _id: toObjectId(id) },
     { $set: { ...data, updatedAt: new Date() } }
   )
@@ -42,7 +42,7 @@ export async function updateNews(id: string, data: Record<string, unknown>): Pro
 }
 
 export async function incrementNewsViewCount(id: string) {
-  await db.collection(COLLECTION).updateOne(
+  await (await getDb()).collection(COLLECTION).updateOne(
     { _id: toObjectId(id) },
     { $inc: { viewCount: 1 } }
   )

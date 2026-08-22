@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb"
-import { db } from "@/lib/mongodb"
+import { getDb } from "@/lib/mongodb"
 
 /** Document type returned by model helpers – carries an `id` field and preserves all MongoDB document properties via the index signature. */
 export type MongoDoc = Record<string, any> & { id: string }
@@ -47,7 +47,7 @@ export function combineFilters(...filters: Record<string, unknown>[]) {
 }
 
 export async function getNextSequence(collection: string, field: string): Promise<string> {
-  const counter = await db.collection("counters").findOneAndUpdate(
+  const counter = await (await getDb()).collection("counters").findOneAndUpdate(
     { _id: collection as any },
     { $inc: { [field]: 1 } },
     { upsert: true, returnDocument: "after" }

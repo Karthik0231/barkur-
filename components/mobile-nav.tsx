@@ -21,9 +21,11 @@ const sectionConfig: { title: string; items: NavItem[] }[] = [
     title: "nav.sectionMain",
     items: [
       { label: "nav.home", href: "/" },
+      { label: "nav.panchanga", href: "/panchanga" },
       { label: "nav.festivals", href: "/festivals" },
       { label: "nav.gallery", href: "/gallery" },
       { label: "nav.contact", href: "/contact" },
+      { label: "nav.donate", href: "/donate" },
     ],
   },
   {
@@ -95,15 +97,6 @@ function SubMenuItem({
     item.children ? item.children.some((c) => pathname.startsWith(c.href)) : false
   )
   const { t } = useTranslation()
-  const T = (key: string): string => {
-    const parts = key.split(".")
-    let val: unknown = t
-    for (const part of parts) {
-      if (val && typeof val === "object") val = (val as Record<string, unknown>)[part]
-      else return key
-    }
-    return typeof val === "string" ? val : key
-  }
 
   useEffect(() => {
     if (item.children) {
@@ -118,7 +111,7 @@ function SubMenuItem({
           onClick={() => setOpen((prev) => !prev)}
           className="flex w-full items-center justify-between px-4 py-3.5 min-h-12 text-base font-medium text-dark-slate hover:text-primary transition-colors rounded-xl hover:bg-primary/5 group"
         >
-          <span>{T(item.label)}</span>
+          <span>{t(item.label)}</span>
           <motion.div
             animate={{ rotate: open ? 180 : 0 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
@@ -149,7 +142,7 @@ function SubMenuItem({
                     )}
                   >
                     <ChevronRight className="w-3 h-3 text-primary/40" />
-                    {T(child.label)}
+                    {t(child.label)}
                   </Link>
                 ))}
               </div>
@@ -171,7 +164,7 @@ function SubMenuItem({
           : "text-dark-slate hover:text-primary hover:bg-primary/5"
       )}
     >
-      <span>{T(item.label)}</span>
+      <span>{t(item.label)}</span>
       {pathname === item.href && (
         <motion.div
           layoutId="activeIndicator"
