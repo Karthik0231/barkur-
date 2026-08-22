@@ -21,6 +21,7 @@ const QUICK_LINKS = [
   { labelKey: "nav.about", href: "/about" },
   { labelKey: "nav.sevas", href: "/sevas" },
   { labelKey: "nav.gallery", href: "/gallery" },
+  { labelKey: "nav.hallBooking", href: "/hall-booking" },
   { labelKey: "nav.contact", href: "/contact" },
   { labelKey: "nav.donate", href: "/donate" },
 ]
