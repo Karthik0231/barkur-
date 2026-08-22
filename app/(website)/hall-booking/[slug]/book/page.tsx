@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { motion, AnimatePresence } from "framer-motion"
 import { z } from "zod"
 import { format } from "date-fns"
-import { ArrowLeft, ChevronRight, CalendarDays, Clock, Building2, Users, User, Phone, Mail, MessageSquare, Check, Shield, AlertCircle } from "lucide-react"
+import { ArrowLeft, ChevronRight, CalendarDays, Clock, Building2, Users, User, Phone, Mail, MessageSquare, Check, Shield, AlertCircle, MapPin, Loader2 } from "lucide-react"
 import { AnimatedSection } from "@/components/animated-section"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -45,6 +45,7 @@ const bookingFormSchema = z.object({
   organizerName: z.string().min(2, "Name must be at least 2 characters"),
   organizerPhone: z.string().regex(/^\+?[\d\s-]{10,15}$/, "Please enter a valid phone number"),
   organizerEmail: z.string().email("Please enter a valid email address"),
+  address: z.string().min(5, "Address must be at least 5 characters"),
   specialRequests: z.string().optional(),
 })
 
@@ -161,11 +162,43 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
     setValue("eventDate", format(date, "yyyy-MM-dd"), { shouldValidate: true })
   }
 
-  const handlePayment = () => {
-    setError("root", {
-      type: "manual",
-      message: "Please submit the booking request before payment.",
-    })
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  const handleSubmitBooking = async () => {
+    setSubmitting(true)
+    setSubmitError(null)
+    try {
+      const formData = watchAll
+      const payload = {
+        hallName: slug,
+        eventType: formData.eventType,
+        eventDate: formData.eventDate,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        organizerName: formData.organizerName,
+        organizerPhone: formData.organizerPhone,
+        organizerEmail: formData.organizerEmail,
+        address: formData.address,
+        expectedGuests: Number(formData.expectedGuests),
+        remarks: formData.specialRequests || undefined,
+      }
+      const res = await fetch("/api/hall-bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+      const json = await res.json()
+      if (!json?.success) {
+        throw new Error(json?.message || "Failed to create booking")
+      }
+      setSubmitted(true)
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Something went wrong")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const hallName = hall?.name || slug.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
@@ -234,6 +267,30 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
     )
   }
 
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-bg-secondary/30 to-bg-primary flex items-center justify-center p-4">
+        <Card variant="elevated" className="p-10 text-center max-w-md">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-4">
+            <Check className="h-8 w-8" />
+          </div>
+          <h1 className="text-3xl font-heading font-bold text-primary mb-2">Booking Request Submitted!</h1>
+          <p className="text-text-secondary mb-6">
+            Your hall booking request for <strong>{hallName}</strong> has been submitted successfully. Our team will review and confirm your booking shortly.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Link href="/hall-booking/my-bookings">
+              <Button variant="gradient" className="w-full">View My Bookings</Button>
+            </Link>
+            <Link href="/hall-booking">
+              <Button variant="outline" className="w-full">Book Another Hall</Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-bg-secondary/30 to-bg-primary">
       <section className="py-10 px-4">
@@ -289,7 +346,7 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                     <div className="grid md:grid-cols-2 gap-8">
                       <div>
                         <h3 className="text-sm font-semibold text-text-primary mb-3">Select Date</h3>
-                        <AvailabilityCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} />
+                        <AvailabilityCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} hallSlug={slug} />
                         {errors.eventDate && (
                           <p className="text-xs text-red-500 mt-2">{errors.eventDate.message}</p>
                         )}
@@ -452,6 +509,13 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                         error={errors.organizerName?.message}
                         {...register("organizerName")}
                       />
+                      <Input
+                        label="Address *"
+                        placeholder="Full address"
+                        iconLeft={<MapPin className="h-4 w-4" />}
+                        error={errors.address?.message}
+                        {...register("address")}
+                      />
                       <div className="grid sm:grid-cols-2 gap-5">
                         <Input
                           label="Phone Number *"
@@ -558,25 +622,46 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                           </div>
                         </div>
 
-                        <div className="flex justify-between mt-8 pt-6 border-t border-border">
-                          <Button variant="outline" type="button" onClick={handleBack}>
-                            <ArrowLeft className="h-4 w-4 mr-1" />
-                            Back
-                          </Button>
-                        </div>
-                      </Card>
-                    </div>
+                    {submitError && (
+                      <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm mb-4">
+                        {submitError}
+                      </div>
+                    )}
 
-                    <div className="md:col-span-2">
-                      <PaymentSummary
-                        lineItems={lineItems}
-                        tax={tax}
-                        deposit={securityDeposit}
-                        total={total}
-                        onPayment={handlePayment}
-                        paymentLabel={`Pay ${formatPrice(total + Math.round(total * tax / 100) + securityDeposit)}`}
-                      />
+                    <div className="flex justify-between mt-8 pt-6 border-t border-border">
+                      <Button variant="outline" type="button" onClick={handleBack}>
+                        <ArrowLeft className="h-4 w-4 mr-1" />
+                        Back
+                      </Button>
+                      <Button
+                        variant="gradient"
+                        size="lg"
+                        type="button"
+                        onClick={handleSubmitBooking}
+                        disabled={submitting || submitted}
+                      >
+                        {submitting ? (
+                          <>Submitting...</>
+                        ) : submitted ? (
+                          <>✓ Booking Submitted</>
+                        ) : (
+                          <>Submit Booking Request</>
+                        )}
+                      </Button>
                     </div>
+                  </Card>
+                </div>
+
+                <div className="md:col-span-2">
+                  <PaymentSummary
+                    lineItems={lineItems}
+                    tax={tax}
+                    deposit={securityDeposit}
+                    total={total}
+                    onPayment={handleSubmitBooking}
+                    paymentLabel={submitting ? "Submitting..." : submitted ? "✓ Submitted" : "Submit Booking Request"}
+                  />
+                </div>
                   </div>
                 )}
               </motion.div>

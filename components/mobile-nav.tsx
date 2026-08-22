@@ -24,6 +24,7 @@ const sectionConfig: { title: string; items: NavItem[] }[] = [
       { label: "nav.panchanga", href: "/panchanga" },
       { label: "nav.festivals", href: "/festivals" },
       { label: "nav.gallery", href: "/gallery" },
+      { label: "nav.hallBooking", href: "/hall-booking" },
       { label: "nav.contact", href: "/contact" },
       { label: "nav.donate", href: "/donate" },
     ],

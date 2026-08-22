@@ -313,7 +313,7 @@ export default function HallDetailPage({ params }: { params: Promise<{ slug: str
               <AnimatedSection delay={0.12}>
                 <Card variant="elevated" className="p-6 lg:p-8">
                   <h2 className="text-xl font-heading font-bold text-primary mb-5">Availability Calendar</h2>
-                  <AvailabilityCalendar />
+                  <AvailabilityCalendar hallSlug={hall.slug} />
                 </Card>
               </AnimatedSection>
             </div>

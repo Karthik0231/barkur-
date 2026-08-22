@@ -48,6 +48,7 @@ export const navItems: NavItem[] = [
   },
   { label: "nav.festivals", href: "/festivals" },
   { label: "nav.gallery", href: "/gallery" },
+  { label: "nav.hallBooking", href: "/hall-booking" },
   { label: "nav.contact", href: "/contact" },
 ]
 

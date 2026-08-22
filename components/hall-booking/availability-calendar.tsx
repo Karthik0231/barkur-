@@ -1,28 +1,62 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { addDays, subDays, startOfMonth, endOfMonth, isBefore, isAfter } from "date-fns"
+import { useState, useMemo, useEffect } from "react"
+import { addDays, startOfMonth, endOfMonth, isBefore } from "date-fns"
 import { Calendar } from "@/components/ui/calendar"
-import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
 interface AvailabilityCalendarProps {
   className?: string
   onDateSelect?: (date: Date) => void
   selectedDate?: Date
+  hallSlug?: string
 }
 
 export function AvailabilityCalendar({
   className,
   onDateSelect,
   selectedDate: externalSelected,
+  hallSlug,
 }: AvailabilityCalendarProps) {
   const [internalSelected, setInternalSelected] = useState<Date | undefined>(undefined)
   const selected = externalSelected ?? internalSelected
+  const [bookedDatesFromApi, setBookedDatesFromApi] = useState<Date[]>([])
 
   const today = new Date()
   const minDate = today
   const maxDate = addDays(today, 180)
+
+  // Fetch real booked dates from the API if hallSlug is provided
+  useEffect(() => {
+    if (!hallSlug) return
+    async function fetchBookedDates() {
+      try {
+        const res = await fetch(`/api/hall-bookings?limit=100`)
+        const json = await res.json()
+        if (!json?.success) return
+        const bookings = json?.data?.bookings || []
+        const dates: Date[] = []
+        for (const b of bookings) {
+          if (b.bookingStatus === "CANCELLED") continue
+          if (b.hall?.slug !== hallSlug) continue
+          if (b.bookingDate) dates.push(new Date(b.bookingDate))
+          if (b.startTime && b.endTime) {
+            const start = new Date(b.startTime)
+            const end = new Date(b.endTime)
+            let d = new Date(start)
+            while (d <= end) {
+              dates.push(new Date(d))
+              d = addDays(d, 1)
+            }
+          }
+        }
+        setBookedDatesFromApi(dates)
+      } catch {
+        // Silently fail - calendar will show no booked dates
+      }
+    }
+    fetchBookedDates()
+  }, [hallSlug])
 
   const { unavailableDates, bookedDates, partiallyAvailable } = useMemo(() => {
     const unavailable: Date[] = []
@@ -32,23 +66,27 @@ export function AvailabilityCalendar({
     const currentDate = startOfMonth(today)
     const endDate = endOfMonth(addDays(today, 180))
 
+    // Sundays are always unavailable
     let d = new Date(currentDate)
     while (isBefore(d, endDate) || d.getTime() === endDate.getTime()) {
-      const day = d.getDay()
-      if (day === 0) {
+      if (d.getDay() === 0) {
         unavailable.push(new Date(d))
-      }
-      if (day === 6 && d.getDate() % 2 === 0) {
-        booked.push(new Date(d))
-      }
-      if (day === 2 && d.getDate() % 3 === 0) {
-        partial.push(new Date(d))
       }
       d = addDays(d, 1)
     }
 
+    // Add real booked dates from the API
+    for (const bd of bookedDatesFromApi) {
+      const dateStr = bd.toDateString()
+      if (!unavailable.some(u => u.toDateString() === dateStr)) {
+        if (!booked.some(b => b.toDateString() === dateStr)) {
+          booked.push(new Date(bd))
+        }
+      }
+    }
+
     return { unavailableDates: unavailable, bookedDates: booked, partiallyAvailable: partial }
-  }, [today])
+  }, [today, bookedDatesFromApi])
 
   const handleSelect = (date: Date) => {
     setInternalSelected(date)
