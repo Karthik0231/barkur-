@@ -743,6 +743,34 @@ export interface TranslationData {
       filterSpiritualTalks: string
       hallBookingS1Title: string
       hallBookingS1Sub: string
+      hallBookingFormTitle: string
+      hallBookingFormSub: string
+      hallBookingSelectHall: string
+      hallBookingFrontHall: string
+      hallBookingBackHall: string
+      hallBookingFrontHallDesc: string
+      hallBookingBackHallDesc: string
+      hallBookingEventName: string
+      hallBookingEventNamePlaceholder: string
+      hallBookingSelectDate: string
+      hallBookingSelectTime: string
+      hallBookingStartTime: string
+      hallBookingEndTime: string
+      hallBookingGuests: string
+      hallBookingGuestsPlaceholder: string
+      hallBookingYourName: string
+      hallBookingPhone: string
+      hallBookingEmail: string
+      hallBookingSpecialRequests: string
+      hallBookingSpecialRequestsPlaceholder: string
+      hallBookingSubmit: string
+      hallBookingSubmitting: string
+      hallBookingSubmitted: string
+      hallBookingSubmittedDesc: string
+      hallBookingViewBookings: string
+      hallBookingBookAnother: string
+      hallBookingFrontHallImages: string
+      hallBookingBackHallImages: string
       panchangaCalendarTitle: string
       panchangaCalendarSub: string
       panchangaFestivalsTitle: string
@@ -1583,6 +1611,34 @@ const translations: Record<string, TranslationData> = {
       filterSpiritualTalks: "ಆಧ್ಯಾತ್ಮಿಕ ಭಾಷಣಗಳು",
       hallBookingS1Title: "ಲಭ್ಯವಿರುವ ಸಭಾಂಗಣಗಳು",
       hallBookingS1Sub: "ಪ್ರತಿಯೊಂದು ಸಭಾಂಗಣವನ್ನು ಸಾಂಪ್ರದಾಯಿಕ ಮೌಲ್ಯಗಳು ಮತ್ತು ಆಧುನಿಕ ಸೌಕರ್ಯಗಳೊಂದಿಗೆ ನಿರ್ವಹಿಸಲಾಗಿದೆ.",
+      hallBookingFormTitle: "ಕಾರ್ಯಕ್ರಮ ವಿವರಗಳು",
+      hallBookingFormSub: "ನಿಮ್ಮ ಕಾರ್ಯಕ್ರಮದ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ",
+      hallBookingSelectHall: "ಸಭಾಂಗಣ ಆಯ್ಕೆಮಾಡಿ",
+      hallBookingFrontHall: "ಒಳಗಿನ ಸಭಾಂಗಣ",
+      hallBookingBackHall: "ಹಿಂಭಾಗದ ಸಭಾಂಗಣ",
+      hallBookingFrontHallDesc: "ದೇವಸ್ಥಾನದ ಒಳಗಿನ ಪವಿತ್ರ ಸಭಾಂಗಣ",
+      hallBookingBackHallDesc: "ದೇವಸ್ಥಾನದ ಹಿಂಭಾಗದ ಸಭಾಂಗಣ",
+      hallBookingEventName: "ಕಾರ್ಯಕ್ರಮದ ಹೆಸರು",
+      hallBookingEventNamePlaceholder: "ಉದಾ: ವಿವಾಹ ಸಮಾರಂಭ",
+      hallBookingSelectDate: "ದಿನಾಂಕ ಆಯ್ಕೆಮಾಡಿ",
+      hallBookingSelectTime: "ಸಮಯ ಆಯ್ಕೆಮಾಡಿ",
+      hallBookingStartTime: "ಪ್ರಾರಂಭ ಸಮಯ",
+      hallBookingEndTime: "ಮುಕ್ತಾಯ ಸಮಯ",
+      hallBookingGuests: "ನಿರೀಕ್ಷಿತ ಅತಿಥಿಗಳು",
+      hallBookingGuestsPlaceholder: "ಉದಾ: 200",
+      hallBookingYourName: "ನಿಮ್ಮ ಹೆಸರು",
+      hallBookingPhone: "ದೂರವಾಣಿ",
+      hallBookingEmail: "ಇಮೇಲ್",
+      hallBookingSpecialRequests: "ವಿಶೇಷ ವಿನಂತಿಗಳು (ಐಚ್ಛಿಕ)",
+      hallBookingSpecialRequestsPlaceholder: "ಯಾವುದೇ ವಿಶೇಷ ಅಗತ್ಯಗಳು...",
+      hallBookingSubmit: "ಬುಕಿಂಗ್ ವಿನಂತಿ ಸಲ್ಲಿಸಿ",
+      hallBookingSubmitting: "ಸಲ್ಲಿಸಲಾಗುತ್ತಿದೆ...",
+      hallBookingSubmitted: "ಬುಕಿಂಗ್ ವಿನಂತಿ ಸಲ್ಲಿಸಲಾಗಿದೆ!",
+      hallBookingSubmittedDesc: "ನಿಮ್ಮ ಸಭಾಂಗಣ ಬುಕಿಂಗ್ ವಿನಂತಿಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ. ನಮ್ಮ ತಂಡವು ಶೀಘ್ರದಲ್ಲೇ ಪರಿಶೀಲಿಸಿ ದೃಢೀಕರಿಸುತ್ತದೆ.",
+      hallBookingViewBookings: "ನನ್ನ ಬುಕಿಂಗ್‌ಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
+      hallBookingBookAnother: "ಮತ್ತೊಂದು ಸಭಾಂಗಣ ಬುಕ್ ಮಾಡಿ",
+      hallBookingFrontHallImages: "ಒಳಗಿನ ಸಭಾಂಗಣ ಚಿತ್ರಗಳು",
+      hallBookingBackHallImages: "ಹಿಂಭಾಗದ ಸಭಾಂಗಣ ಚಿತ್ರಗಳು",
       panchangaCalendarTitle: "ಮಾಸಿಕ ಕ್ಯಾಲೆಂಡರ್",
       panchangaCalendarSub: "ಹಿಂದೂ ಕ್ಯಾಲೆಂಡರ್ ತಿಂಗಳುಗಳ ಮೂಲಕ ನ್ಯಾವಿಗೇಟ್ ಮಾಡಿ. ಪ್ರತಿ ದಿನವೂ ತಿಥಿ ಮತ್ತು ನಕ್ಷತ್ರವನ್ನು ತೋರಿಸುತ್ತದೆ.",
       panchangaFestivalsTitle: "ಮುಂಬರುವ ಹಬ್ಬಗಳು",
@@ -2421,6 +2477,34 @@ const translations: Record<string, TranslationData> = {
       filterSpiritualTalks: "Spiritual Talks",
       hallBookingS1Title: "Available Halls",
       hallBookingS1Sub: "Each hall is maintained with traditional values and modern amenities to make your event memorable.",
+      hallBookingFormTitle: "Event Details",
+      hallBookingFormSub: "Fill in your event details below",
+      hallBookingSelectHall: "Select Hall",
+      hallBookingFrontHall: "Inside Temple Hall",
+      hallBookingBackHall: "Back Side Hall",
+      hallBookingFrontHallDesc: "Sacred hall inside the temple premises",
+      hallBookingBackHallDesc: "Hall at the back of the temple",
+      hallBookingEventName: "Event Name",
+      hallBookingEventNamePlaceholder: "e.g., Wedding Reception",
+      hallBookingSelectDate: "Select Date",
+      hallBookingSelectTime: "Select Time",
+      hallBookingStartTime: "Start Time",
+      hallBookingEndTime: "End Time",
+      hallBookingGuests: "Expected Guests",
+      hallBookingGuestsPlaceholder: "e.g., 200",
+      hallBookingYourName: "Your Name",
+      hallBookingPhone: "Phone",
+      hallBookingEmail: "Email",
+      hallBookingSpecialRequests: "Special Requests (Optional)",
+      hallBookingSpecialRequestsPlaceholder: "Any special requirements...",
+      hallBookingSubmit: "Submit Booking Request",
+      hallBookingSubmitting: "Submitting...",
+      hallBookingSubmitted: "Booking Request Submitted!",
+      hallBookingSubmittedDesc: "Your hall booking request has been submitted successfully. Our team will review and confirm your booking shortly.",
+      hallBookingViewBookings: "View My Bookings",
+      hallBookingBookAnother: "Book Another Hall",
+      hallBookingFrontHallImages: "Inside Temple Hall Photos",
+      hallBookingBackHallImages: "Back Side Hall Photos",
       panchangaCalendarTitle: "Monthly Calendar",
       panchangaCalendarSub: "Navigate through the Hindu calendar months. Each day shows tithi and nakshatra.",
       panchangaFestivalsTitle: "Upcoming Festivals",

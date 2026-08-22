@@ -26,20 +26,20 @@ export function AvailabilityCalendar({
   const minDate = today
   const maxDate = addDays(today, 180)
 
-  // Fetch real booked dates from the API if hallSlug is provided
+  // Fetch real booked dates from the public availability API
   useEffect(() => {
-    if (!hallSlug) return
     async function fetchBookedDates() {
       try {
-        const res = await fetch(`/api/hall-bookings?limit=100`)
+        const url = hallSlug
+          ? `/api/hall-availability?hallSlug=${encodeURIComponent(hallSlug)}`
+          : `/api/hall-availability`
+        const res = await fetch(url)
         const json = await res.json()
         if (!json?.success) return
-        const bookings = json?.data?.bookings || []
+        const booked = json?.data?.bookedDates || []
         const dates: Date[] = []
-        for (const b of bookings) {
-          if (b.bookingStatus === "CANCELLED") continue
-          if (b.hall?.slug !== hallSlug) continue
-          if (b.bookingDate) dates.push(new Date(b.bookingDate))
+        for (const b of booked) {
+          if (b.date) dates.push(new Date(b.date))
           if (b.startTime && b.endTime) {
             const start = new Date(b.startTime)
             const end = new Date(b.endTime)
@@ -75,13 +75,11 @@ export function AvailabilityCalendar({
       d = addDays(d, 1)
     }
 
-    // Add real booked dates from the API
+    // Add real booked dates from the API — these are UNAVAILABLE (blocked)
     for (const bd of bookedDatesFromApi) {
       const dateStr = bd.toDateString()
       if (!unavailable.some(u => u.toDateString() === dateStr)) {
-        if (!booked.some(b => b.toDateString() === dateStr)) {
-          booked.push(new Date(bd))
-        }
+        unavailable.push(new Date(bd))
       }
     }
 
