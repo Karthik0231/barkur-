@@ -6,7 +6,7 @@ import { Download, TrendingUp, Calendar, IndianRupee, PieChart as PieChartIcon }
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { StatsCard } from "@/components/admin/stats-card"
-import { formatPrice } from "@/lib/utils"
+import { formatPrice, cn } from "@/lib/utils"
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -137,6 +137,3 @@ export default function DonationReportsPage() {
   )
 }
 
-function cn(...inputs: unknown[]) {
-  return inputs.filter(Boolean).join(" ")
-}

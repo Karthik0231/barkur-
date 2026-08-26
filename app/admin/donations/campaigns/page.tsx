@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { StatusBadge } from "@/components/admin/status-badge"
-import { formatPrice } from "@/lib/utils"
+import { formatPrice, cn } from "@/lib/utils"
 import {
   Dialog,
   DialogContent,
@@ -256,9 +256,6 @@ export default function CampaignsPage() {
   )
 }
 
-function cn(...inputs: unknown[]) {
-  return inputs.filter(Boolean).join(" ")
-}
 
 
 

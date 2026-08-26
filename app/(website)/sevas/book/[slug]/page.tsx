@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { ChevronRight, CreditCard, CheckCircle, Shield, IndianRupee, Loader2 } from "lucide-react"
+import { ChevronRight, CreditCard, CheckCircle, Shield, IndianRupee } from "lucide-react"
 import { BookingWizard, type WizardStep } from "@/components/booking/booking-wizard"
 import { BookingSummary } from "@/components/booking/booking-summary"
 import { DateTimePicker } from "@/components/booking/date-time-picker"
@@ -14,17 +14,23 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useTranslation } from "@/lib/i18n"
 import { cn, formatPrice } from "@/lib/utils"
+import { findSevaBySlug } from "@/lib/data/sevas"
 
 export default function BookSevaPage() {
   const params = useParams()
   const router = useRouter()
-  const { t } = useTranslation()
+  const { t, language } = useTranslation()
   const slug = params.slug as string
 
-  const [seva, setSeva] = useState<any>(null)
-  const [loadingSeva, setLoadingSeva] = useState(true)
+  const sevaData = findSevaBySlug(slug)
+  const seva = sevaData ? {
+    ...sevaData,
+    id: sevaData.id,
+    name: typeof sevaData.name === "object" ? sevaData.name[language as "kn" | "en"] || sevaData.name.en : sevaData.name,
+    description: typeof sevaData.description === "object" ? sevaData.description[language as "kn" | "en"] || sevaData.description.en : sevaData.description,
+  } : null
+
   const [selectedDate, setSelectedDate] = useState<Date | undefined>()
-  const [selectedTime, setSelectedTime] = useState("")
   const [quantity, setQuantity] = useState(1)
   const [devoteeData, setDevoteeData] = useState({
     name: "", gotra: "", nakshatra: "", rashi: "",
@@ -36,20 +42,6 @@ export default function BookSevaPage() {
   const [paymentDialog, setPaymentDialog] = useState(false)
   const [razorpayOrder, setRazorpayOrder] = useState<any>(null)
   const [createdBookingId, setCreatedBookingId] = useState("")
-
-  useEffect(() => {
-    fetch(`/api/sevas/${slug}`)
-      .then((r) => r.json())
-      .then((res) => { if (res.success) setSeva(res.data) })
-      .catch(console.error)
-      .finally(() => setLoadingSeva(false))
-  }, [slug])
-
-  if (loadingSeva) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-    </div>
-  )
 
   if (!seva) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -71,7 +63,6 @@ export default function BookSevaPage() {
           sevaId: seva.id,
           quantity,
           preferredDate: selectedDate?.toISOString(),
-          preferredTime: selectedTime,
           devoteeName: devoteeData.name,
           gotra: devoteeData.gotra || undefined,
           nakshatra: devoteeData.nakshatra || undefined,
@@ -114,28 +105,14 @@ export default function BookSevaPage() {
     router.push(`/sevas/book/${slug}/success?bookingId=${createdBookingId}`)
   }
 
-  const handlePayError = () => {
-    setRazorpayOrder(null)
-    setPayError("Payment was cancelled or failed. Please try again.")
-  }
-
   const dateStr = selectedDate
     ? selectedDate.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
     : t("booking.notSelected")
 
-  const timeStr = selectedTime || t("booking.notSelected")
-
   const canProceed = Boolean(
-    selectedDate &&
-    selectedTime &&
-    quantity >= 1 &&
-    devoteeData.name &&
-    devoteeData.phone &&
-    devoteeData.email &&
-    devoteeData.address &&
-    devoteeData.state &&
-    devoteeData.district &&
-    devoteeData.pincode
+    selectedDate && quantity >= 1 &&
+    devoteeData.name && devoteeData.phone && devoteeData.email &&
+    devoteeData.address && devoteeData.state && devoteeData.district && devoteeData.pincode
   )
 
   const price = Number(seva.price)
@@ -144,13 +121,11 @@ export default function BookSevaPage() {
   const steps: WizardStep[] = [
     {
       id: "date-time",
-      title: t("booking.dateTime"),
+      title: t("booking.selectDate"),
       content: (
         <DateTimePicker
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
-          selectedTime={selectedTime}
-          onSelectTime={setSelectedTime}
           minDate={new Date()}
           quantity={quantity}
           onQuantityChange={setQuantity}
@@ -216,12 +191,12 @@ export default function BookSevaPage() {
                 <p className="font-semibold text-text-primary">{dateStr}</p>
               </div>
               <div className="p-4 rounded-xl bg-bg-secondary border border-border/50">
-                <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("booking.timeLabel")}</p>
-                <p className="font-semibold text-text-primary">{timeStr}</p>
-              </div>
-              <div className="p-4 rounded-xl bg-bg-secondary border border-border/50">
                 <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("booking.quantityLabel")}</p>
                 <p className="font-semibold text-text-primary">{quantity}</p>
+              </div>
+              <div className="p-4 rounded-xl bg-bg-secondary border border-border/50">
+                <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("booking.total")}</p>
+                <p className="font-semibold text-primary">₹{grandTotal.toLocaleString("en-IN")}</p>
               </div>
             </div>
             <div className="p-4 rounded-xl bg-bg-secondary border border-border/50">
@@ -229,18 +204,6 @@ export default function BookSevaPage() {
               <p className="font-semibold text-text-primary">{devoteeData.name}</p>
               <p className="text-sm text-text-secondary">{devoteeData.phone} &middot; {devoteeData.email}</p>
             </div>
-            {devoteeData.gotra && (
-              <div className="p-4 rounded-xl bg-bg-secondary border border-border/50">
-                <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("booking.gotraNakshatraRashi")}</p>
-                <p className="font-semibold text-text-primary">{[devoteeData.gotra, devoteeData.nakshatra, devoteeData.rashi].filter(Boolean).join(" | ")}</p>
-              </div>
-            )}
-            {instructions && (
-              <div className="p-4 rounded-xl bg-bg-secondary border border-border/50">
-                <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("booking.specialInstructions")}</p>
-                <p className="text-sm text-text-secondary">{instructions}</p>
-              </div>
-            )}
             <div className="pt-4">
               <Button variant="premium" size="xl" className="w-full" onClick={() => setPaymentDialog(true)} iconRight={<IndianRupee className="h-4 w-4" />}>
                 {t("booking.payNow")} {grandTotal.toLocaleString("en-IN")}
@@ -290,7 +253,7 @@ export default function BookSevaPage() {
               <BookingWizard steps={steps} onComplete={() => setPaymentDialog(true)} canProceed={canProceed} />
             </div>
             <div className="hidden lg:block">
-              <BookingSummary sevaName={seva.name} date={selectedDate ? formatSevaDate(selectedDate) : t("booking.notSelected")} time={timeStr} quantity={quantity} price={price} />
+              <BookingSummary sevaName={seva.name} date={selectedDate ? formatSevaDate(selectedDate) : t("booking.notSelected")} quantity={quantity} price={price} />
             </div>
           </div>
         </div>
@@ -303,7 +266,6 @@ export default function BookSevaPage() {
             <div className="p-4 rounded-xl bg-bg-secondary space-y-2">
               <div className="flex justify-between text-sm"><span className="text-text-muted">{t("booking.seva")}</span><span className="font-medium text-text-primary">{seva.name}</span></div>
               <div className="flex justify-between text-sm"><span className="text-text-muted">{t("booking.dateLabel")}</span><span className="font-medium text-text-primary">{selectedDate ? formatSevaDate(selectedDate) : "-"}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-text-muted">{t("booking.timeLabel")}</span><span className="font-medium text-text-primary">{timeStr}</span></div>
               <div className="flex justify-between text-sm"><span className="text-text-muted">{t("booking.quantityLabel")}</span><span className="font-medium text-text-primary">{quantity}</span></div>
               <div className="border-t border-border pt-2 mt-2"><div className="flex justify-between"><span className="font-bold text-text-primary">{t("booking.total")}</span><span className="font-bold text-primary text-lg">₹{grandTotal.toLocaleString("en-IN")}</span></div></div>
             </div>
@@ -316,7 +278,7 @@ export default function BookSevaPage() {
                 description={seva.name}
                 prefill={{ name: devoteeData.name, email: devoteeData.email, contact: devoteeData.phone }}
                 onSuccess={handlePaySuccess}
-                onError={handlePayError}
+                onError={() => { setRazorpayOrder(null); setPayError("Payment failed. Please try again.") }}
               />
             ) : (
               <Button variant="premium" size="lg" className="w-full" onClick={handleCreateOrder} loading={payLoading}>

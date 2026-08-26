@@ -1,6 +1,6 @@
 "use client"
 
-import { IndianRupee, Calendar, Clock, User, MapPin } from "lucide-react"
+import { IndianRupee, Calendar, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface SummaryItem {
@@ -14,13 +14,12 @@ interface BookingSummaryProps {
   items?: SummaryItem[]
   sevaName?: string
   date: string
-  time: string
   quantity?: number
   price?: number
   className?: string
 }
 
-export function BookingSummary({ items, sevaName, date, time, quantity, price, className }: BookingSummaryProps) {
+export function BookingSummary({ items, sevaName, date, quantity, price, className }: BookingSummaryProps) {
   const displayItems: SummaryItem[] = items && items.length > 0
     ? items
     : sevaName !== undefined && quantity !== undefined && price !== undefined
@@ -64,13 +63,6 @@ export function BookingSummary({ items, sevaName, date, time, quantity, price, c
                 <span>Date</span>
               </div>
               <span className="font-medium text-text-primary">{date}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2 text-text-muted">
-                <Clock className="h-3.5 w-3.5" />
-                <span>Time</span>
-              </div>
-              <span className="font-medium text-text-primary">{time}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2 text-text-muted">

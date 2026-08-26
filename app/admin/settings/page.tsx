@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Save, Building2, Clock, Mail, Palette, CreditCard, Search, Globe, Phone, MapPin } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -107,8 +108,8 @@ export default function SettingsPage() {
     ;(async () => {
       try {
         const res = await fetch("/api/settings")
-        const data = await res.json()
-        const list = data.settings || []
+        const json = await res.json()
+        const list = json.data?.settings ?? json.settings ?? []
         setSettingsList(list)
         const flat: Record<string, string> = {}
         list.forEach((s: { key: string; value: string }) => { flat[s.key] = s.value })
@@ -207,6 +208,4 @@ export default function SettingsPage() {
   )
 }
 
-function cn(...inputs: unknown[]) {
-  return inputs.filter(Boolean).join(" ")
-}
+

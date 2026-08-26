@@ -17,28 +17,14 @@ import {
   startOfDay,
 } from "date-fns"
 import { motion, AnimatePresence } from "framer-motion"
-import { ChevronLeft, ChevronRight, Clock, CalendarDays } from "lucide-react"
+import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
-const defaultTimeSlots = [
-  { id: "6-7", label: "6:00 AM - 7:00 AM", available: true },
-  { id: "7-8", label: "7:00 AM - 8:00 AM", available: true },
-  { id: "8-9", label: "8:00 AM - 9:00 AM", available: false },
-  { id: "9-10", label: "9:00 AM - 10:00 AM", available: true },
-  { id: "10-11", label: "10:00 AM - 11:00 AM", available: true },
-  { id: "11-12", label: "11:00 AM - 12:00 PM", available: false },
-  { id: "4-5", label: "4:00 PM - 5:00 PM", available: true },
-  { id: "5-6", label: "5:00 PM - 6:00 PM", available: true },
-  { id: "6-7", label: "6:00 PM - 7:00 PM", available: false },
-]
-
 export interface DateTimePickerProps {
   selectedDate?: Date
   onSelectDate: (date: Date) => void
-  selectedTime?: string
-  onSelectTime: (timeId: string) => void
   minDate?: Date
   maxDate?: Date
   unavailableDates?: Date[]
@@ -55,8 +41,6 @@ function toDateKey(d: Date) {
 export function DateTimePicker({
   selectedDate,
   onSelectDate,
-  selectedTime,
-  onSelectTime,
   minDate,
   maxDate,
   unavailableDates = [],
@@ -110,15 +94,10 @@ export function DateTimePicker({
     [onSelectDate, unavailableSet, minDate, maxDate],
   )
 
-  const availableSlots = useMemo(
-    () => defaultTimeSlots.filter((s) => s.available),
-    [],
-  )
-
   const selectedKey = selectedDate ? toDateKey(selectedDate) : null
 
   return (
-    <div className={cn("space-y-8", className)}>
+    <div className={cn("space-y-6", className)}>
       {/* Calendar */}
       <div>
         <div className="flex items-center gap-2 mb-5">
@@ -228,53 +207,8 @@ export function DateTimePicker({
         )}
       </div>
 
-      {/* Time Slots */}
+      {/* Quantity - shows after date selected */}
       {selectedDate && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <Clock className="h-5 w-5 text-primary" />
-            <h3 className="text-base font-heading font-bold text-text-primary">Select Time Slot</h3>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            {defaultTimeSlots.map((slot) => (
-              <button
-                key={slot.id}
-                type="button"
-                onClick={() => slot.available && onSelectTime(slot.id)}
-                disabled={!slot.available}
-                className={cn(
-                  "relative px-4 py-3 rounded-xl text-sm font-medium transition-all border",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary",
-                  selectedTime === slot.id
-                    ? "border-primary bg-primary text-warm-white shadow-md shadow-primary/20 scale-[1.02]"
-                    : slot.available
-                    ? "border-border bg-warm-white text-text-primary hover:border-secondary hover:shadow-sm hover:scale-[1.02]"
-                    : "border-border/50 bg-bg-tertiary/30 text-text-muted/40 cursor-not-allowed line-through",
-                )}
-              >
-                {slot.label}
-                {slot.available && (
-                  <span className={cn(
-                    "absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full",
-                    selectedTime === slot.id ? "bg-warm-white" : "bg-success",
-                  )} />
-                )}
-              </button>
-            ))}
-          </div>
-          <p className="text-xs text-text-muted mt-2">
-            {availableSlots.length} slots available
-          </p>
-        </motion.div>
-      )}
-
-      {/* Quantity */}
-      {selectedDate && selectedTime && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}

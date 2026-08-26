@@ -1,0 +1,44 @@
+[
+  {
+    "id": "sh-001",
+    "slug": "nitya-pooja",
+    "type": "NITYA_POOJA",
+    "name": { "kn": "ಶಾಶ್ವತ ನಿತ್ಯಪೂಜೆ", "en": "Shashwatha Nitya Pooja" },
+    "description": { "kn": "ವರ್ಷಕ್ಕೊಮ್ಮೆ (1 ದಿನ) ನಿತ್ಯಪೂಜೆಯನ್ನು ಶಾಶ್ವತವಾಗಿ ಪ್ರತಿ ವರ್ಷ ನಡೆಸಲಾಗುತ್ತದೆ. ನಿಮ್ಮ ಹೆಸರಿನಲ್ಲಿ ಪ್ರತಿ ವರ್ಷ ಈ ದಿನದಂದು ಪೂಜೆ ನಡೆಯುತ್ತದೆ.", "en": "Annual permanent pooja done once a year on a chosen day. The pooja is performed every year on that day in your name." },
+    "price": 2500,
+    "duration": 90,
+    "featured": false,
+    "features": {
+      "kn": ["ವಾರ್ಷಿಕ ನಿತ್ಯಪೂಜೆ", "ಹೆಸರಿನಲ್ಲಿ ಅರ್ಚನೆ", "ಪ್ರಸಾದ ಕಳುಹಿಸುವಿಕೆ"],
+      "en": ["Annual nitya pooja", "Archana in your name", "Prasada delivery"]
+    }
+  },
+  {
+    "id": "sh-002",
+    "slug": "navaratri-pooja",
+    "type": "NAVARATRI",
+    "name": { "kn": "ಶಾಶ್ವತ ನವರಾತ್ರಿ ಪೂಜೆ", "en": "Shashwatha Navaratri Pooja" },
+    "description": { "kn": "ನವರಾತ್ರಿಯ 10 ದಿನಗಳಲ್ಲಿ 1 ದಿನವನ್ನು ಆಯ್ಕೆಮಾಡಿ (ನಿಮ್ಮ ನಕ್ಷತ್ರದ ದಿನ ಸೂಚಿಸಲಾಗಿದೆ). ಪ್ರತಿ ವರ್ಷ ಆ ದಿನದಂದು ಶಾಶ್ವತ ಪೂಜೆ ನಡೆಯುತ್ತದೆ.", "en": "Choose 1 day out of 10 days of Navaratri (your nakshatra day is suggested). Every year on that day, a permanent pooja is performed." },
+    "price": 5000,
+    "duration": 120,
+    "featured": true,
+    "features": {
+      "kn": ["10 ದಿನಗಳಲ್ಲಿ 1 ದಿನ ಆಯ್ಕೆ", "ನಕ್ಷತ್ರ ಆಧಾರಿತ ಸೂಚನೆ", "ಪ್ರತಿ ವರ್ಷ ಶಾಶ್ವತ ಪೂಜೆ"],
+      "en": ["Choose 1 day from 10 days", "Nakshatra-based suggestion", "Permanent pooja every year"]
+    }
+  },
+  {
+    "id": "sh-003",
+    "slug": "sonarathi-pooja",
+    "type": "SONARATHI",
+    "name": { "kn": "ಶಾಶ್ವತ ಸೋನಾರತಿ ಪೂಜೆ", "en": "Shashwatha Sonarathi Pooja" },
+    "description": { "kn": "ಸಿಂಹ ಮಾಸದಲ್ಲಿ (1-30 ದಿನಗಳಲ್ಲಿ) ಯಾವುದೇ ದಿನ ಆಯ್ಕೆಮಾಡಿ. ಪ್ರತಿ ವರ್ಷ ಆ ದಿನದಂದು ಶಾಶ್ವತ ಸೋನಾರತಿ ಪೂಜೆ ನಡೆಯುತ್ತದೆ.", "en": "Choose any day from the 30 days of Simha Masa (Lion Month). Every year, the permanent Sonarathi pooja is performed on that day." },
+    "price": 7500,
+    "duration": 150,
+    "featured": false,
+    "features": {
+      "kn": ["ಸಿಂಹ ಮಾಸದ 30 ದಿನಗಳಲ್ಲಿ ಆಯ್ಕೆ", "ಯಾವುದೇ ದಿನ ಆರಿಸಬಹುದು", "ಪ್ರತಿ ವರ್ಷ ಶಾಶ್ವತ ಪೂಜೆ"],
+      "en": ["Choose from 30 days of Simha Masa", "Pick any day you prefer", "Permanent pooja every year"]
+    }
+  }
+]

@@ -53,13 +53,6 @@ const navGroups: { group: string; items: NavItem[]; roles?: string[] }[] = [
     items: [
       { label: "All Bookings", href: "/admin/bookings", icon: CalendarCheck },
       { label: "Hall Booking", href: "/admin/hall-booking", icon: Building2 },
-      { label: "Shashwatha", href: "/admin/shashwatha", icon: ScrollText },
-    ],
-  },
-  {
-    group: "Sevas",
-    items: [
-      { label: "Sevas", href: "/admin/sevas", icon: Flower2 },
     ],
   },
   {

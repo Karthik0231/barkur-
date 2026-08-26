@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { DataTable, type Column } from "@/components/admin/data-table"
-import { formatDateTime } from "@/lib/utils"
+import { formatDateTime, cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import toast from "react-hot-toast"
 
@@ -16,7 +16,7 @@ interface AuditLog {
   action: string
   entity: string
   entityId: string
-  user: string
+  user: string | { id?: string; name?: string; email?: string } | null
   userId: string
   metadata: string
   ipAddress: string
@@ -44,15 +44,17 @@ export default function AuditLogsPage() {
     ;(async () => {
       try {
         const res = await fetch("/api/audit-logs")
-        const data = await res.json()
-        setLogs(data.auditLogs || data.logs || [])
+        const json = await res.json()
+        const logData = json.data?.logs ?? json.auditLogs ?? json.logs ?? []
+        setLogs(Array.isArray(logData) ? logData : [])
       } catch { toast.error("Failed to load audit logs") }
       finally { setLoading(false) }
     })()
   }, [])
 
   const filtered = logs.filter((log) => {
-    const matchSearch = !search || log.user.toLowerCase().includes(search.toLowerCase()) || log.entity.toLowerCase().includes(search.toLowerCase()) || log.entityId.toLowerCase().includes(search.toLowerCase())
+    const userName = typeof log.user === 'object' && log.user ? (log.user.name ?? '') : (typeof log.user === 'string' ? log.user : '')
+    const matchSearch = !search || userName.toLowerCase().includes(search.toLowerCase()) || log.entity.toLowerCase().includes(search.toLowerCase()) || log.entityId.toLowerCase().includes(search.toLowerCase())
     const matchAction = !actionFilter || log.action === actionFilter
     return matchSearch && matchAction
   })
@@ -83,7 +85,7 @@ export default function AuditLogsPage() {
       key: "user",
       header: "User",
       sortable: true,
-      render: (item) => <span className="text-text-primary">{item.user}</span>,
+      render: (item) => <span className="text-text-primary">{typeof item.user === 'object' && item.user ? (item.user.name ?? '-') : (item.user ?? '-')}</span>,
     },
     {
       key: "metadata",

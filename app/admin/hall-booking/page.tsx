@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { StatusBadge } from "@/components/admin/status-badge"
 import { DataTable, type Column } from "@/components/admin/data-table"
 import { Calendar as CalendarView } from "@/components/ui/calendar"
-import { formatPrice } from "@/lib/utils"
+import { formatPrice, cn } from "@/lib/utils"
 import toast from "react-hot-toast"
 
 interface HallBooking {
@@ -145,4 +145,4 @@ export default function HallBookingPage() {
   )
 }
 
-function cn(...inputs: unknown[]) { return inputs.filter(Boolean).join(" ") }
+

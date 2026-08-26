@@ -38,7 +38,7 @@ import {
 } from "recharts"
 
 const quickActions = [
-  { label: "New Seva", href: "/admin/sevas/new", icon: Plus, color: "bg-primary text-warm-white" },
+  { label: "All Bookings", href: "/admin/bookings", icon: CalendarCheck, color: "bg-primary text-warm-white" },
   { label: "New User", href: "/admin/users", icon: Users, color: "bg-secondary text-dark-slate" },
   { label: "View Donations", href: "/admin/donations", icon: IndianRupee, color: "bg-amber-500 text-white" },
 ]

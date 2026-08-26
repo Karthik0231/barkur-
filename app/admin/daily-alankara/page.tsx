@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { motion } from "framer-motion"
-import { Plus, Trash2, Save, Calendar, Video, Users, FileText, Loader2, CheckCircle, AlertCircle, Edit2 } from "lucide-react"
+import { Plus, Trash2, Save, Calendar, Video, Users, Image, Loader2, Edit2, Upload, X as XIcon } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,6 +15,7 @@ interface AlankaraEntry {
   videoUrl: string
   specialNote: string
   partyNames: string[]
+  imageUrl: string | null
   isActive: boolean
   createdAt: string
 }
@@ -24,11 +25,14 @@ export default function DailyAlankaraAdmin() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [date, setDate] = useState(() => new Date().toISOString().split("T")[0])
   const [videoUrl, setVideoUrl] = useState("")
   const [specialNote, setSpecialNote] = useState("")
   const [partyNames, setPartyNames] = useState<string[]>([""])
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [isActive, setIsActive] = useState(true)
 
   const fetchEntries = useCallback(async () => {
@@ -54,6 +58,7 @@ export default function DailyAlankaraAdmin() {
     setVideoUrl("")
     setSpecialNote("")
     setPartyNames([""])
+    setImageUrl(null)
     setIsActive(true)
   }
 
@@ -63,7 +68,47 @@ export default function DailyAlankaraAdmin() {
     setVideoUrl(entry.videoUrl || "")
     setSpecialNote(entry.specialNote || "")
     setPartyNames(entry.partyNames.length > 0 ? [...entry.partyNames] : [""])
+    setImageUrl(entry.imageUrl || null)
     setIsActive(entry.isActive)
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file")
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5MB")
+      return
+    }
+
+    setUploadingImage(true)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("folder", "daily-alankara")
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+      const data = await res.json()
+
+      if (data.url) {
+        setImageUrl(data.url)
+        toast.success("Image uploaded!")
+      } else {
+        throw new Error(data.error || "Upload failed")
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to upload image")
+    } finally {
+      setUploadingImage(false)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+    }
   }
 
   const addPartyName = () => setPartyNames([...partyNames, ""])
@@ -88,6 +133,7 @@ export default function DailyAlankaraAdmin() {
         videoUrl: videoUrl.trim() || null,
         specialNote: specialNote.trim() || null,
         partyNames: partyNames.filter((n) => n.trim()),
+        imageUrl: imageUrl || null,
         isActive,
       }
 
@@ -131,7 +177,7 @@ export default function DailyAlankaraAdmin() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-heading font-bold text-text-primary">Daily Alankara & Seva</h1>
-        <p className="text-sm text-text-muted mt-1">Manage daily alankara video, special notes, and nitya pooja seva parties</p>
+        <p className="text-sm text-text-muted mt-1">Manage daily alankara images, video, special notes, and nitya pooja seva parties</p>
       </div>
 
       {/* Form */}
@@ -143,6 +189,43 @@ export default function DailyAlankaraAdmin() {
           <h2 className="text-lg font-heading font-bold text-text-primary">
             {editingId ? "Edit Entry" : "Add New Entry"}
           </h2>
+        </div>
+
+        {/* Image Upload */}
+        <div className="mb-6">
+          <label className="text-sm font-medium text-text-primary mb-2 block">Alankara Image</label>
+          {imageUrl ? (
+            <div className="relative inline-block">
+              <img src={imageUrl} alt="Alankara" className="w-48 h-32 object-cover rounded-xl border border-border" />
+              <button
+                onClick={() => setImageUrl(null)}
+                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors"
+              >
+                <XIcon className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="w-48 h-32 rounded-xl border-2 border-dashed border-border hover:border-primary/50 bg-bg-secondary/50 flex flex-col items-center justify-center cursor-pointer transition-all group"
+            >
+              {uploadingImage ? (
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              ) : (
+                <>
+                  <Upload className="h-6 w-6 text-text-muted group-hover:text-primary transition-colors" />
+                  <p className="text-xs text-text-muted mt-1">Click to upload</p>
+                </>
+              )}
+            </div>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="hidden"
+          />
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4 mb-6">
@@ -250,6 +333,9 @@ export default function DailyAlankaraAdmin() {
                 animate={{ opacity: 1, y: 0 }}
                 className="flex items-start gap-4 p-4 rounded-xl bg-bg-secondary/50 border border-border/50"
               >
+                {entry.imageUrl && (
+                  <img src={entry.imageUrl} alt="Alankara" className="w-20 h-16 object-cover rounded-lg shrink-0" />
+                )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-sm font-semibold text-text-primary">

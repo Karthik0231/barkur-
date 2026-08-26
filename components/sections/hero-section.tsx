@@ -155,13 +155,13 @@ export function HeroSection({ dailySchedules }: { dailySchedules: DailySchedule[
     fetch("/api/panchanga?today=true").then(r => r.json()).then(d => {
       const p = d.data?.panchanga || d.panchanga || d
       if (p.tithi) setPanchanga(p)
-    }).catch(() => {})
+    }).catch(() => { })
     fetch("/api/settings?group=temple").then(r => r.json()).then(d => {
       const s = d.data?.settings || d.settings || []
-      const morning = s.find((x: {key: string}) => x.key === "timings_morning")?.value
-      const evening = s.find((x: {key: string}) => x.key === "timings_evening")?.value
+      const morning = s.find((x: { key: string }) => x.key === "timings_morning")?.value
+      const evening = s.find((x: { key: string }) => x.key === "timings_evening")?.value
       if (morning || evening) setTimings({ morning: morning || timings.morning, evening: evening || timings.evening })
-    }).catch(() => {})
+    }).catch(() => { })
   }, [])
 
   useEffect(() => {
@@ -361,7 +361,7 @@ export function HeroSection({ dailySchedules }: { dailySchedules: DailySchedule[
         className="absolute bottom-0 inset-x-0 z-20 bg-[#150A12]/90 backdrop-blur-md border-t border-gold-300/15"
       >
         <ul className="container mx-auto flex items-stretch justify-around px-4">
-          {DOCK_ITEMS.map((item) => (
+          {/* {DOCK_ITEMS.map((item) => (
             <li key={item.href} className="flex-1">
               <Link
                 href={item.href}
@@ -371,7 +371,7 @@ export function HeroSection({ dailySchedules }: { dailySchedules: DailySchedule[
                 <span className="text-[10px] tracking-[0.08em] uppercase">{t(item.key)}</span>
               </Link>
             </li>
-          ))}
+          ))} */}
         </ul>
       </motion.nav>
     </section>
