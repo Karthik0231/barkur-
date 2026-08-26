@@ -99,7 +99,12 @@ export default function BookSevaPage() {
     await fetch("/api/payments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "verify", ...res }),
+      body: JSON.stringify({
+        action: "verify",
+        orderId: res.razorpay_order_id,
+        paymentId: res.razorpay_payment_id,
+        signature: res.razorpay_signature,
+      }),
     })
     setPaymentDialog(false)
     router.push(`/sevas/book/${slug}/success?bookingId=${createdBookingId}`)
@@ -109,11 +114,17 @@ export default function BookSevaPage() {
     ? selectedDate.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
     : t("booking.notSelected")
 
-  const canProceed = Boolean(
-    selectedDate && quantity >= 1 &&
-    devoteeData.name && devoteeData.phone && devoteeData.email &&
-    devoteeData.address && devoteeData.state && devoteeData.district && devoteeData.pincode
-  )
+  const stepCanProceed = [
+    // Step 0: Date + Quantity
+    Boolean(selectedDate && quantity >= 1),
+    // Step 1: Devotee details (required fields)
+    Boolean(devoteeData.name && devoteeData.phone && devoteeData.email &&
+      devoteeData.address && devoteeData.state && devoteeData.district && devoteeData.pincode),
+    // Step 2: Instructions (optional)
+    true,
+    // Step 3: Review
+    true,
+  ]
 
   const price = Number(seva.price)
   const grandTotal = price * quantity + Math.round(price * quantity * 0.18)
@@ -250,7 +261,7 @@ export default function BookSevaPage() {
 
           <div className="grid lg:grid-cols-[1fr_320px] gap-8">
             <div className="bg-warm-white rounded-2xl border border-gold-200/20 shadow-premium p-6 sm:p-8">
-              <BookingWizard steps={steps} onComplete={() => setPaymentDialog(true)} canProceed={canProceed} />
+              <BookingWizard steps={steps} onComplete={() => setPaymentDialog(true)} canProceed={stepCanProceed} />
             </div>
             <div className="hidden lg:block">
               <BookingSummary sevaName={seva.name} date={selectedDate ? formatSevaDate(selectedDate) : t("booking.notSelected")} quantity={quantity} price={price} />

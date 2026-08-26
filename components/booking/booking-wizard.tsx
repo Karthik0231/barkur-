@@ -6,6 +6,8 @@ import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
+import { useTranslation } from "@/lib/i18n"
+
 export interface WizardStep {
   id: string
   title: string
@@ -15,13 +17,21 @@ export interface WizardStep {
 export interface BookingWizardProps {
   steps: WizardStep[]
   onComplete: () => void
-  canProceed?: boolean
+  /** Boolean, array (one per step), or function returning per-step status */
+  canProceed?: boolean | boolean[] | ((step: number) => boolean)
   className?: string
 }
 
 export function BookingWizard({ steps, onComplete, canProceed = true, className }: BookingWizardProps) {
+  const { t } = useTranslation()
   const [currentStep, setCurrentStep] = useState(0)
   const [direction, setDirection] = useState(0)
+
+  const isStepAllowed = typeof canProceed === "function"
+    ? canProceed(currentStep)
+    : Array.isArray(canProceed)
+      ? canProceed[currentStep] ?? true
+      : canProceed
 
   const goNext = () => {
     if (currentStep < steps.length - 1) {
@@ -110,14 +120,14 @@ export function BookingWizard({ steps, onComplete, canProceed = true, className 
           disabled={isFirst}
           className={isFirst ? "invisible" : ""}
         >
-          Back
+          {t("booking.back")}
         </Button>
         <Button
           variant="premium"
           onClick={goNext}
-          disabled={!canProceed}
+          disabled={!isStepAllowed}
         >
-          {isLast ? "Confirm Booking" : "Continue"}
+          {isLast ? t("booking.confirmBooking") : t("booking.continue")}
         </Button>
       </div>
     </div>

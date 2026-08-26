@@ -59,17 +59,15 @@ export default function CartCheckoutPage() {
   const cartTotal = getCartTotal(cart)
   const grandTotal = cartTotal + Math.round(cartTotal * 0.18)
 
-  const canProceed = Boolean(
-    cart.length > 0 &&
-    selectedDate &&
-    sharedDevotee.name &&
-    sharedDevotee.phone &&
-    sharedDevotee.email &&
-    sharedDevotee.address &&
-    sharedDevotee.state &&
-    sharedDevotee.district &&
-    sharedDevotee.pincode,
-  )
+  const stepCanProceed = [
+    // Step 0: Date + cart not empty
+    Boolean(cart.length > 0 && selectedDate),
+    // Step 1: Devotee details (required fields)
+    Boolean(sharedDevotee.name && sharedDevotee.phone && sharedDevotee.email &&
+      sharedDevotee.address && sharedDevotee.state && sharedDevotee.district && sharedDevotee.pincode),
+    // Step 2: Review
+    true,
+  ]
 
   if (loadingCart) {
     return (
@@ -151,7 +149,12 @@ export default function CartCheckoutPage() {
     await fetch("/api/payments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "verify", ...res }),
+      body: JSON.stringify({
+        action: "verify",
+        orderId: res.razorpay_order_id,
+        paymentId: res.razorpay_payment_id,
+        signature: res.razorpay_signature,
+      }),
     })
     setPaymentDialog(false)
     clearCart()
@@ -300,7 +303,7 @@ export default function CartCheckoutPage() {
 
           <div className="grid lg:grid-cols-[1fr_320px] gap-8">
             <div className="bg-warm-white rounded-2xl border border-gold-200/20 shadow-premium p-6 sm:p-8">
-              <BookingWizard steps={steps} onComplete={() => setPaymentDialog(true)} canProceed={canProceed} />
+              <BookingWizard steps={steps} onComplete={() => setPaymentDialog(true)} canProceed={stepCanProceed} />
             </div>
             <div className="hidden lg:block">
               <BookingSummary

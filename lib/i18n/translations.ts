@@ -107,6 +107,22 @@ export interface TranslationData {
     items: string
     sevaBreakdown: string
     devoteeDetailsDesc: string
+    allSevas: string
+    sacredSevas: string
+    templeOfferings: string
+    viewCart: string
+    checkout: string
+    clear: string
+    subtotal: string
+    gst: string
+    browseSevas: string
+    noResultsDescription: string
+    clearFilters: string
+    devoteeReminder: string
+    humbleOffering: string
+    humbleOfferingDescription: string
+    offeringAmount: string
+    selected: string
   }
   sevaDetail: {
     description: string
@@ -162,6 +178,30 @@ export interface TranslationData {
     selectDateDesc: string
     devoteeDetailsDesc: string
     cartCheckout: string
+    continue: string
+    confirmBooking: string
+    selected: string
+    personalInfo: string
+    fullName: string
+    fullNamePlaceholder: string
+    gotraPlaceholder: string
+    astrologicalDetails: string
+    nakshatraLabel: string
+    selectNakshatra: string
+    rashiLabel: string
+    selectRashi: string
+    contactDetails: string
+    phonePlaceholder: string
+    emailPlaceholder: string
+    addressPlaceholder: string
+    statePlaceholder: string
+    districtPlaceholder: string
+    pincodePlaceholder: string
+    autoFilledFrom: string
+    devoteeRecords: string
+    accountLabel: string
+    noRecordFound: string
+    lookupUnavailable: string
   }
   donate: {
     supportTemple: string
@@ -910,6 +950,22 @@ const translations: Record<string, TranslationData> = {
       items: "ಐಟಂಗಳು",
       sevaBreakdown: "ಸೇವಾ ವಿವರಣೆ",
       devoteeDetailsDesc: "ಈ ಮಾಹಿತಿಯನ್ನು ಬುಕಿಂಗ್ ದೃಢೀಕರಣಕ್ಕಾಗಿ ಬಳಸಲಾಗುತ್ತದೆ",
+      allSevas: "ಎಲ್ಲಾ ಸೇವೆಗಳು",
+      sacredSevas: "ಪವಿತ್ರ ಸೇವೆಗಳು",
+      templeOfferings: "ದೇವಸ್ಥಾನ ಅರ್ಪಣೆಗಳು",
+      viewCart: "ಕಾರ್ಟ್ ನೋಡಿ",
+      checkout: "ಚೆಕ್ಔಟ್",
+      clear: "ತೆರವುಗೊಳಿಸಿ",
+      subtotal: "ಉಪಮೊತ್ತ",
+      gst: "GST",
+      browseSevas: "ಸೇವೆಗಳನ್ನು ಬ್ರೌಸ್ ಮಾಡಿ",
+      noResultsDescription: "ನಿಮ್ಮ ಹುಡುಕಾಟಕ್ಕೆ ಹೊಂದುವ ಸೇವೆಗಳು ಕಂಡುಬಂದಿಲ್ಲ. ಫಿಲ್ಟರ್ ಬದಲಾಯಿಸಿ ಅಥವಾ ಬೇರೆ ಹುಡುಕಾಟ ಪ್ರಯತ್ನಿಸಿ.",
+      clearFilters: "ಫಿಲ್ಟರ್ ತೆರವುಗೊಳಿಸಿ",
+      devoteeReminder: "ಭಕ್ತರ ವಿವರಗಳನ್ನು ಚೆಕ್ಔಟ್ ಸಮಯದಲ್ಲಿ ನಮೂದಿಸಬಹುದು.",
+      humbleOffering: "ವಿನಮ್ರ ಅರ್ಪಣೆ",
+      humbleOfferingDescription: "ನಿಮ್ಮ ಎಲ್ಲಾ ಅರ್ಪಣೆಗಳು ನೇರವಾಗಿ ದೇವಸ್ಥಾನದ ಅಭಿವೃದ್ಧಿ ಮತ್ತು ಸೇವಾ ಕಾರ್ಯಕ್ರಮಗಳಿಗೆ ಬಳಸಲ್ಪಡುತ್ತವೆ.",
+      offeringAmount: "ಅರ್ಪಣೆ ಮೊತ್ತ",
+      selected: "ಆಯ್ಕೆಮಾಡಲಾಗಿದೆ",
     },
     sevaDetail: {
       description: "ವಿವರಣೆ",
@@ -965,6 +1021,30 @@ const translations: Record<string, TranslationData> = {
       selectDateDesc: "ನಿಮ್ಮ ಆದ್ಯತೆಯ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
       devoteeDetailsDesc: "ಈ ಮಾಹಿತಿಯನ್ನು ಬುಕಿಂಗ್ ದೃಢೀಕರಣಕ್ಕಾಗಿ ಬಳಸಲಾಗುತ್ತದೆ",
       cartCheckout: "ಕಾರ್ಟ್ ಚೆಕ್ಔಟ್",
+      continue: "ಮುಂದುವರಿಸಿ",
+      confirmBooking: "ಬುಕಿಂಗ್ ದೃಢೀಕರಿಸಿ",
+      selected: "ಆಯ್ಕೆಮಾಡಲಾಗಿದೆ",
+      personalInfo: "ವೈಯಕ್ತಿಕ ಮಾಹಿತಿ",
+      fullName: "ಪೂರ್ಣ ಹೆಸರು *",
+      fullNamePlaceholder: "ನಿಮ್ಮ ಪೂರ್ಣ ಹೆಸರು ನಮೂದಿಸಿ",
+      gotraPlaceholder: "ಉದಾ. ಭರದ್ವಾಜ, ವಶಿಷ್ಠ...",
+      astrologicalDetails: "ಜ್ಯೋತಿಷ್ಯ ವಿವರಗಳು",
+      nakshatraLabel: "ನಕ್ಷತ್ರ (ಜನ್ಮ ನಕ್ಷತ್ರ)",
+      selectNakshatra: "ನಕ್ಷತ್ರ ಆಯ್ಕೆಮಾಡಿ",
+      rashiLabel: "ರಾಶಿ (ಜ್ಯೋತಿಷ್ಯ)",
+      selectRashi: "ರಾಶಿ ಆಯ್ಕೆಮಾಡಿ",
+      contactDetails: "ಸಂಪರ್ಕ ವಿವರಗಳು",
+      phonePlaceholder: "+91 XXXXX XXXXX",
+      emailPlaceholder: "ನಿಮ್ಮ ಇಮೇಲ್ ವಿಳಾಸ ನಮೂದಿಸಿ",
+      addressPlaceholder: "ನಿಮ್ಮ ಪೂರ್ಣ ವಿಳಾಸ ನಮೂದಿಸಿ",
+      statePlaceholder: "ಉದಾ. ಕರ್ನಾಟಕ",
+      districtPlaceholder: "ಉದಾ. ಉಡುಪಿ",
+      pincodePlaceholder: "ಉದಾ. 576101",
+      autoFilledFrom: "ಇದರಿಂದ ಸ್ವಯಂ ತುಂಬಿಸಲಾಗಿದೆ",
+      devoteeRecords: "ಭಕ್ತ ದಾಖಲೆಗಳು",
+      accountLabel: "ಖಾತೆ",
+      noRecordFound: "ಯಾವುದೇ ದಾಖಲೆ ಸಿಗಲಿಲ್ಲ, ದಯವಿಟ್ಟು ವಿವರಗಳನ್ನು ತುಂಬಿಸಿ",
+      lookupUnavailable: "ಲುಕ್‌ಅಪ್ ಲಭ್ಯವಿಲ್ಲ, ದಯವಿಟ್ಟು ಹಸ್ತಚಾಲಿತವಾಗಿ ತುಂಬಿಸಿ",
     },
     donate: {
       supportTemple: "ದೇವಸ್ಥಾನವನ್ನು ಬೆಂಬಲಿಸಿ",
@@ -1796,6 +1876,22 @@ const translations: Record<string, TranslationData> = {
       items: "items",
       sevaBreakdown: "Seva Breakdown",
       devoteeDetailsDesc: "This information is used for booking confirmation",
+      allSevas: "All Sevas",
+      sacredSevas: "Sacred Sevas",
+      templeOfferings: "Temple Offerings",
+      viewCart: "View Cart",
+      checkout: "Checkout",
+      clear: "Clear",
+      subtotal: "Subtotal",
+      gst: "GST",
+      browseSevas: "Browse Sevas",
+      noResultsDescription: "No sevas match your search. Try adjusting filters or search for something else.",
+      clearFilters: "Clear Filters",
+      devoteeReminder: "Devotee details will be entered during checkout.",
+      humbleOffering: "Humble Offering",
+      humbleOfferingDescription: "All your offerings go directly towards temple development and service programs.",
+      offeringAmount: "Offering Amount",
+      selected: "Selected",
     },
     sevaDetail: {
       description: "Description",
@@ -1851,6 +1947,30 @@ const translations: Record<string, TranslationData> = {
       selectDateDesc: "Select your preferred date",
       devoteeDetailsDesc: "This information is used for booking confirmation",
       cartCheckout: "Cart Checkout",
+      continue: "Continue",
+      confirmBooking: "Confirm Booking",
+      selected: "Selected",
+      personalInfo: "Personal Information",
+      fullName: "Full Name *",
+      fullNamePlaceholder: "Enter your full name",
+      gotraPlaceholder: "e.g. Bharadwaja, Vashishta...",
+      astrologicalDetails: "Astrological Details",
+      nakshatraLabel: "Nakshatra (Birth Star)",
+      selectNakshatra: "Select nakshatra",
+      rashiLabel: "Rashi (Zodiac)",
+      selectRashi: "Select rashi",
+      contactDetails: "Contact Details",
+      phonePlaceholder: "+91 XXXXX XXXXX",
+      emailPlaceholder: "Enter your email address",
+      addressPlaceholder: "Enter your full address",
+      statePlaceholder: "e.g. Karnataka",
+      districtPlaceholder: "e.g. Udupi",
+      pincodePlaceholder: "e.g. 576101",
+      autoFilledFrom: "Auto-filled from",
+      devoteeRecords: "devotee records",
+      accountLabel: "account",
+      noRecordFound: "No existing record found, please fill in details",
+      lookupUnavailable: "Lookup unavailable, please fill in manually",
     },
     donate: {
       supportTemple: "Support the Temple",
