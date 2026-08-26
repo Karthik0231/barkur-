@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Sparkles, ArrowRight, ChevronRight, Infinity, Crown, Star } from "lucide-react"
+import { Sparkles, ArrowRight, ChevronRight, Infinity, Crown, Star, Check } from "lucide-react"
 import { AnimatedSection } from "@/components/animated-section"
 import { SectionHeading } from "@/components/section-heading"
 import { Card } from "@/components/ui/card"
@@ -12,38 +12,24 @@ import { Badge } from "@/components/ui/badge"
 import { cn, formatPrice } from "@/lib/utils"
 import { PageBanner } from "@/components/PageBanner"
 import { useTranslation } from "@/lib/i18n"
+import { getShashwathaSevas, localizeFeatures, type ShashwathaSeva } from "@/lib/data/sevas"
 
-const planMeta: Record<string, { icon: any; gradient: string; color: string; featured: boolean; duration: string }> = {
-  NITYA_POOJA: { icon: Infinity, gradient: "from-amber-600 to-orange-700", color: "amber", featured: false, duration: "12 Months" },
-  NAVARATRI: { icon: Crown, gradient: "from-purple-600 to-violet-700", color: "purple", featured: true, duration: "9 Days" },
-  SONARATHI: { icon: Star, gradient: "from-gold-500 to-amber-600", color: "gold", featured: false, duration: "Per Year" },
+const planMeta: Record<string, { icon: React.ElementType; gradient: string; color: string; duration: string }> = {
+  NITYA_POOJA: { icon: Infinity, gradient: "from-amber-600 to-orange-700", color: "amber", duration: "12 Months" },
+  NAVARATRI: { icon: Crown, gradient: "from-purple-600 to-violet-700", color: "purple", duration: "9 Days" },
+  SONARATHI: { icon: Star, gradient: "from-gold-500 to-amber-600", color: "gold", duration: "Per Year" },
 }
 
 export default function ShashwathaSevasPage() {
-  const { t } = useTranslation()
-  const [plans, setPlans] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch("/api/sevas?limit=50&isShashwatha=true")
-      .then(res => res.json())
-      .then(data => {
-        const mapped = (data.sevas || []).map((s: any) => {
-          const type = s.shashwathaType || "NITYA_POOJA"
-          const meta = planMeta[type] || planMeta.NITYA_POOJA
-          return { ...s, ...meta, shashwathaType: type }
-        })
-        setPlans(mapped)
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
-  }, [])
+  const { t, language } = useTranslation()
+  const router = useRouter()
+  const plans = getShashwathaSevas(language)
 
   return (
     <div className="min-h-screen">
-      <PageBanner 
-        title={t("pages.shashwathaSevas.title")} 
-        eyebrow={t("pages.shashwathaSevas.eyebrow")} 
+      <PageBanner
+        title={t("pages.shashwathaSevas.title")}
+        eyebrow={t("pages.shashwathaSevas.eyebrow")}
         subtitle={t("pages.shashwathaSevas.subtitle")}
       />
 
@@ -65,85 +51,81 @@ export default function ShashwathaSevasPage() {
             className="mb-16"
           />
 
-          {loading ? (
-            <div className="flex justify-center py-20">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-3 gap-8 lg:gap-6 items-start">
-              {plans.map((plan, idx) => {
-                const PlanIcon = plan.icon
-                return (
-                  <motion.div
-                    key={plan.id}
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.12, duration: 0.5 }}
-                    className="relative"
-                  >
-                    {plan.featured && (
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
-                        <Badge variant="secondary" size="md" className="px-4 py-1 shadow-lg">
-                          <Sparkles className="h-3 w-3 mr-1" />
-                          Most Popular
-                        </Badge>
-                      </div>
+          <div className="grid md:grid-cols-3 gap-8 lg:gap-6 items-start">
+            {plans.map((plan, idx) => {
+              const meta = planMeta[plan.type]
+              const PlanIcon = meta.icon
+              const features = localizeFeatures(plan.features, language)
+              return (
+                <motion.div
+                  key={plan.id}
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.12, duration: 0.5 }}
+                  className="relative"
+                >
+                  {plan.featured && (
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
+                      <Badge variant="secondary" size="md" className="px-4 py-1 shadow-lg">
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        {language === "kn" ? "ಅತ್ಯಂತ ಜನಪ್ರಿಯ" : "Most Popular"}
+                      </Badge>
+                    </div>
+                  )}
+                  <Card
+                    variant={plan.featured ? "elevated" : "default"}
+                    padding="none"
+                    className={cn(
+                      "h-full overflow-hidden transition-all duration-300",
+                      plan.featured && "ring-2 ring-secondary shadow-xl scale-105 md:scale-110",
                     )}
-                    <Card
-                      variant={plan.featured ? "elevated" : "default"}
-                      padding="none"
-                      className={cn(
-                        "h-full overflow-hidden transition-all duration-300",
-                        plan.featured && "ring-2 ring-secondary shadow-xl scale-105 md:scale-110",
-                      )}
-                    >
-                      <div className={cn(
-                        "relative h-40 bg-gradient-to-br flex items-center justify-center overflow-hidden",
-                        plan.gradient,
-                      )}>
-                        <div className="absolute inset-0 bg-black/10" />
-                        <div className="relative z-10 text-center">
-                          <PlanIcon className="h-10 w-10 text-white mx-auto mb-2" />
-                          <h3 className="text-2xl font-heading font-bold text-white">{plan.name}</h3>
-                          <p className="text-white/80 text-sm">{plan.shortDescription || plan.description}</p>
-                        </div>
+                  >
+                    <div className={cn("relative h-40 bg-gradient-to-br flex items-center justify-center overflow-hidden", meta.gradient)}>
+                      <div className="absolute inset-0 bg-black/10" />
+                      <div className="relative z-10 text-center">
+                        <PlanIcon className="h-10 w-10 text-white mx-auto mb-2" />
+                        <h3 className="text-2xl font-heading font-bold text-white">{plan.name}</h3>
+                        <p className="text-white/80 text-sm">{meta.duration}</p>
                       </div>
-                      <div className="p-6">
-                        <div className="text-center mb-6">
-                          <div className="flex items-center justify-center gap-2">
-                            <span className="text-3xl font-heading font-bold text-primary">
-                              {formatPrice(Number(plan.price))}
-                            </span>
-                            {plan.originalPrice && (
-                              <span className="text-sm text-text-muted line-through">
-                                {formatPrice(Number(plan.originalPrice))}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-text-muted mt-1">for {plan.duration}</p>
+                    </div>
+                    <div className="p-6">
+                      <div className="text-center mb-6">
+                        <div className="flex items-center justify-center gap-2">
+                          <span className="text-3xl font-heading font-bold text-primary">
+                            {formatPrice(Number(plan.price))}
+                          </span>
                         </div>
-
-                        <p className="text-sm text-text-secondary text-center mb-6 leading-relaxed">
-                          {plan.description}
-                        </p>
-
-                        <Link href={`/shashwatha-sevas/${plan.slug}`}>
-                          <Button
-                            variant={plan.featured ? "gradient" : "secondary"}
-                            size="lg"
-                            className="w-full group/btn"
-                          >
-                            {t("common.subscribeNow")}
-                            <ArrowRight className="h-4 w-4 ml-1 transition-transform group-hover/btn:translate-x-0.5" />
-                          </Button>
-                        </Link>
+                        <p className="text-xs text-text-muted mt-1">{language === "kn" ? "ಪ್ರತಿ ವರ್ಷ" : "per year"}</p>
                       </div>
-                    </Card>
-                  </motion.div>
-                )
-              })}
-            </div>
-          )}
+
+                      <p className="text-sm text-text-secondary text-center mb-6 leading-relaxed">
+                        {plan.description}
+                      </p>
+
+                      <ul className="space-y-2 mb-6">
+                        {features.map((feat, fi) => (
+                          <li key={fi} className="flex items-start gap-2 text-sm text-text-secondary">
+                            <Check className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                            {feat}
+                          </li>
+                        ))}
+                      </ul>
+
+                      <Button
+                        variant={plan.featured ? "gradient" : "secondary"}
+                        size="lg"
+                        className="w-full group/btn"
+                        onClick={() => router.push(`/shashwatha-sevas/${plan.slug}`)}
+                      >
+                        {language === "kn" ? "ಈಗ ಬುಕ್ ಮಾಡಿ" : "Book Now"}
+                        <ArrowRight className="h-4 w-4 ml-1 transition-transform group-hover/btn:translate-x-0.5" />
+                      </Button>
+                    </div>
+                  </Card>
+                </motion.div>
+              )
+            })}
+          </div>
         </div>
       </section>
 

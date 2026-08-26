@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { format } from "date-fns"
 import {
   Building2,
@@ -10,7 +10,6 @@ import {
   Check,
   ChevronRight,
   CalendarCheck,
-  Clock,
   User,
   Phone,
   Mail,
@@ -25,17 +24,10 @@ import { AnimatedSection } from "@/components/animated-section"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { PageBanner } from "@/components/PageBanner"
 import { AvailabilityCalendar } from "@/components/hall-booking/availability-calendar"
-import { formatPrice, cn } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n"
-
-const timeSlots = [
-  "6:00 AM", "7:00 AM", "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM",
-  "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM",
-  "6:00 PM", "7:00 PM", "8:00 PM",
-]
 
 interface HallInfo {
   id: string
@@ -49,11 +41,8 @@ interface HallInfo {
 export default function HallBookingPage() {
   const { t } = useTranslation()
 
-  // Form state
   const [selectedHall, setSelectedHall] = useState<string>("")
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
-  const [selectedStartTime, setSelectedStartTime] = useState("")
-  const [selectedEndTime, setSelectedEndTime] = useState("")
   const [eventName, setEventName] = useState("")
   const [expectedGuests, setExpectedGuests] = useState("")
   const [organizerName, setOrganizerName] = useState("")
@@ -62,7 +51,6 @@ export default function HallBookingPage() {
   const [address, setAddress] = useState("")
   const [specialRequests, setSpecialRequests] = useState("")
 
-  // Submission state
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -85,12 +73,9 @@ export default function HallBookingPage() {
       .catch(() => {})
   }, [])
 
-  const selectedHallData = useMemo(() => halls.find((h) => h.slug === selectedHall), [halls, selectedHall])
-
   const handleSubmit = async () => {
-    // Validate
-    if (!selectedHall || !selectedDate || !selectedStartTime || !selectedEndTime || !eventName || !organizerName || !organizerPhone || !organizerEmail || !address) {
-      setSubmitError("Please fill in all required fields")
+    if (!selectedHall || !selectedDate || !eventName || !organizerName || !organizerPhone || !organizerEmail || !address) {
+      setSubmitError(t("hallBooking.hallBookingFillRequired"))
       return
     }
     setSubmitting(true)
@@ -100,8 +85,8 @@ export default function HallBookingPage() {
         hallName: selectedHall,
         eventType: eventName,
         eventDate: format(selectedDate, "yyyy-MM-dd"),
-        startTime: selectedStartTime,
-        endTime: selectedEndTime,
+        startTime: "All Day",
+        endTime: "All Day",
         organizerName,
         organizerPhone,
         organizerEmail,
@@ -118,7 +103,7 @@ export default function HallBookingPage() {
       if (!json?.success) throw new Error(json?.message || "Failed to create booking")
       setSubmitted(true)
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Something went wrong")
+      setSubmitError(err instanceof Error ? err.message : t("hallBooking.hallBookingSubmitError"))
     } finally {
       setSubmitting(false)
     }
@@ -127,8 +112,6 @@ export default function HallBookingPage() {
   const resetForm = () => {
     setSelectedHall("")
     setSelectedDate(undefined)
-    setSelectedStartTime("")
-    setSelectedEndTime("")
     setEventName("")
     setExpectedGuests("")
     setOrganizerName("")
@@ -196,7 +179,7 @@ export default function HallBookingPage() {
                     </div>
                     <div>
                       <h2 className="text-xl font-heading font-bold text-primary">{t("hallBooking.hallBookingSelectDate")}</h2>
-                      <p className="text-sm text-text-muted">{t("hallBooking.hallBookingSelectTime")}</p>
+                      <p className="text-sm text-text-muted">{t("hallBooking.hallBookingSelectDateDesc")}</p>
                     </div>
                   </div>
                   <AvailabilityCalendar
@@ -204,57 +187,6 @@ export default function HallBookingPage() {
                     selectedDate={selectedDate}
                     hallSlug={selectedHall || undefined}
                   />
-                </Card>
-              </AnimatedSection>
-
-              {/* Time Selection */}
-              <AnimatedSection delay={0.05}>
-                <Card variant="elevated" className="p-6 lg:p-8">
-                  <h3 className="text-lg font-heading font-bold text-primary mb-4">{t("hallBooking.hallBookingSelectTime")}</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-text-primary mb-2 block">{t("hallBooking.hallBookingStartTime")}</label>
-                      <div className="grid grid-cols-1 gap-1.5 max-h-40 overflow-y-auto pr-1">
-                        {timeSlots.map((time) => (
-                          <button
-                            key={`start-${time}`}
-                            type="button"
-                            onClick={() => { setSelectedStartTime(time); setSelectedEndTime("") }}
-                            className={cn(
-                              "py-2 px-3 rounded-lg border text-xs text-left transition-all",
-                              selectedStartTime === time
-                                ? "border-primary bg-primary/5 text-primary font-medium"
-                                : "border-border text-text-secondary hover:border-secondary/50"
-                            )}
-                          >
-                            <Clock className="h-3 w-3 inline mr-1.5" />
-                            {time}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-text-primary mb-2 block">{t("hallBooking.hallBookingEndTime")}</label>
-                      <div className="grid grid-cols-1 gap-1.5 max-h-40 overflow-y-auto pr-1">
-                        {timeSlots.filter((tm) => !selectedStartTime || tm > selectedStartTime).map((time) => (
-                          <button
-                            key={`end-${time}`}
-                            type="button"
-                            onClick={() => setSelectedEndTime(time)}
-                            className={cn(
-                              "py-2 px-3 rounded-lg border text-xs text-left transition-all",
-                              selectedEndTime === time
-                                ? "border-primary bg-primary/5 text-primary font-medium"
-                                : "border-border text-text-secondary hover:border-secondary/50"
-                            )}
-                          >
-                            <Clock className="h-3 w-3 inline mr-1.5" />
-                            {time}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
                 </Card>
               </AnimatedSection>
 
@@ -354,9 +286,6 @@ export default function HallBookingPage() {
                         <p className="text-sm font-medium text-primary">
                           {t("hallBooking.hallBookingSelectDate")}: <span className="font-bold">{format(selectedDate, "dd MMMM yyyy")}</span>
                         </p>
-                        {selectedStartTime && selectedEndTime && (
-                          <p className="text-xs text-text-muted mt-1">{selectedStartTime} — {selectedEndTime}</p>
-                        )}
                       </div>
                     )}
 
@@ -373,7 +302,7 @@ export default function HallBookingPage() {
                     {/* Contact Info */}
                     <Input
                       label={`${t("hallBooking.hallBookingYourName")} *`}
-                      placeholder="Full name"
+                      placeholder={t("hallBooking.hallBookingYourName")}
                       iconLeft={<User className="h-4 w-4" />}
                       value={organizerName}
                       onChange={(e) => setOrganizerName(e.target.value)}
@@ -399,8 +328,8 @@ export default function HallBookingPage() {
                     </div>
 
                     <Input
-                      label={`${t("booking.selectDate") ? "Address" : "Address"} *`}
-                      placeholder="Full address"
+                      label={`${t("hallBooking.hallBookingAddress")} *`}
+                      placeholder={t("hallBooking.hallBookingAddress")}
                       iconLeft={<MapPin className="h-4 w-4" />}
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
@@ -464,9 +393,9 @@ export default function HallBookingPage() {
             />
             <div className="grid sm:grid-cols-3 gap-6 mt-12">
               {[
-                { icon: <MapPin className="h-8 w-8" />, title: "Sacred Venue", desc: "Host your events in the divine premises of the historic temple" },
-                { icon: <Building2 className="h-8 w-8" />, title: "Well Maintained", desc: "All halls are regularly maintained with modern amenities" },
-                { icon: <Users className="h-8 w-8" />, title: "Community Events", desc: "Perfect for weddings, religious ceremonies, and community gatherings" },
+                { icon: <MapPin className="h-8 w-8" />, title: t("hallBooking.hallBookingSacredVenue"), desc: t("hallBooking.hallBookingSacredVenueDesc") },
+                { icon: <Building2 className="h-8 w-8" />, title: t("hallBooking.hallBookingWellMaintained"), desc: t("hallBooking.hallBookingWellMaintainedDesc") },
+                { icon: <Users className="h-8 w-8" />, title: t("hallBooking.hallBookingCommunityEvents"), desc: t("hallBooking.hallBookingCommunityEventsDesc") },
               ].map((item, idx) => (
                 <motion.div
                   key={idx}

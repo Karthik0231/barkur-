@@ -28,6 +28,7 @@ export interface TranslationData {
     terms: string
     refund: string
     hallBooking: string
+    sriChakraPooja: string
     language: string
     sectionMain: string
     aboutTemple: string
@@ -100,6 +101,12 @@ export interface TranslationData {
     price: string
     availability: string
     daily: string
+    cartEmpty: string
+    cartEmptyDesc: string
+    cartItems: string
+    items: string
+    sevaBreakdown: string
+    devoteeDetailsDesc: string
   }
   sevaDetail: {
     description: string
@@ -152,6 +159,9 @@ export interface TranslationData {
     securePaymentNote: string
     creatingBooking: string
     bookingTitle: string
+    selectDateDesc: string
+    devoteeDetailsDesc: string
+    cartCheckout: string
   }
   donate: {
     supportTemple: string
@@ -771,6 +781,16 @@ export interface TranslationData {
       hallBookingBookAnother: string
       hallBookingFrontHallImages: string
       hallBookingBackHallImages: string
+      hallBookingAddress: string
+      hallBookingSacredVenue: string
+      hallBookingSacredVenueDesc: string
+      hallBookingWellMaintained: string
+      hallBookingWellMaintainedDesc: string
+      hallBookingCommunityEvents: string
+      hallBookingCommunityEventsDesc: string
+      hallBookingFillRequired: string
+      hallBookingSubmitError: string
+      hallBookingSelectDateDesc: string
       panchangaCalendarTitle: string
       panchangaCalendarSub: string
       panchangaFestivalsTitle: string
@@ -811,6 +831,7 @@ const translations: Record<string, TranslationData> = {
       terms: "ನಿಯಮಗಳು",
       refund: "ಮರುಪಾವತಿ",
       hallBooking: "ಸಭಾಂಗಣ ಬುಕಿಂಗ್",
+      sriChakraPooja: "ಶ್ರೀ ಚಕ್ರ ಪೂಜೆ",
       language: "ಭಾಷೆ",
       sectionMain: "ಮುಖ್ಯ",
       aboutTemple: "ದೇವಸ್ಥಾನದ ಬಗ್ಗೆ",
@@ -883,6 +904,12 @@ const translations: Record<string, TranslationData> = {
       price: "ಬೆಲೆ",
       availability: "ಲಭ್ಯತೆ",
       daily: "ದೈನಂದಿನ",
+      cartEmpty: "ನಿಮ್ಮ ಕಾರ್ಟ್ ಖಾಲಿಯಾಗಿದೆ",
+      cartEmptyDesc: "ಚೆಕ್ಔಟ್ ಮಾಡುವ ಮೊದಲು ಕೆಲವು ಸೇವೆಗಳನ್ನು ನಿಮ್ಮ ಕಾರ್ಟ್‌ಗೆ ಸೇರಿಸಿ.",
+      cartItems: "ಕಾರ್ಟ್ ಐಟಂಗಳು",
+      items: "ಐಟಂಗಳು",
+      sevaBreakdown: "ಸೇವಾ ವಿವರಣೆ",
+      devoteeDetailsDesc: "ಈ ಮಾಹಿತಿಯನ್ನು ಬುಕಿಂಗ್ ದೃಢೀಕರಣಕ್ಕಾಗಿ ಬಳಸಲಾಗುತ್ತದೆ",
     },
     sevaDetail: {
       description: "ವಿವರಣೆ",
@@ -935,6 +962,9 @@ const translations: Record<string, TranslationData> = {
       securePaymentNote: "ನಿಮ್ಮ ಪಾವತಿಯನ್ನು Razorpay ಮೂಲಕ ಸುರಕ್ಷಿತವಾಗಿ ಪ್ರಕ್ರಿಯೆಗೊಳಿಸಲಾಗುತ್ತದೆ. ನಿಮ್ಮ ಕಾರ್ಡ್ ಅಥವಾ UPI ವಿವರಗಳನ್ನು ನಾವು ಸಂಗ್ರಹಿಸುವುದಿಲ್ಲ.",
       creatingBooking: "ಬುಕಿಂಗ್ ರಚಿಸಲಾಗುತ್ತಿದೆ...",
       bookingTitle: "ಬುಕ್ ಮಾಡಿ",
+      selectDateDesc: "ನಿಮ್ಮ ಆದ್ಯತೆಯ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+      devoteeDetailsDesc: "ಈ ಮಾಹಿತಿಯನ್ನು ಬುಕಿಂಗ್ ದೃಢೀಕರಣಕ್ಕಾಗಿ ಬಳಸಲಾಗುತ್ತದೆ",
+      cartCheckout: "ಕಾರ್ಟ್ ಚೆಕ್ಔಟ್",
     },
     donate: {
       supportTemple: "ದೇವಸ್ಥಾನವನ್ನು ಬೆಂಬಲಿಸಿ",
@@ -1639,6 +1669,16 @@ const translations: Record<string, TranslationData> = {
       hallBookingBookAnother: "ಮತ್ತೊಂದು ಸಭಾಂಗಣ ಬುಕ್ ಮಾಡಿ",
       hallBookingFrontHallImages: "ಒಳಗಿನ ಸಭಾಂಗಣ ಚಿತ್ರಗಳು",
       hallBookingBackHallImages: "ಹಿಂಭಾಗದ ಸಭಾಂಗಣ ಚಿತ್ರಗಳು",
+      hallBookingAddress: "ವಿಳಾಸ",
+      hallBookingSacredVenue: "ಪವಿತ್ರ ಸ್ಥಳ",
+      hallBookingSacredVenueDesc: "ಐತಿಹಾಸಿಕ ದೇವಸ್ಥಾನದ ದಿವ್ಯ ಪ್ರಾಂಗಣದಲ್ಲಿ ನಿಮ್ಮ ಕಾರ್ಯಕ್ರಮಗಳನ್ನು ಆಯೋಜಿಸಿ",
+      hallBookingWellMaintained: "ಚೆನ್ನಾಗಿ ನಿರ್ವಹಿಸಲಾಗಿದೆ",
+      hallBookingWellMaintainedDesc: "ಎಲ್ಲಾ ಸಭಾಂಗಣಗಳನ್ನು ಆಧುನಿಕ ಸೌಕರ್ಯಗಳೊಂದಿಗೆ ನಿಯಮಿತವಾಗಿ ನಿರ್ವಹಿಸಲಾಗಿದೆ",
+      hallBookingCommunityEvents: "ಸಮುದಾಯ ಕಾರ್ಯಕ್ರಮಗಳು",
+      hallBookingCommunityEventsDesc: "ವಿವಾಹಗಳು, ಧಾರ್ಮಿಕ ಸಮಾರಂಭಗಳು ಮತ್ತು ಸಮುದಾಯ ಸಮಾವೇಶಗಳಿಗೆ ಪರಿಪೂರ್ಣ",
+      hallBookingFillRequired: "ದಯವಿಟ್ಟು ಎಲ್ಲಾ ಅಗತ್ಯ ಕ್ಷೇತ್ರಗಳನ್ನು ಭರ್ತಿ ಮಾಡಿ",
+      hallBookingSubmitError: "ಬುಕಿಂಗ್ ಸಲ್ಲಿಸುವಲ್ಲಿ ದೋಷ",
+      hallBookingSelectDateDesc: "ನಿಮ್ಮ ಕಾರ್ಯಕ್ರಮಕ್ಕಾಗಿ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
       panchangaCalendarTitle: "ಮಾಸಿಕ ಕ್ಯಾಲೆಂಡರ್",
       panchangaCalendarSub: "ಹಿಂದೂ ಕ್ಯಾಲೆಂಡರ್ ತಿಂಗಳುಗಳ ಮೂಲಕ ನ್ಯಾವಿಗೇಟ್ ಮಾಡಿ. ಪ್ರತಿ ದಿನವೂ ತಿಥಿ ಮತ್ತು ನಕ್ಷತ್ರವನ್ನು ತೋರಿಸುತ್ತದೆ.",
       panchangaFestivalsTitle: "ಮುಂಬರುವ ಹಬ್ಬಗಳು",
@@ -1677,6 +1717,7 @@ const translations: Record<string, TranslationData> = {
       terms: "Terms",
       refund: "Refund",
       hallBooking: "Hall Booking",
+      sriChakraPooja: "Sri Chakra Pooja",
       language: "Language",
       sectionMain: "Main",
       aboutTemple: "About Temple",
@@ -1749,6 +1790,12 @@ const translations: Record<string, TranslationData> = {
       price: "Price",
       availability: "Availability",
       daily: "Daily",
+      cartEmpty: "Your cart is empty",
+      cartEmptyDesc: "Add some sevas to your cart before checking out.",
+      cartItems: "Cart Items",
+      items: "items",
+      sevaBreakdown: "Seva Breakdown",
+      devoteeDetailsDesc: "This information is used for booking confirmation",
     },
     sevaDetail: {
       description: "Description",
@@ -1801,6 +1848,9 @@ const translations: Record<string, TranslationData> = {
       securePaymentNote: "Your payment is processed securely via Razorpay. We do not store your card or UPI details.",
       creatingBooking: "Creating booking...",
       bookingTitle: "Book",
+      selectDateDesc: "Select your preferred date",
+      devoteeDetailsDesc: "This information is used for booking confirmation",
+      cartCheckout: "Cart Checkout",
     },
     donate: {
       supportTemple: "Support the Temple",
@@ -2505,6 +2555,16 @@ const translations: Record<string, TranslationData> = {
       hallBookingBookAnother: "Book Another Hall",
       hallBookingFrontHallImages: "Inside Temple Hall Photos",
       hallBookingBackHallImages: "Back Side Hall Photos",
+      hallBookingAddress: "Address",
+      hallBookingSacredVenue: "Sacred Venue",
+      hallBookingSacredVenueDesc: "Host your events in the divine premises of the historic temple",
+      hallBookingWellMaintained: "Well Maintained",
+      hallBookingWellMaintainedDesc: "All halls are regularly maintained with modern amenities",
+      hallBookingCommunityEvents: "Community Events",
+      hallBookingCommunityEventsDesc: "Perfect for weddings, religious ceremonies, and community gatherings",
+      hallBookingFillRequired: "Please fill in all required fields",
+      hallBookingSubmitError: "Something went wrong. Please try again.",
+      hallBookingSelectDateDesc: "Select a date for your event",
       panchangaCalendarTitle: "Monthly Calendar",
       panchangaCalendarSub: "Navigate through the Hindu calendar months. Each day shows tithi and nakshatra.",
       panchangaFestivalsTitle: "Upcoming Festivals",

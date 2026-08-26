@@ -41,13 +41,13 @@ export function TimingsSection() {
   useEffect(() => {
     fetch("/api/panchanga?today=true").then(r => r.json()).then(d => {
       if (d.data?.panchanga) setPanchanga(d.data.panchanga)
-    }).catch(() => {})
+    }).catch(() => { })
     fetch("/api/settings?group=temple").then(r => r.json()).then(d => {
       const s = d.data?.settings || d.settings || []
-      const morning = s.find((x: {key: string}) => x.key === "timings_morning")?.value
-      const evening = s.find((x: {key: string}) => x.key === "timings_evening")?.value
+      const morning = s.find((x: { key: string }) => x.key === "timings_morning")?.value
+      const evening = s.find((x: { key: string }) => x.key === "timings_evening")?.value
       if (morning || evening) setTimings({ morning: morning || timings.morning, evening: evening || timings.evening })
-    }).catch(() => {})
+    }).catch(() => { })
   }, [])
 
   const todayName = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })

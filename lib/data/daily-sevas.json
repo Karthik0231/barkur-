@@ -1,0 +1,102 @@
+[
+  {
+    "id": "ds-001",
+    "slug": "abhisheka",
+    "name": { "kn": "ಅಭಿಷೇಕ", "en": "Abhisheka" },
+    "description": { "kn": "ದೇವರಿಗೆ ಹಾಲು, ಮೊಸರು, ಜೇನುತುಪ್ಪ, ತುಪ್ಪ, ಸಕ್ಕರೆ, ಗಂಧದ ಪೇಸ್ಟ್ ಮತ್ತು ಪವಿತ್ರ ಜಲ ಸೇರಿದಂತೆ ವಿವಿಧ ಶುಭ ದ್ರವ್ಯಗಳಿಂದ ಪವಿತ್ರ ಸ್ನಾನ ಮಾಡಿಸುವ ಆಚರಣೆ.", "en": "The sacred bathing of the deity with milk, curd, honey, ghee, sugar, sandalwood paste and holy water." },
+    "price": 251,
+    "duration": 45,
+    "category": "pooja",
+    "icon": "droplets"
+  },
+  {
+    "id": "ds-002",
+    "slug": "archana",
+    "name": { "kn": "ಅರ್ಚನೆ", "en": "Archana" },
+    "description": { "kn": "ಭಕ್ತರ ಹೆಸರು, ಗೋತ್ರ ಮತ್ತು ನಕ್ಷತ್ರವನ್ನು ಪಠಿಸುತ್ತಾ ಪವಿತ್ರ ವಸ್ತುಗಳನ್ನು ಅರ್ಪಿಸುವ ವೈಯಕ್ತಿಕ ಪೂಜೆ.", "en": "Individual worship where devotee's name, gotra and nakshatra are recited while offering sacred items to the deity." },
+    "price": 101,
+    "duration": 15,
+    "category": "pooja",
+    "icon": "star"
+  },
+  {
+    "id": "ds-003",
+    "slug": "kunkumarchana",
+    "name": { "kn": "ಕುಂಕುಮಾರ್ಚನೆ", "en": "Kunkumarchana" },
+    "description": { "kn": "ದೇವಿಗೆ ಕುಂಕುಮ ಅರ್ಪಿಸುವ ವಿಶೇಷ ಪೂಜೆ. ಕುಂಕುಮವು ಶಕ್ತಿಯ ಪ್ರತೀಕವಾಗಿದೆ.", "en": "Special pooja offering kumkum to the Goddess. Kumkum symbolizes divine feminine power." },
+    "price": 151,
+    "duration": 20,
+    "category": "pooja",
+    "icon": "sparkles"
+  },
+  {
+    "id": "ds-004",
+    "slug": "mangalarati",
+    "name": { "kn": "ಮಂಗಳಾರತಿ", "en": "Mangalarati" },
+    "description": { "kn": "ವೈದಿಕ ಮಂತ್ರಗಳು ಮತ್ತು ಭಕ್ತಿ ಗೀತೆಗಳೊಂದಿಗೆ ದೇವರ ಮುಂದೆ ದೀಪಗಳನ್ನು ಬೆಳಗಿಸುವ ಆಚರಣೆ.", "en": "The waving of lit lamps before the deity accompanied by Vedic chants and devotional songs." },
+    "price": 51,
+    "duration": 20,
+    "category": "arati",
+    "icon": "flame"
+  },
+  {
+    "id": "ds-005",
+    "slug": "deeparadhane",
+    "name": { "kn": "ದೀಪಾರಾಧನೆ", "en": "Deeparadhana" },
+    "description": { "kn": "ನೂರಾರು ಎಣ್ಣೆ ದೀಪಗಳನ್ನು ಬೆಳಗಿಸಿ ದೇವರಿಗೆ ಅರ್ಪಿಸುವ ಸಂಜೆಯ ದೀಪಾರಾಧನೆ.", "en": "The evening lamp offering ceremony where hundreds of oil lamps are lit and offered to the deity." },
+    "price": 71,
+    "duration": 30,
+    "category": "arati",
+    "icon": "sun"
+  },
+  {
+    "id": "ds-006",
+    "slug": "mahapooja",
+    "name": { "kn": "ಮಹಾ ಪೂಜೆ", "en": "Maha Pooja" },
+    "description": { "kn": "ಷೋಡಶೋಪಚಾರ ಸಂಪ್ರದಾಯದಂತೆ ನಡೆಸಲಾಗುವ ಮಹಾ ಅರ್ಚನೆ.", "en": "Grand worship ceremony following the Shodashopachara (sixteen offerings) tradition." },
+    "price": 501,
+    "duration": 90,
+    "category": "pooja",
+    "icon": "sparkles"
+  },
+  {
+    "id": "ds-007",
+    "slug": "satyanarayana-vrata",
+    "name": { "kn": "ಸತ್ಯನಾರಾಯಣ ವ್ರತ", "en": "Satyanarayana Vrata" },
+    "description": { "kn": "ಸತ್ಯನಾರಾಯಣ ದೇವರಿಗೆ ವಿಶೇಷ ಪೂಜೆ ಮತ್ತು ಪ್ರಸಾದ ವಿತರಣೆ.", "en": "Special worship to Lord Satyanarayana with prasada distribution." },
+    "price": 501,
+    "duration": 60,
+    "category": "pooja",
+    "icon": "sun"
+  },
+  {
+    "id": "ds-008",
+    "slug": "annadana",
+    "name": { "kn": "ಅನ್ನದಾನ", "en": "Annadana" },
+    "description": { "kn": "ಭಕ್ತರಿಗೆ ಪ್ರಸಾದವಾಗಿ ಆಹಾರ ವಿತರಿಸುವ ಪವಿತ್ರ ಸೇವೆ.", "en": "Sacred service of distributing food as prasada to devotees." },
+    "price": 500,
+    "duration": 0,
+    "category": "seva",
+    "icon": "heart"
+  },
+  {
+    "id": "ds-009",
+    "slug": "vasanthotsava",
+    "name": { "kn": "ವಸಂತೋತ್ಸವ", "en": "Vasanthotsava" },
+    "description": { "kn": "ವಸಂತ ಋತುವಿನ ಹಬ್ಬದಲ್ಲಿ ನಡೆಸುವ ವಿಶೇಷ ಆಚರಣೆ.", "en": "Special celebration performed during the spring festival season." },
+    "price": 201,
+    "duration": 30,
+    "category": "seva",
+    "icon": "flower2"
+  },
+  {
+    "id": "ds-010",
+    "slug": "kalasharchana",
+    "name": { "kn": "ಕಲಶಾರ್ಚನೆ", "en": "Kalasharchana" },
+    "description": { "kn": "ಪವಿತ್ರ ಕಲಶದೊಂದಿಗೆ ನಡೆಸುವ ವಿಶೇಷ ಅರ್ಚನೆ.", "en": "Special archana performed with the sacred kalasha (holy pot)." },
+    "price": 301,
+    "duration": 30,
+    "category": "pooja",
+    "icon": "sparkles"
+  }
+]

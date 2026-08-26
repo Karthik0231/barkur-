@@ -27,7 +27,7 @@ function getClient(): MongoClient {
       maxPoolSize: 20,
       minPoolSize: 5,
       maxIdleTimeMS: 60_000,
-      serverSelectionTimeoutMS: 10_000,
+      serverSelectionTimeoutMS: 30_000,
     })
   }
   return client

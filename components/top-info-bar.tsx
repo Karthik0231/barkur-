@@ -1,65 +1,204 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useRef, useState } from "react"
 import Link from "next/link"
-import { motion, useMotionValueEvent, useScroll } from "framer-motion"
-import { Bell, MapPin } from "lucide-react"
+import {
+  motion,
+  useMotionValueEvent,
+  useScroll,
+} from "framer-motion"
+import { Bell, MapPin, Sparkles } from "lucide-react"
+
 import { useTranslation } from "@/lib/i18n"
 import { LanguageSwitcher } from "@/lib/i18n/language-switcher"
 
 export function TopInfoBar() {
   const [hidden, setHidden] = useState(false)
+
   const { scrollY } = useScroll()
   const { t } = useTranslation()
+
   const lastScrollY = useRef(0)
 
   useMotionValueEvent(scrollY, "change", (latest) => {
-    const prev = lastScrollY.current
+    const previous = lastScrollY.current
     lastScrollY.current = latest
-    if (latest > 100 && latest > prev) {
+
+    if (latest > 80 && latest > previous) {
       setHidden(true)
     } else {
       setHidden(false)
     }
   })
 
-  const linkClass =
-    "text-[11px] text-warm-white/80 hover:text-secondary transition-colors duration-200 relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-secondary after:transition-all after:duration-300 hover:after:w-full"
-
   return (
     <motion.div
-      animate={{ y: hidden ? "-100%" : 0 }}
-      transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
-      className="fixed top-0 left-0 right-0 z-[51] h-[44px] bg-[#6B0F1A] flex items-center px-4 sm:px-6 lg:px-8 shadow-sm"
+      animate={{
+        y: hidden ? "-100%" : 0,
+      }}
+      transition={{
+        duration: 0.35,
+        ease: [0.32, 0.72, 0, 1],
+      }}
+      className="
+        fixed
+        inset-x-0
+        top-0
+        z-[60]
+        h-[40px]
+        bg-[#6B0F1A]
+        border-b
+        border-[#DDB25C]/10
+      "
     >
-      <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-        <div className="flex items-center gap-2 min-w-0">
-          <motion.span
-            animate={{ rotate: [0, 10, -10, 7, -7, 0] }}
-            transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 4, ease: "easeInOut" }}
-            className="origin-top inline-flex shrink-0"
+      <div
+        className="
+          mx-auto
+          flex
+          h-full
+          w-full
+          max-w-[1440px]
+          items-center
+          justify-between
+          px-4
+          sm:px-6
+          lg:px-8
+          xl:px-10
+        "
+      >
+        {/* -------------------------------------------------------------- */}
+        {/* Left — small temple/update info                                */}
+        {/* -------------------------------------------------------------- */}
+
+        <div className="flex min-w-0 items-center gap-2">
+          <motion.div
+            animate={{
+              rotate: [0, 8, -8, 5, -5, 0],
+            }}
+            transition={{
+              duration: 2.5,
+              repeat: Infinity,
+              repeatDelay: 5,
+              ease: "easeInOut",
+            }}
+            className="
+              flex
+              h-5
+              w-5
+              shrink-0
+              items-center
+              justify-center
+              rounded-full
+              bg-[#DDB25C]/[0.10]
+            "
           >
-            <Bell className="w-3.5 h-3.5 text-secondary" />
-          </motion.span>
-          <span className="text-[11px] text-warm-white/90 font-heading tracking-wide truncate">
+            <Bell className="h-2.5 w-2.5 text-[#F6E2A0]" />
+          </motion.div>
+
+          <span
+            className="
+              truncate
+              text-[10px]
+              font-medium
+              tracking-wide
+              text-white/70
+            "
+          >
             ಶ್ರೀ ಕಾಳಿಕಾಂಬಾ ದೇವಸ್ಥಾನ
           </span>
         </div>
 
-        <div className="hidden md:flex items-center shrink-0">
-          <LanguageSwitcher className="h-6 text-[11px] gap-1 text-warm-white/80" />
-        </div>
+        {/* -------------------------------------------------------------- */}
+        {/* Right — utilities                                               */}
+        {/* -------------------------------------------------------------- */}
 
-        <div className="flex items-center gap-1 sm:gap-3 shrink-0">
-          <Link href="/contact" className={`${linkClass} hidden sm:inline-flex items-center gap-1`}>
-            <MapPin className="w-3 h-3" />
-            {t("nav.contact")}
+        <div className="flex items-center gap-1.5 sm:gap-3">
+          {/* Contact */}
+          <Link
+            href="/contact"
+            className="
+              group
+              hidden
+              items-center
+              gap-1.5
+              rounded-full
+              px-2
+              py-1
+              text-[10px]
+              font-medium
+              text-white/60
+              transition-colors
+              duration-200
+              hover:text-[#F6E2A0]
+              sm:inline-flex
+            "
+          >
+            <MapPin className="h-3 w-3 text-[#DDB25C]/70" />
+
+            <span>{t("nav.contact")}</span>
           </Link>
+
+          {/* Divider */}
+          <span
+            className="
+              hidden
+              h-4
+              w-px
+              bg-white/10
+              sm:block
+            "
+          />
+
+          {/* Language */}
+          {/* <LanguageSwitcher
+            className="
+              h-7
+              min-w-[72px]
+              border-transparent
+              bg-transparent
+              px-2
+              text-[9px]
+              shadow-none
+              hover:border-[#DDB25C]/15
+              hover:bg-white/[0.05]
+            "
+          /> */}
+
+          {/* Divider */}
+          {/* <span className="h-4 w-px bg-white/10" />  */}
+
+          {/* Book Seva */}
           <Link
             href="/sevas"
-            className="text-[11px] font-semibold px-3 py-1 rounded-full bg-secondary/20 text-secondary border border-secondary/40 hover:bg-secondary/30 hover:border-secondary/60 hover:shadow-sm hover:shadow-secondary/20 transition-all duration-200 shrink-0"
+            className="
+              group
+              inline-flex
+              h-7
+              items-center
+              gap-1.5
+              rounded-full
+              border
+              border-[#DDB25C]/30
+              bg-[#DDB25C]/[0.10]
+              px-2.5
+              text-[9px]
+              font-semibold
+              text-[#F6E2A0]
+              transition-all
+              duration-200
+              hover:border-[#DDB25C]/50
+              hover:bg-[#DDB25C]/[0.16]
+            "
           >
-            {t("nav.bookSeva")}
+            <Sparkles
+              className="
+                h-2.5
+                w-2.5
+                text-[#DDB25C]
+              "
+            />
+
+            <span>{t("nav.bookSeva")}</span>
           </Link>
         </div>
       </div>

@@ -14,6 +14,7 @@ import {
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@/lib/zod-resolver"
 import { z } from "zod"
+import { cn } from "@/lib/utils"
 import toast from "react-hot-toast"
 
 interface StaffMember {
@@ -58,8 +59,8 @@ export default function StaffPage() {
 
   useEffect(() => {
     fetch("/api/staff").then((r) => r.json()).then((json) => {
-      setStaff(Array.isArray(json) ? json : (json.data ?? []))
-    }).finally(() => setLoading(false))
+      setStaff(Array.isArray(json) ? json : (json.data?.staff ?? json.data ?? []))
+    }).catch(() => { toast.error("Failed to fetch staff") }).finally(() => setLoading(false))
   }, [])
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({

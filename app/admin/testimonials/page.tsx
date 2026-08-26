@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { StatusBadge } from "@/components/admin/status-badge"
 import { DataTable, type Column } from "@/components/admin/data-table"
-import { formatDateTime } from "@/lib/utils"
+import { cn, formatDateTime } from "@/lib/utils"
 import toast from "react-hot-toast"
 
 interface Testimonial {
@@ -134,4 +134,4 @@ export default function TestimonialsPage() {
   )
 }
 
-function cn(...inputs: unknown[]) { return inputs.filter(Boolean).join(" ") }
+

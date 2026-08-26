@@ -40,7 +40,23 @@ export default function BookingsPage() {
     fetch("/api/bookings")
       .then((r) => r.json())
       .then((d) => {
-        setBookings(d.data?.bookings || [])
+        const raw = d.data?.bookings || []
+        const mapped: Booking[] = raw.map((b: any) => ({
+          id: b.id,
+          bookingId: b.bookingId,
+          devoteeName: b.devoteeDetails?.name || b.user?.name || "",
+          seva: b.sevaDetails?.name || b.items?.map((i: any) => i.seva?.name || i.sevaName).join(", ") || "",
+          date: b.preferredDate ? new Date(b.preferredDate).toLocaleDateString("en-IN") : "-",
+          amount: b.finalAmount || b.totalAmount || 0,
+          bookingStatus: b.status || "PENDING",
+          paymentStatus: b.paymentStatus || "PENDING",
+          adminApproval: b.adminApproval || "PENDING",
+          phone: b.devoteeDetails?.phone || "",
+          email: b.devoteeDetails?.email || "",
+          quantity: b.quantity || 1,
+          createdAt: b.createdAt,
+        }))
+        setBookings(mapped)
         setLoading(false)
       })
       .catch(() => setLoading(false))

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import toast from "react-hot-toast"
 import { motion } from "framer-motion"
 import { Plus, Edit3, Trash2, Search, Clock, Sun, Moon } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -54,7 +55,7 @@ export default function DailySchedulePage() {
       setLoading(true)
       const res = await fetch("/api/daily-schedule")
       const json = await res.json()
-      const data = json.data ?? json ?? []
+      const data = json.data?.schedules ?? json.data ?? json.schedules ?? []
       setItems(Array.isArray(data) ? data : [])
     } catch {
       toast.error("Failed to fetch schedule")
@@ -223,7 +224,7 @@ export default function DailySchedulePage() {
   )
 }
 
-function cn(...inputs: unknown[]) { return inputs.filter(Boolean).join(" ") }
+
 
 
 

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "hm-001",
+    "slug": "laghu-homa",
+    "name": { "kn": "ಲಘು ಹೋಮ", "en": "Laghu Homa" },
+    "description": { "kn": "ಸಣ್ಣ ಪ್ರಮಾಣದ ವೈದಿಕ ಹೋಮ. ಸಮಸ್ಯೆಗಳ ನಿವಾರಣೆಗಾಗಿ ನಡೆಸಲಾಗುತ್ತದೆ.", "en": "Small-scale Vedic fire ceremony for removal of obstacles and negativity." },
+    "price": 1500,
+    "duration": 60,
+    "category": "homa",
+    "icon": "flame"
+  },
+  {
+    "id": "hm-002",
+    "slug": "maha-homa",
+    "name": { "kn": "ಮಹಾ ಹೋಮ", "en": "Maha Homa" },
+    "description": { "kn": "ದೊಡ್ಡ ಪ್ರಮಾಣದ ವೈದಿಕ ಹೋಮ. ವಿಶೇಷ ಉದ್ದೇಶಗಳಿಗಾಗಿ ನಡೆಸಲಾಗುತ್ತದೆ.", "en": "Grand-scale Vedic fire ceremony for special purposes and divine blessings." },
+    "price": 5000,
+    "duration": 180,
+    "category": "homa",
+    "icon": "flame"
+  },
+  {
+    "id": "hm-003",
+    "slug": "sudarshana-homa",
+    "name": { "kn": "ಸುದರ್ಶನ ಹೋಮ", "en": "Sudarshana Homa" },
+    "description": { "kn": "ಭಗವಾನ್ ವಿಷ್ಣುವಿನ ಸುದರ್ಶನ ಚಕ್ರಕ್ಕಾಗಿ ನಡೆಸುವ ಹೋಮ. ರೋಗ ನಿವಾರಣೆ ಮತ್ತು ರಕ್ಷಣೆಗಾಗಿ.", "en": "Fire ceremony dedicated to Lord Vishnu's Sudarshana Chakra for healing and protection." },
+    "price": 3000,
+    "duration": 120,
+    "category": "homa",
+    "icon": "flame"
+  },
+  {
+    "id": "hm-004",
+    "slug": "navagraha-homa",
+    "name": { "kn": "ನವಗ್ರಹ ಹೋಮ", "en": "Navagraha Homa" },
+    "description": { "kn": "ಒಂಬತ್ತು ಗ್ರಹಗಳ ದೋಷ ನಿವಾರಣೆಗಾಗಿ ನಡೆಸುವ ಹೋಮ.", "en": "Fire ceremony for pacifying malefic effects of the nine planets." },
+    "price": 4000,
+    "duration": 150,
+    "category": "homa",
+    "icon": "flame"
+  },
+  {
+    "id": "hm-005",
+    "slug": "lakshmi-homa",
+    "name": { "kn": "ಲಕ್ಷ್ಮೀ ಹೋಮ", "en": "Lakshmi Homa" },
+    "description": { "kn": "ಸಂಪತ್ತು ಮತ್ತು ಸಮೃದ್ಧಿಗಾಗಿ ಶ್ರೀ ಲಕ್ಷ್ಮೀ ದೇವಿಗೆ ಅರ್ಪಿತವಾದ ಹೋಮ.", "en": "Fire ceremony dedicated to Goddess Lakshmi for wealth and prosperity." },
+    "price": 3500,
+    "duration": 120,
+    "category": "homa",
+    "icon": "sparkles"
+  }
+]
