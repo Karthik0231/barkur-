@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { rashiOptions, nakshatraOptions } from "@/lib/nakshatra-data"
+import { useTranslation } from "@/lib/i18n"
 import { Loader2, CheckCircle, AlertCircle, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -28,6 +29,7 @@ interface DevoteeFormProps {
 type LookupStatus = "idle" | "loading" | "found" | "notfound" | "error"
 
 export function DevoteeForm({ data, onChange }: DevoteeFormProps) {
+  const { t } = useTranslation()
   const [lookupStatus, setLookupStatus] = useState<LookupStatus>("idle")
   const [lookupMsg, setLookupMsg] = useState("")
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -63,14 +65,14 @@ export function DevoteeForm({ data, onChange }: DevoteeFormProps) {
           rashi: u.rashi || data.rashi,
         })
         setLookupStatus("found")
-        setLookupMsg(`Auto-filled from ${json.data.source === "devotee" ? "devotee records" : "account"}`)
+        setLookupMsg(t("booking.autoFilledFrom") + ` ${json.data.source === "devotee" ? t("booking.devoteeRecords") : t("booking.account")}`)
       } else {
         setLookupStatus("notfound")
-        setLookupMsg("No existing record found, please fill in details")
+        setLookupMsg(t("booking.noRecordFound"))
       }
     } catch (e) {
       setLookupStatus("error")
-      setLookupMsg("Lookup unavailable, please fill in manually")
+      setLookupMsg(t("booking.lookupUnavailable"))
     }
   }
 
@@ -89,21 +91,21 @@ export function DevoteeForm({ data, onChange }: DevoteeFormProps) {
     <div className="space-y-6">
       <div>
         <h3 className="text-sm font-semibold text-text-primary mb-3 uppercase tracking-wider">
-          Personal Information
+          {t("booking.personalInfo")}
         </h3>
         <div className="grid sm:grid-cols-2 gap-4">
           <Input
             variant="premium"
-            label="Full Name *"
-            placeholder="Enter your full name"
+            label={t("booking.fullName")}
+            placeholder={t("booking.fullNamePlaceholder")}
             value={data.name}
             onChange={(e) => update("name", e.target.value)}
             success={lookupStatus === "found" && data.name ? " " : undefined}
           />
           <Input
             variant="premium"
-            label="Gotra"
-            placeholder="e.g. Bharadwaja, Vashishta..."
+            label={t("booking.gotra")}
+            placeholder={t("booking.gotraPlaceholder")}
             value={data.gotra}
             onChange={(e) => update("gotra", e.target.value)}
           />
@@ -112,37 +114,37 @@ export function DevoteeForm({ data, onChange }: DevoteeFormProps) {
 
       <div>
         <h3 className="text-sm font-semibold text-text-primary mb-3 uppercase tracking-wider">
-          Astrological Details
+          {t("booking.astrologicalDetails")}
         </h3>
         <div className="grid sm:grid-cols-2 gap-4">
           <Select
-            label="Nakshatra (Birth Star)"
+            label={t("booking.nakshatraLabel")}
             options={nakshatraOptions}
             value={data.nakshatra}
             onChange={(e) => update("nakshatra", e.target.value)}
-            placeholder="Select nakshatra"
+            placeholder={t("booking.selectNakshatra")}
           />
           <Select
-            label="Rashi (Zodiac)"
+            label={t("booking.rashiLabel")}
             options={rashiOptions}
             value={data.rashi}
             onChange={(e) => update("rashi", e.target.value)}
-            placeholder="Select rashi"
+            placeholder={t("booking.selectRashi")}
           />
         </div>
       </div>
 
       <div>
         <h3 className="text-sm font-semibold text-text-primary mb-3 uppercase tracking-wider">
-          Contact Details
+          {t("booking.contactDetails")}
         </h3>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <Input
               variant="premium"
-              label="Phone Number *"
+              label={t("booking.phone")}
               type="tel"
-              placeholder="Enter your phone number"
+              placeholder={t("booking.phonePlaceholder")}
               value={data.phone}
               onChange={(e) => {
                 update("phone", e.target.value)
@@ -174,9 +176,9 @@ export function DevoteeForm({ data, onChange }: DevoteeFormProps) {
           </div>
           <Input
             variant="premium"
-            label="Email Address *"
+            label={t("booking.email")}
             type="email"
-            placeholder="Enter your email address"
+            placeholder={t("booking.emailPlaceholder")}
             value={data.email}
             onChange={(e) => update("email", e.target.value)}
           />
@@ -185,35 +187,35 @@ export function DevoteeForm({ data, onChange }: DevoteeFormProps) {
 
       <div>
         <h3 className="text-sm font-semibold text-text-primary mb-3 uppercase tracking-wider">
-          Address *
+          {t("booking.address")}
         </h3>
         <div className="space-y-4">
           <textarea
             value={data.address}
             onChange={(e) => update("address", e.target.value)}
-            placeholder="Enter your full address"
+            placeholder={t("booking.addressPlaceholder")}
             rows={3}
             className="w-full rounded-xl border-2 border-gold-200/30 bg-warm-white p-4 text-sm text-text-primary placeholder:text-text-muted focus:border-gold-500 focus:ring-2 focus:ring-gold-500/10 focus-visible:outline-none transition-all resize-none shadow-premium"
           />
           <div className="grid sm:grid-cols-3 gap-4">
             <Input
               variant="premium"
-              label="State *"
-              placeholder="e.g. Karnataka"
+              label={t("booking.state")}
+              placeholder={t("booking.statePlaceholder")}
               value={data.state}
               onChange={(e) => update("state", e.target.value)}
             />
             <Input
               variant="premium"
-              label="District *"
-              placeholder="e.g. Udupi"
+              label={t("booking.district")}
+              placeholder={t("booking.districtPlaceholder")}
               value={data.district}
               onChange={(e) => update("district", e.target.value)}
             />
             <Input
               variant="premium"
-              label="Pincode *"
-              placeholder="e.g. 576101"
+              label={t("booking.pincode")}
+              placeholder={t("booking.pincodePlaceholder")}
               value={data.pincode}
               onChange={(e) => update("pincode", e.target.value)}
             />

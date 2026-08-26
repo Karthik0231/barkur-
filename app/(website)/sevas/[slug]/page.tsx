@@ -23,21 +23,6 @@ const GRADIENTS = [
 
 const ICONS: React.ElementType[] = [Sun, Droplets, Heart, Star, Sparkles, Moon, Flame, Sparkles]
 
-const DEFAULT_RULES = [
-  "Devotees should be present 15 minutes before the scheduled time",
-  "Traditional attire recommended (dhoti for men, saree for women)",
-  "Mobile phones must be switched off inside the temple premises",
-  "Follow the instructions of the temple priests",
-  "Photography is not allowed during the pooja",
-]
-
-const DEFAULT_INCLUDES = [
-  "Vedic mantra chanting",
-  "Flower offerings to the deity",
-  "Aarti and blessing",
-  "Prasad distribution",
-]
-
 export default function SevaDetailPage() {
   const { t, language } = useTranslation()
   const params = useParams()

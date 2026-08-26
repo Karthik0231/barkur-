@@ -9,6 +9,7 @@ import { findManyReceipts } from "@/lib/models/receipt"
 import { getDb } from "@/lib/mongodb"
 import { toObjectId } from "@/lib/models/utils"
 import { successResponse, errorResponse, getAuthUser, checkRole, auditLog } from "@/lib/api-utils"
+import { findSevaById as findLocalSevaById } from "@/lib/data/sevas"
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -30,8 +31,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     ])
 
     const sevaIds = items.map((i) => i.sevaId).filter(Boolean) as string[]
-    const sevas = sevaIds.length > 0
-      ? await findManySevas({ _id: { $in: sevaIds.map((sid) => toObjectId(sid)) } })
+    const mongoSevaIds = sevaIds
+      .filter((sid) => { try { toObjectId(sid); return true } catch { return false } })
+    const sevas = mongoSevaIds.length > 0
+      ? await findManySevas({ _id: { $in: mongoSevaIds.map((sid) => toObjectId(sid)) } })
       : []
     const sevasById = sevas.reduce((acc, s) => { acc[s.id] = s; return acc }, {} as Record<string, any>)
 
@@ -39,10 +42,17 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
     const enrichedBooking = {
       ...booking,
-      items: items.map((item) => ({
-        ...item,
-        seva: sevasById[item.sevaId] ? { id: sevasById[item.sevaId].id, name: sevasById[item.sevaId].name, slug: sevasById[item.sevaId].slug, price: sevasById[item.sevaId].price } : null,
-      })),
+      items: items.map((item) => {
+        const localSeva = findLocalSevaById(item.sevaId)
+        return {
+          ...item,
+          seva: sevasById[item.sevaId]
+            ? { id: sevasById[item.sevaId].id, name: sevasById[item.sevaId].name, slug: sevasById[item.sevaId].slug, price: sevasById[item.sevaId].price }
+            : localSeva
+              ? { id: localSeva.id, name: typeof localSeva.name === "object" ? localSeva.name.en : localSeva.name, slug: localSeva.slug, price: localSeva.price }
+              : { id: item.sevaId, name: item.sevaName || "Seva", slug: item.sevaId, price: item.unitPrice },
+        }
+      }),
       payments,
       sevaDate,
       user: userData ? { id: userData.id, name: userData.name, email: userData.email, phone: userData.phone } : null,
@@ -91,8 +101,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     ])
 
     const sevaIds = items.map((i) => i.sevaId).filter(Boolean) as string[]
-    const sevas = sevaIds.length > 0
-      ? await findManySevas({ _id: { $in: sevaIds.map((sid) => toObjectId(sid)) } })
+    const mongoSevaIds2 = sevaIds
+      .filter((sid) => { try { toObjectId(sid); return true } catch { return false } })
+    const sevas = mongoSevaIds2.length > 0
+      ? await findManySevas({ _id: { $in: mongoSevaIds2.map((sid) => toObjectId(sid)) } })
       : []
     const sevasById = sevas.reduce((acc, s) => { acc[s.id] = s; return acc }, {} as Record<string, any>)
 
@@ -100,10 +112,17 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const enrichedBooking = {
       ...refreshedBooking,
-      items: items.map((item) => ({
-        ...item,
-        seva: sevasById[item.sevaId] ? { id: sevasById[item.sevaId].id, name: sevasById[item.sevaId].name, slug: sevasById[item.sevaId].slug, price: sevasById[item.sevaId].price } : null,
-      })),
+      items: items.map((item) => {
+        const localSeva = findLocalSevaById(item.sevaId)
+        return {
+          ...item,
+          seva: sevasById[item.sevaId]
+            ? { id: sevasById[item.sevaId].id, name: sevasById[item.sevaId].name, slug: sevasById[item.sevaId].slug, price: sevasById[item.sevaId].price }
+            : localSeva
+              ? { id: localSeva.id, name: typeof localSeva.name === "object" ? localSeva.name.en : localSeva.name, slug: localSeva.slug, price: localSeva.price }
+              : { id: item.sevaId, name: item.sevaName || "Seva", slug: item.sevaId, price: item.unitPrice },
+        }
+      }),
       payments,
       sevaDate,
       user: userData ? { id: userData.id, name: userData.name, email: userData.email, phone: userData.phone } : null,

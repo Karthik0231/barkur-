@@ -20,6 +20,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+import { useTranslation } from "@/lib/i18n"
+
 const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
 export interface DateTimePickerProps {
@@ -49,6 +51,7 @@ export function DateTimePicker({
   price,
   className,
 }: DateTimePickerProps) {
+  const { t } = useTranslation()
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [direction, setDirection] = useState(0)
 
@@ -102,7 +105,7 @@ export function DateTimePicker({
       <div>
         <div className="flex items-center gap-2 mb-5">
           <CalendarDays className="h-5 w-5 text-primary" />
-          <h3 className="text-base font-heading font-bold text-text-primary">Select Date</h3>
+          <h3 className="text-base font-heading font-bold text-text-primary">{t("booking.selectDate")}</h3>
         </div>
 
         <div className="bg-warm-white rounded-2xl border border-gold-200/20 shadow-premium p-5">
@@ -199,7 +202,7 @@ export function DateTimePicker({
             animate={{ opacity: 1, y: 0 }}
             className="mt-3 text-sm text-text-secondary text-center"
           >
-            Selected:{" "}
+            {t("booking.selected")}: {" "}
             <span className="font-semibold text-primary">
               {format(selectedDate, "EEEE, MMMM d, yyyy")}
             </span>
@@ -215,7 +218,7 @@ export function DateTimePicker({
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className="flex items-center gap-2 mb-4">
-            <span className="text-base font-heading font-bold text-text-primary">Quantity</span>
+            <span className="text-base font-heading font-bold text-text-primary">{t("booking.quantity")}</span>
           </div>
           <div className="flex items-center gap-4 bg-warm-white rounded-xl border border-gold-200/20 shadow-premium p-4">
             <button
