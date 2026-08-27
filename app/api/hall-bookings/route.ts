@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     const isAdmin = checkRole(session, ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER", "RECEPTION"])
 
     const where: Record<string, unknown> = {}
-    if (!isAdmin) where.userId = user.id
+    if (!isAdmin && user) where.userId = user.id
 
     const [bookings, total] = await Promise.all([
       findManyHallBookings(where, { skip, limit, sortBy, sortOrder }),
@@ -51,7 +51,6 @@ export async function POST(request: Request) {
   try {
     const session = await auth()
     const user = getAuthUser(session)
-    if (!user) return errorResponse("Unauthorized", 401)
 
     const body = await request.json()
     const parsed = hallBookingSchema.safeParse(body)
@@ -80,7 +79,7 @@ export async function POST(request: Request) {
     const booking = await createHallBooking({
       bookingId,
       hallId: hall.id,
-      userId: user.id,
+      userId: user?.id ?? null,
       eventName: data.eventType,
       eventType: data.eventType,
       organizerName: data.organizerName,
@@ -93,7 +92,7 @@ export async function POST(request: Request) {
       finalAmount: totalAmount,
       expectedGuests: data.expectedGuests,
       specialRequests: data.remarks ?? null,
-      createdBy: user.id,
+      createdBy: user?.id ?? null,
     })
 
     const [createdHall, createdUser] = await Promise.all([

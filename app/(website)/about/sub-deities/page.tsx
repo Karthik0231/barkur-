@@ -15,16 +15,20 @@ export default function SubDeitiesPage() {
   useEffect(() => {
     fetch("/api/sub-deities")
       .then((r) => r.json())
-      .then((data) =>
-        setSubDeities(
-          data.map((d: any) => ({
-            name: d.name,
-            title: d.templeLocation,
-            description: d.description,
-            significance: d.significance,
-          }))
-        )
-      )
+      .then((res) => {
+        const list = res.data?.deities || res.data || []
+        if (Array.isArray(list)) {
+          setSubDeities(
+            list.map((d: any) => ({
+              name: d.name,
+              title: d.templeLocation,
+              description: d.description,
+              significance: d.significance,
+            }))
+          )
+        }
+      })
+      .catch(() => {})
   }, [])
 
   const { t } = useTranslation()

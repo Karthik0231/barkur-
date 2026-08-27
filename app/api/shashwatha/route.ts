@@ -56,7 +56,6 @@ export async function POST(request: Request) {
   try {
     const session = await auth()
     const user = getAuthUser(session)
-    if (!user) return errorResponse("Unauthorized", 401)
 
     const body = await request.json()
     const parsed = shashwathaBookingSchema.safeParse(body)
@@ -74,7 +73,7 @@ export async function POST(request: Request) {
 
     const booking = await createShashwathaBooking({
       bookingId,
-      userId: user.id,
+      userId: user?.id ?? null,
       sevaId: matchingSeva.id,
       shashwathaType: data.type,
       selectedDate: data.startDate ? new Date(data.startDate) : null,
@@ -98,7 +97,7 @@ export async function POST(request: Request) {
     const enrichedBooking = {
       ...booking,
       seva: { id: matchingSeva.id, name: matchingSeva.name, slug: matchingSeva.slug },
-      user: { id: user.id, name: data.devoteeName, email: data.email },
+      user: { id: user?.id ?? null, name: data.devoteeName, email: data.email },
     }
 
     await auditLog("CREATE", "ShashwathaBooking", booking.id, { bookingId, type: data.type }, session)

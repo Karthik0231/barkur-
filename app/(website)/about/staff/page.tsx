@@ -21,15 +21,19 @@ export default function StaffPage() {
   useEffect(() => {
     fetch("/api/staff")
       .then((r) => r.json())
-      .then((data) =>
-        setStaffMembers(
-          data.map((d: any) => ({
-            name: d.name,
-            role: d.role,
-            department: d.designation,
-          }))
-        )
-      )
+      .then((res) => {
+        const list = res.data?.staff || res.data || []
+        if (Array.isArray(list)) {
+          setStaffMembers(
+            list.map((d: any) => ({
+              name: d.name,
+              role: d.role,
+              department: d.designation,
+            }))
+          )
+        }
+      })
+      .catch(() => {})
   }, [])
 
   const departments = ["All", ...new Set(staffMembers.map((s) => s.department))]

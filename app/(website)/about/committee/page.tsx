@@ -54,16 +54,20 @@ export default function CommitteePage() {
   useEffect(() => {
     fetch("/api/committee")
       .then((r) => r.json())
-      .then((data) =>
-        setMembers(
-          data.map((d: any) => ({
-            name: d.name,
-            role: d.role,
-            bio: d.biography,
-            type: d.type,
-          }))
-        )
-      )
+      .then((res) => {
+        const list = res.data?.committee || res.data || []
+        if (Array.isArray(list)) {
+          setMembers(
+            list.map((d: any) => ({
+              name: d.name,
+              role: d.role,
+              bio: d.biography,
+              type: d.type,
+            }))
+          )
+        }
+      })
+      .catch(() => {})
   }, [])
 
   const committeeMembers = members.filter((m) => m.type === "MEMBER")

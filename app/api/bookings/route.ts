@@ -104,7 +104,6 @@ export async function POST(request: Request) {
   try {
     const session = await auth()
     const user = getAuthUser(session)
-    if (!user) return errorResponse("Unauthorized", 401)
 
     const body = await request.json()
     const parsed = sevaBookingSchema.safeParse(body)
@@ -214,7 +213,7 @@ export async function POST(request: Request) {
 
     const booking = await createBooking({
       bookingId,
-      userId: user.id,
+      userId: user?.id ?? null,
       totalAmount,
       finalAmount: totalAmount,
       quantity: totalQty,
@@ -234,7 +233,7 @@ export async function POST(request: Request) {
         name: sevaName,
         ids: itemsToCreate.map((i) => i.sevaId),
       },
-      createdBy: user.id,
+      createdBy: user?.id ?? null,
     })
 
     for (const item of itemsToCreate) {

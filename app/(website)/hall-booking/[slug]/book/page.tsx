@@ -426,7 +426,7 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
 
                     <div className="space-y-5">
                       <Input
-                        label="Event Name *"
+                        label={t("hallBooking.hallBookingEventName")}
                         placeholder="e.g., Smitha's Wedding Reception"
                         iconLeft={<Building2 className="h-4 w-4" />}
                         error={errors.eventName?.message}
@@ -456,7 +456,7 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                       </div>
 
                       <Input
-                        label="Expected Guests *"
+                        label={t("hallBooking.hallBookingGuests")}
                         type="number"
                         placeholder="e.g., 200"
                         iconLeft={<Users className="h-4 w-4" />}
@@ -503,14 +503,14 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
 
                     <div className="space-y-5">
                       <Input
-                        label="Organizer Name *"
+                        label={t("hallBooking.hallBookingYourName")}
                         placeholder="Full name"
                         iconLeft={<User className="h-4 w-4" />}
                         error={errors.organizerName?.message}
                         {...register("organizerName")}
                       />
                       <Input
-                        label="Address *"
+                        label={t("hallBooking.hallBookingAddress")}
                         placeholder="Full address"
                         iconLeft={<MapPin className="h-4 w-4" />}
                         error={errors.address?.message}
@@ -518,7 +518,7 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                       />
                       <div className="grid sm:grid-cols-2 gap-5">
                         <Input
-                          label="Phone Number *"
+                          label={t("hallBooking.hallBookingPhone")}
                           type="tel"
                           placeholder="+91 XXXXX XXXXX"
                           iconLeft={<Phone className="h-4 w-4" />}
@@ -526,7 +526,7 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                           {...register("organizerPhone")}
                         />
                         <Input
-                          label="Email *"
+                          label={t("hallBooking.hallBookingEmail")}
                           type="email"
                           placeholder="your@email.com"
                           iconLeft={<Mail className="h-4 w-4" />}

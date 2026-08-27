@@ -203,6 +203,30 @@ export interface TranslationData {
     noRecordFound: string
     lookupUnavailable: string
   }
+  sriChakraPooja: {
+    title: string
+    eyebrow: string
+    subtitle: string
+    aboutTitle: string
+    aboutDesc: string
+    monthlyPooja: string
+    selectHunnime: string
+    hunnimeDay: string
+    poojaTime: string
+    poojaFee: string
+    bookingSummary: string
+    date: string
+    devoteeDetails: string
+    bookingConfirmed: string
+    bookingConfirmedDesc: string
+    bookAnother: string
+    confirmPayment: string
+    payNow: string
+    address: string
+    gotra: string
+    nakshatra: string
+    rashi: string
+  }
   donate: {
     supportTemple: string
     donateNow: string
@@ -1045,6 +1069,30 @@ const translations: Record<string, TranslationData> = {
       accountLabel: "ಖಾತೆ",
       noRecordFound: "ಯಾವುದೇ ದಾಖಲೆ ಸಿಗಲಿಲ್ಲ, ದಯವಿಟ್ಟು ವಿವರಗಳನ್ನು ತುಂಬಿಸಿ",
       lookupUnavailable: "ಲುಕ್‌ಅಪ್ ಲಭ್ಯವಿಲ್ಲ, ದಯವಿಟ್ಟು ಹಸ್ತಚಾಲಿತವಾಗಿ ತುಂಬಿಸಿ",
+    },
+    sriChakraPooja: {
+      title: "ಶ್ರೀ ಚಕ್ರ ಪೂಜೆ",
+      eyebrow: "ವಿಶೇಷ ಮಾಸಿಕ ಪೂಜೆ",
+      subtitle: "ಪ್ರತಿ ತಿಂಗಳು ಹುಣ್ಣಿಮೆ ದಿನದಂದು ಮಾತ್ರ ನಡೆಯುವ ಪವಿತ್ರ ಶ್ರೀ ಚಕ್ರ ಪೂಜೆ",
+      aboutTitle: "ಶ್ರೀ ಚಕ್ರ ಪೂಜೆಯ ಬಗ್ಗೆ",
+      aboutDesc: "ಶ್ರೀ ಚಕ್ರ ಪೂಜೆಯು ಪ್ರತಿ ತಿಂಗಳು ಹುಣ್ಣಿಮೆ (ಪೂರ್ಣಿಮೆ) ದಿನದಂದು ನಡೆಯುವ ಅತ್ಯಂತ ಪವಿತ್ರ ಪೂಜೆಯಾಗಿದೆ. ಈ ಪೂಜೆಯು ದೇವಿಯ ಶ್ರೀ ಚಕ್ರಕ್ಕೆ ಸಂಬಂಧಿಸಿದೆ ಮತ್ತು ಭಕ್ತರಿಗೆ ವಿಶೇಷ ಅನುಗ್ರಹ ನೀಡುತ್ತದೆ.",
+      monthlyPooja: "ಮಾಸಿಕ ಪೂಜೆ",
+      selectHunnime: "ಹುಣ್ಣಿಮೆ ದಿನ ಆಯ್ಕೆಮಾಡಿ",
+      hunnimeDay: "ಹುಣ್ಣಿಮೆ ದಿನ",
+      poojaTime: "ಪೂಜಾ ಸಮಯ",
+      poojaFee: "ಪೂಜಾ ಶುಲ್ಕ",
+      bookingSummary: "ಬುಕಿಂಗ್ ಸಾರಾಂಶ",
+      date: "ದಿನಾಂಕ",
+      devoteeDetails: "ಭಕ್ತರ ವಿವರಗಳು",
+      bookingConfirmed: "ಬುಕಿಂಗ್ ದೃಢೀಕರಿಸಲಾಗಿದೆ!",
+      bookingConfirmedDesc: "ನಿಮ್ಮ ಬುಕಿಂಗ್ ಯಶಸ್ವಿಯಾಗಿ ದೃಢೀಕರಿಸಲಾಗಿದೆ.",
+      bookAnother: "ಮತ್ತೊಮ್ಮೆ ಬುಕ್ ಮಾಡಿ",
+      confirmPayment: "ಪಾವತಿ ದೃಢೀಕರಿಸಿ",
+      payNow: "ಈಗ ಪಾವತಿಸಿ",
+      address: "ವಿಳಾಸ *",
+      gotra: "ಗೋತ್ರ",
+      nakshatra: "ನಕ್ಷತ್ರ",
+      rashi: "ರಾಶಿ",
     },
     donate: {
       supportTemple: "ದೇವಸ್ಥಾನವನ್ನು ಬೆಂಬಲಿಸಿ",
@@ -1971,6 +2019,30 @@ const translations: Record<string, TranslationData> = {
       accountLabel: "account",
       noRecordFound: "No existing record found, please fill in details",
       lookupUnavailable: "Lookup unavailable, please fill in manually",
+    },
+    sriChakraPooja: {
+      title: "Sri Chakra Pooja",
+      eyebrow: "Special Monthly Pooja",
+      subtitle: "Sacred Sri Chakra Pooja performed only on Hunnime (Full Moon) day every month",
+      aboutTitle: "About Sri Chakra Pooja",
+      aboutDesc: "Sri Chakra Pooja is the most sacred pooja performed every month on Hunnime (Full Moon) day. This pooja is associated with the Sri Chakra of the Goddess and bestows special blessings upon devotees.",
+      monthlyPooja: "Monthly Pooja",
+      selectHunnime: "Select Hunnime Date",
+      hunnimeDay: "Hunnime Day",
+      poojaTime: "Pooja Time",
+      poojaFee: "Pooja Fee",
+      bookingSummary: "Booking Summary",
+      date: "Date",
+      devoteeDetails: "Devotee Details",
+      bookingConfirmed: "Booking Confirmed!",
+      bookingConfirmedDesc: "Your booking has been confirmed successfully.",
+      bookAnother: "Book Another",
+      confirmPayment: "Confirm Payment",
+      payNow: "Pay Now",
+      address: "Address *",
+      gotra: "Gotra",
+      nakshatra: "Nakshatra",
+      rashi: "Rashi",
     },
     donate: {
       supportTemple: "Support the Temple",
