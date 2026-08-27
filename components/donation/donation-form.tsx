@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Heart, Shield, QrCode, CreditCard, Hash, User, Mail, Phone, MapPin, MessageSquare, Eye, EyeOff, CheckCircle } from "lucide-react"
+import { useTranslation } from "@/lib/i18n"
 
 const donationFormSchema = z.object({
   amount: z.number().min(1, "Please select or enter an amount"),
@@ -49,6 +50,7 @@ export function DonationForm({
   loading = false,
   className,
 }: DonationFormProps) {
+  const { t } = useTranslation()
   const [showPan, setShowPan] = useState(false)
   const [customAmount, setCustomAmount] = useState("")
 
@@ -131,14 +133,14 @@ export function DonationForm({
             ))}
           </div>
           <div className="mt-3">
-            <label className="text-xs text-text-muted mb-1 block">Custom Amount</label>
+            <label className="text-xs text-text-muted mb-1 block">{t("donate.customAmountLabel")}</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-text-muted font-medium text-sm">₹</span>
               <input
                 type="text"
                 value={customAmount}
                 onChange={handleCustomAmount}
-                placeholder="Enter amount"
+                placeholder={t("donate.enterAmount")}
                 className={cn(
                   "w-full h-11 pl-8 pr-4 rounded-lg border text-sm transition-all duration-200",
                   "bg-warm-white dark:bg-bg-secondary",
@@ -155,16 +157,16 @@ export function DonationForm({
 
         <div className="grid sm:grid-cols-2 gap-4">
           <Input
-            label="Full Name *"
-            placeholder="Your name"
+            label={`${t("donate.donorName")} *`}
+            placeholder={t("common.namePlaceholder")}
             iconLeft={<User className="h-4 w-4" />}
             error={errors.donorName?.message}
             {...register("donorName")}
           />
           <Input
-            label="Email *"
+            label={t("donate.emailLabel")}
             type="email"
-            placeholder="your@email.com"
+            placeholder={t("common.emailPlaceholder")}
             iconLeft={<Mail className="h-4 w-4" />}
             error={errors.email?.message}
             {...register("email")}
@@ -173,16 +175,16 @@ export function DonationForm({
 
         <div className="grid sm:grid-cols-2 gap-4">
           <Input
-            label="Phone *"
+            label={t("donate.phoneLabel")}
             type="tel"
-            placeholder="+91 XXXXX XXXXX"
+            placeholder={t("common.phonePlaceholder2")}
             iconLeft={<Phone className="h-4 w-4" />}
             error={errors.phone?.message}
             {...register("phone")}
           />
           <div className="relative">
             <Input
-              label="PAN Number (Optional)"
+              label={`${t("donate.panLabel")} ${t("donate.panOptional")}`}
               placeholder="ABCDE1234F"
               iconLeft={<Hash className="h-4 w-4" />}
               type={showPan ? "text" : "password"}
@@ -200,30 +202,30 @@ export function DonationForm({
         </div>
 
         <div>
-          <label className="text-sm font-medium text-text-primary mb-2 block">Address</label>
+          <label className="text-sm font-medium text-text-primary mb-2 block">{t("donate.addressLabel")}</label>
           <div className="space-y-3">
             <div className="relative">
               <MapPin className="absolute left-3 top-3.5 h-4 w-4 text-text-muted" />
               <input
                 {...register("address")}
-                placeholder="Street address"
+                placeholder={t("donate.streetAddress")}
                 className="w-full h-11 pl-10 pr-4 rounded-lg border border-border bg-warm-white dark:bg-bg-secondary text-sm focus:border-secondary focus:ring-2 focus:ring-secondary/20 focus:outline-none transition-all"
               />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <input
                 {...register("city")}
-                placeholder="City"
+                placeholder={t("donate.cityLabel")}
                 className="w-full h-11 px-4 rounded-lg border border-border bg-warm-white dark:bg-bg-secondary text-sm focus:border-secondary focus:ring-2 focus:ring-secondary/20 focus:outline-none transition-all"
               />
               <input
                 {...register("state")}
-                placeholder="State"
+                placeholder={t("donate.stateLabel")}
                 className="w-full h-11 px-4 rounded-lg border border-border bg-warm-white dark:bg-bg-secondary text-sm focus:border-secondary focus:ring-2 focus:ring-secondary/20 focus:outline-none transition-all"
               />
               <input
                 {...register("pincode")}
-                placeholder="Pincode"
+                placeholder={t("donate.pincodeLabel")}
                 className="w-full h-11 px-4 rounded-lg border border-border bg-warm-white dark:bg-bg-secondary text-sm focus:border-secondary focus:ring-2 focus:ring-secondary/20 focus:outline-none transition-all"
               />
             </div>
@@ -342,8 +344,7 @@ export function DonationForm({
         <div>
           <label className="text-sm font-medium text-text-primary mb-2 block">Transaction / Reference No. (Optional)</label>
           <input
-            {...register("transactionReference")}
-            placeholder="Enter UPI transaction ID or bank reference"
+            {...register("transactionReference")}                placeholder={t("donate.transactionRef")}
             className="w-full h-11 px-4 rounded-lg border border-border bg-warm-white dark:bg-bg-secondary text-sm focus:border-secondary focus:ring-2 focus:ring-secondary/20 focus:outline-none transition-all"
           />
         </div>

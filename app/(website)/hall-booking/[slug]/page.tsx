@@ -116,7 +116,7 @@ export default function HallDetailPage({ params }: { params: Promise<{ slug: str
           setHall(transformHallDetail(rawHalls[matchIdx], matchIdx))
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An unexpected error occurred")
+        setError(err instanceof Error ? err.message : t("common.errorLoading"))
       } finally {
         setLoading(false)
       }
@@ -178,7 +178,7 @@ export default function HallDetailPage({ params }: { params: Promise<{ slug: str
           <div className="w-16 h-16 mx-auto rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500 mb-4">
             <AlertCircle className="h-8 w-8" />
           </div>
-          <h1 className="text-3xl font-heading font-bold text-primary mb-2">Error Loading Hall</h1>
+          <h1 className="text-3xl font-heading font-bold text-primary mb-2">{t("hall.errorLoadingHall")}</h1>
           <p className="text-text-secondary mb-6">{error}</p>
           <Link href="/hall-booking">
             <Button variant="gradient">
@@ -195,8 +195,8 @@ export default function HallDetailPage({ params }: { params: Promise<{ slug: str
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-4xl font-heading font-bold text-primary">Hall Not Found</h1>
-          <p className="text-text-secondary mt-2">The hall you are looking for does not exist.</p>
+          <h1 className="text-4xl font-heading font-bold text-primary">{t("hall.hallNotFound")}</h1>
+          <p className="text-text-secondary mt-2">{t("hall.hallNotFoundDesc")}</p>
           <Link href="/hall-booking">
             <Button variant="primary" className="mt-6">
               <ArrowLeft className="h-4 w-4 mr-1" />
@@ -248,14 +248,14 @@ export default function HallDetailPage({ params }: { params: Promise<{ slug: str
             <div className="lg:col-span-2 space-y-8">
               <AnimatedSection>
                 <Card variant="elevated" className="p-6 lg:p-8">
-                  <h2 className="text-2xl font-heading font-bold text-primary mb-4">About This Hall</h2>
+                  <h2 className="text-2xl font-heading font-bold text-primary mb-4">{t("hall.aboutThisHall")}</h2>
                   <p className="text-text-secondary leading-relaxed">{hall.longDescription}</p>
                 </Card>
               </AnimatedSection>
 
               <AnimatedSection delay={0.05}>
                 <Card variant="elevated" className="p-6 lg:p-8">
-                  <h2 className="text-xl font-heading font-bold text-primary mb-5">Capacity Details</h2>
+                  <h2 className="text-xl font-heading font-bold text-primary mb-5">{t("hall.capacity")}</h2>
                   <div className="grid grid-cols-3 gap-4">
                     {[
                       { label: "Seating", value: hall.capacity.seating, icon: <Users className="h-5 w-5" /> },
@@ -276,7 +276,7 @@ export default function HallDetailPage({ params }: { params: Promise<{ slug: str
 
               <AnimatedSection delay={0.08}>
                 <Card variant="elevated" className="p-6 lg:p-8">
-                  <h2 className="text-xl font-heading font-bold text-primary mb-5">Amenities</h2>
+                  <h2 className="text-xl font-heading font-bold text-primary mb-5">{t("hall.amenities")}</h2>
                   <div className="grid sm:grid-cols-2 gap-3">
                     {hall.amenities.map((amenity, idx) => (
                       <div key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-bg-secondary/50">
@@ -296,7 +296,7 @@ export default function HallDetailPage({ params }: { params: Promise<{ slug: str
 
               <AnimatedSection delay={0.1}>
                 <Card variant="elevated" className="p-6 lg:p-8">
-                  <h2 className="text-xl font-heading font-bold text-primary mb-5">Rules & Regulations</h2>
+                  <h2 className="text-xl font-heading font-bold text-primary mb-5">{t("hall.rules")}</h2>
                   <div className="space-y-3">
                     {hall.rules.map((rule, idx) => (
                       <div key={idx} className="flex items-start gap-3">
@@ -312,7 +312,7 @@ export default function HallDetailPage({ params }: { params: Promise<{ slug: str
 
               <AnimatedSection delay={0.12}>
                 <Card variant="elevated" className="p-6 lg:p-8">
-                  <h2 className="text-xl font-heading font-bold text-primary mb-5">Availability Calendar</h2>
+                  <h2 className="text-xl font-heading font-bold text-primary mb-5">{t("hall.availabilityCalendar")}</h2>
                   <AvailabilityCalendar hallSlug={hall.slug} />
                 </Card>
               </AnimatedSection>
@@ -322,26 +322,26 @@ export default function HallDetailPage({ params }: { params: Promise<{ slug: str
               <div className="sticky top-6 space-y-6">
                 <AnimatedSection delay={0.05}>
                   <Card variant="elevated" className="p-6">
-                    <h3 className="text-lg font-heading font-bold text-primary mb-4">Pricing</h3>
+                    <h3 className="text-lg font-heading font-bold text-primary mb-4">{t("hall.pricing")}</h3>
                     <div className="space-y-4">
                       <div className="flex justify-between items-center pb-3 border-b border-border">
-                        <span className="text-sm text-text-secondary">Base Price</span>
+                        <span className="text-sm text-text-secondary">{t("hall.basePrice")}</span>
                         <span className="text-lg font-bold text-primary font-heading">{formatPrice(hall.pricing.basePrice)}</span>
                       </div>
                       <div className="flex justify-between items-center pb-3 border-b border-border">
-                        <span className="text-sm text-text-secondary">Per Hour</span>
+                        <span className="text-sm text-text-secondary">{t("hall.perHour")}</span>
                         <span className="text-base font-semibold text-text-primary">{formatPrice(hall.pricing.pricePerHour)}</span>
                       </div>
                       <div className="flex justify-between items-center pb-3 border-b border-border">
-                        <span className="text-sm text-text-secondary">Per Day</span>
+                        <span className="text-sm text-text-secondary">{t("hall.perDay")}</span>
                         <span className="text-base font-semibold text-text-primary">{formatPrice(hall.pricing.pricePerDay)}</span>
                       </div>
                       <div className="flex justify-between items-center pb-3 border-b border-border">
-                        <span className="text-sm text-text-secondary">Security Deposit</span>
+                        <span className="text-sm text-text-secondary">{t("hall.securityDeposit")}</span>
                         <span className="text-base font-semibold text-text-primary">{formatPrice(hall.pricing.securityDeposit)}</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-text-secondary">Overtime Rate</span>
+                        <span className="text-sm text-text-secondary">{t("hall.overtimeRate")}</span>
                         <span className="text-base font-semibold text-text-primary">{formatPrice(hall.pricing.overtimeRate)}/hr</span>
                       </div>
                     </div>
@@ -349,7 +349,7 @@ export default function HallDetailPage({ params }: { params: Promise<{ slug: str
                     <Link href={`/hall-booking/${hall.slug}/book`}>
                       <Button variant="gradient" size="lg" className="w-full mt-6">
                         <CalendarCheck className="h-4 w-4" />
-                        Book This Hall
+                        {t("hall.bookThisHall")}
                       </Button>
                     </Link>
                     <p className="text-xs text-text-muted text-center mt-3 flex items-center justify-center gap-1">

@@ -16,38 +16,24 @@ interface CategoryItem {
 
 const fallbackIcons = [Sun, Infinity, Sparkles, Flame] as const
 
-const fallbackCategories = [
-  {
-    name: "Daily Sevas",
-    description: "Regular worship services including Nitya Pooja, Abhishekam, and Archana",
-    gradient: "from-amber-500/20 to-orange-600/20",
-    iconBg: "from-amber-500 to-orange-600",
-  },
-  {
-    name: "Shashwatha Sevas",
-    description: "Perpetual offerings for lifelong blessings and divine protection",
-    gradient: "from-gold-500/20 to-amber-600/20",
-    iconBg: "from-gold-500 to-amber-600",
-  },
-  {
-    name: "Special Sevas",
-    description: "Unique ceremonies for special occasions and festivals",
-    gradient: "from-purple-500/20 to-violet-600/20",
-    iconBg: "from-purple-500 to-violet-600",
-  },
-  {
-    name: "Homas",
-    description: "Sacred fire rituals for purification, prosperity, and spiritual growth",
-    gradient: "from-red-500/20 to-rose-600/20",
-    iconBg: "from-red-500 to-rose-600",
-  },
+const fallbackGradients = [
+  { gradient: "from-amber-500/20 to-orange-600/20", iconBg: "from-amber-500 to-orange-600" },
+  { gradient: "from-gold-500/20 to-amber-600/20", iconBg: "from-gold-500 to-amber-600" },
+  { gradient: "from-purple-500/20 to-violet-600/20", iconBg: "from-purple-500 to-violet-600" },
+  { gradient: "from-red-500/20 to-rose-600/20", iconBg: "from-red-500 to-rose-600" },
+]
+
+const categoryTranslationKeys = [
+  { nameKey: "sevas.dailySevasName", descKey: "sevas.dailySevasDesc" },
+  { nameKey: "sevas.shashwathaSevasName", descKey: "sevas.shashwathaSevasDesc" },
+  { nameKey: "sevas.specialSevasName", descKey: "sevas.specialSevasDesc" },
+  { nameKey: "sevas.homasName", descKey: "sevas.homasDesc" },
 ]
 
 export function SevasSection() {
   const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: "-80px" })
-  const categories = fallbackCategories
 
   return (
     <section ref={ref} className="relative py-24 overflow-hidden bg-gradient-to-b from-warm-ivory to-gold-50/30">
@@ -72,9 +58,9 @@ export function SevasSection() {
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-          {categories.map((category, index) => {
+          {categoryTranslationKeys.map((catKeys, index) => {
             const Icon = fallbackIcons[index % fallbackIcons.length]
-            const fc = fallbackCategories[index % fallbackCategories.length]
+            const fc = fallbackGradients[index % fallbackGradients.length]
             return (
               <motion.div
                 key={index}
@@ -100,11 +86,11 @@ export function SevasSection() {
                     </div>
 
                     <h3 className="text-xl font-heading font-bold text-dark-slate group-hover:text-primary transition-colors">
-                      {category.name}
+                      {t(catKeys.nameKey)}
                     </h3>
 
                     <p className="mt-3 text-sm text-dark-slate/60 leading-relaxed">
-                      {category.description || fc.description}
+                      {t(catKeys.descKey)}
                     </p>
 
                     <div className="mt-8">

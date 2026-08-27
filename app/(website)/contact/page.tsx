@@ -40,14 +40,14 @@ export default function ContactPage() {
           })
           setFieldErrors(formattedErrors)
         }
-        setError(json?.message || "Failed to send message")
+        setError(json?.message || t("common.failedToSend"))
         setLoading(false)
         return
       }
       setSubmitted(true)
       setLoading(false)
     } catch {
-      setError("Network error. Please try again.")
+      setError(t("common.networkError"))
       setLoading(false)
     }
   }

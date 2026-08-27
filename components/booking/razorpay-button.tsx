@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { cn, formatPrice } from "@/lib/utils"
+import { useTranslation } from "@/lib/i18n"
 import { IndianRupee, CreditCard, Shield } from "lucide-react"
 
 interface RazorpayButtonProps {
@@ -61,6 +62,7 @@ export function RazorpayButton({
   size = "lg",
   variant = "gradient",
 }: RazorpayButtonProps) {
+  const { t } = useTranslation()
   const [internalLoading, setInternalLoading] = useState(false)
   const isButtonLoading = externalLoading !== undefined ? externalLoading : internalLoading
 
@@ -130,7 +132,7 @@ export function RazorpayButton({
       </Button>
       <div className="flex items-center gap-1.5 text-[10px] text-text-muted">
         <Shield className="h-3 w-3" />
-        <span>Secured by Razorpay</span>
+        <span>{t("common.securedByRazorpay")}</span>
         <span className="mx-1">&middot;</span>
         <IndianRupee className="h-3 w-3" />
         <span>{formatPrice(amount)}</span>

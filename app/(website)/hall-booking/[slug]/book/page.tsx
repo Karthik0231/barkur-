@@ -97,7 +97,7 @@ function useHallInfo(slug: string) {
           })
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An unexpected error occurred")
+        setError(err instanceof Error ? err.message : "Error loading hall")
       } finally {
         setLoading(false)
       }
@@ -195,7 +195,7 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
       }
       setSubmitted(true)
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Something went wrong")
+      setSubmitError(err instanceof Error ? err.message : t("common.errorLoading"))
     } finally {
       setSubmitting(false)
     }
@@ -220,8 +220,8 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
       <div className="min-h-screen bg-gradient-to-b from-bg-secondary/30 to-bg-primary flex items-center justify-center p-4">
         <div className="text-center">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-bg-secondary/60 animate-pulse mb-4" />
-          <h2 className="text-xl font-heading font-bold text-primary mb-2">Loading Hall Details...</h2>
-          <p className="text-text-muted">Please wait while we fetch the hall information</p>
+          <h2 className="text-xl font-heading font-bold text-primary mb-2">{t("common.loadingInfo")}</h2>
+          <p className="text-text-muted">{t("common.pleaseWait")}</p>
         </div>
       </div>
     )
@@ -234,12 +234,12 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
           <div className="w-16 h-16 mx-auto rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500 mb-4">
             <AlertCircle className="h-8 w-8" />
           </div>
-          <h1 className="text-3xl font-heading font-bold text-primary mb-2">Error</h1>
+          <h1 className="text-3xl font-heading font-bold text-primary mb-2">{t("hallBooking.hallBookingError")}</h1>
           <p className="text-text-secondary mb-6">{hallError}</p>
           <Link href="/hall-booking">
             <Button variant="gradient">
               <ArrowLeft className="h-4 w-4 mr-1" />
-              Back to Halls
+              {t("hallBooking.hallBookingBackToHalls")}
             </Button>
           </Link>
         </Card>
@@ -497,7 +497,7 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                       </div>
                       <div>
                         <h2 className="text-xl font-heading font-bold text-primary">Step 3: Contact Details</h2>
-                        <p className="text-sm text-text-muted">Your contact information</p>
+                        <p className="text-sm text-text-muted">{t("booking.personalInfo")}</p>
                       </div>
                     </div>
 
@@ -641,11 +641,11 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                         disabled={submitting || submitted}
                       >
                         {submitting ? (
-                          <>Submitting...</>
+                          <>{t("common.submitting")}</>
                         ) : submitted ? (
                           <>✓ Booking Submitted</>
                         ) : (
-                          <>Submit Booking Request</>
+                          <>{t("common.submitBookingRequest")}</>
                         )}
                       </Button>
                     </div>
@@ -659,7 +659,7 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                     deposit={securityDeposit}
                     total={total}
                     onPayment={handleSubmitBooking}
-                    paymentLabel={submitting ? "Submitting..." : submitted ? "✓ Submitted" : "Submit Booking Request"}
+                    paymentLabel={submitting ? t("common.submitting") : submitted ? "✓ Submitted" : t("common.submitBookingRequest")}
                   />
                 </div>
                   </div>

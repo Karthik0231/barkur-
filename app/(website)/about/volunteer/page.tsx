@@ -200,16 +200,16 @@ export default function VolunteerPage() {
                       {error && <p className="text-red-500 text-sm">{error}</p>}
                       <div className="grid sm:grid-cols-2 gap-5">
                         <Input
-                          label="Full Name"
-                          placeholder="Your full name"
+                          label={t("booking.fullName")}
+                          placeholder={t("common.namePlaceholder")}
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                           required
                         />
                         <Input
-                          label="Email Address"
+                          label={t("booking.email")}
                           type="email"
-                          placeholder="your@email.com"
+                          placeholder={t("common.emailPlaceholder")}
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           required
@@ -217,54 +217,53 @@ export default function VolunteerPage() {
                       </div>
                       <div className="grid sm:grid-cols-2 gap-5">
                         <Input
-                          label="Phone Number"
+                          label={t("booking.phone")}
                           type="tel"
-                          placeholder="+91 XXXXX XXXXX"
+                          placeholder={t("common.phonePlaceholder2")}
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                           required
                         />
                         <div className="flex flex-col gap-1.5 w-full">
-                          <label className="text-sm font-medium text-text-primary">Area of Interest</label>
+                          <label className="text-sm font-medium text-text-primary">{t("common.areaOfInterest")}</label>
                           <select
                             value={formData.interest}
                             onChange={(e) => setFormData({ ...formData, interest: e.target.value })}
                             className="w-full h-11 text-base px-4 py-2 rounded-lg bg-warm-white dark:bg-bg-secondary border border-border focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all duration-200"
                             required
                           >
-                            <option value="">Select an area</option>
+                            <option value="">{t("common.selectAnArea")}</option>
                             {interests.map((i) => (
                               <option key={i} value={i}>{i}</option>
                             ))}
                           </select>
                         </div>
                       </div>
-                      <div className="flex flex-col gap-1.5 w-full">
-                        <label className="text-sm font-medium text-text-primary">Availability</label>
+                      <div className="flex flex-col gap-1.5 w-full">                          <label className="text-sm font-medium text-text-primary">{t("common.selectAvailability")}</label>
                         <select
                           value={formData.availability}
                           onChange={(e) => setFormData({ ...formData, availability: e.target.value })}
                           className="w-full h-11 text-base px-4 py-2 rounded-lg bg-warm-white dark:bg-bg-secondary border border-border focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all duration-200"
                           required
                         >
-                          <option value="">Select availability</option>
+                          <option value="">{t("common.selectAvailability")}</option>
                           {availabilities.map((a) => (
                             <option key={a} value={a}>{a}</option>
                           ))}
                         </select>
                       </div>
                       <div className="flex flex-col gap-1.5 w-full">
-                        <label className="text-sm font-medium text-text-primary">Additional Message (Optional)</label>
+                        <label className="text-sm font-medium text-text-primary">{t("common.additionalMessage")}</label>
                         <textarea
                           value={formData.message}
                           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                           rows={3}
                           className="w-full rounded-lg border border-border bg-warm-white dark:bg-bg-secondary p-4 text-sm focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all duration-200 resize-none"
-                          placeholder="Any specific skills or preferences..."
+                          placeholder={t("common.messagePlaceholder")}
                         />
                       </div>
                       <Button variant="primary" size="lg" className="w-full" disabled={loading}>
-                        {loading ? "Submitting..." : t("common.submitRegistration")}
+                        {loading ? t("common.submitting") : t("common.submitRegistration")}
                       </Button>
                     </form>
                   </Card>

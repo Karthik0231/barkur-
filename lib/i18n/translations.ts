@@ -123,6 +123,14 @@ export interface TranslationData {
     humbleOfferingDescription: string
     offeringAmount: string
     selected: string
+    dailySevasName: string
+    dailySevasDesc: string
+    shashwathaSevasName: string
+    shashwathaSevasDesc: string
+    specialSevasName: string
+    specialSevasDesc: string
+    homasName: string
+    homasDesc: string
   }
   sevaDetail: {
     description: string
@@ -202,6 +210,14 @@ export interface TranslationData {
     accountLabel: string
     noRecordFound: string
     lookupUnavailable: string
+    bookingSummary: string
+    sevaLabel: string
+    devoteeLabel: string
+    dateLabelShort: string
+    totalQuantity: string
+    subtotalLabel: string
+    gstLabel: string
+    totalLabel: string
   }
   sriChakraPooja: {
     title: string
@@ -253,6 +269,47 @@ export interface TranslationData {
     statsDonors: string
     statsYears: string
     history: string
+    campaignNotFound: string
+    campaignNotFoundDesc: string
+    loadingCampaign: string
+    aboutThisCampaign: string
+    yourImpact: string
+    bankAccountDetails: string
+    bankDetailsUpdating: string
+    scanQR: string
+    howToPay: string
+    campaignProgress: string
+    funded: string
+    supportLabel: string
+    thankYouTitle: string
+    thankYouDesc: string
+    pendingVerification: string
+    receiptNo: string
+    downloadReceipt: string
+    downloadCertificate: string
+    shareYourKindness: string
+    makeAnotherDonation: string
+    viewDonationHistory: string
+    backToHome: string
+    guestDevotee: string
+    generalDonation: string
+    donationId: string
+    donorLabel: string
+    amountLabel: string
+    campaignLabel: string
+    dateLabel: string
+    emailLabel: string
+    phoneLabel: string
+    panLabel: string
+    panOptional: string
+    addressLabel: string
+    cityLabel: string
+    stateLabel: string
+    pincodeLabel: string
+    customAmountLabel: string
+    enterAmount: string
+    streetAddress: string
+    transactionRef: string
   }
   hall: {
     bookHall: string
@@ -260,6 +317,17 @@ export interface TranslationData {
     amenities: string
     pricing: string
     rules: string
+    aboutThisHall: string
+    availabilityCalendar: string
+    errorLoadingHall: string
+    hallNotFound: string
+    hallNotFoundDesc: string
+    basePrice: string
+    perHour: string
+    perDay: string
+    securityDeposit: string
+    overtimeRate: string
+    bookThisHall: string
   }
   footer: {
     quickLinks: string
@@ -320,6 +388,29 @@ export interface TranslationData {
     ongoing: string
     ourMission: string
     ourVision: string
+    retry: string
+    submitting: string
+    selectAnArea: string
+    selectAvailability: string
+    securedByRazorpay: string
+    bookAHall: string
+    makeYourFirstDonation: string
+    submitBookingRequest: string
+    translationBadge: string
+    meaningBadge: string
+    moonCurrentlyIn: string
+    rashiLabel: string
+    areaOfInterest: string
+    additionalMessage: string
+    namePlaceholder: string
+    emailPlaceholder: string
+    phonePlaceholder2: string
+    messagePlaceholder: string
+    errorLoading: string
+    networkError: string
+    failedToSend: string
+    loadingInfo: string
+    pleaseWait: string
   }
   admin: {
     dashboard: string
@@ -533,6 +624,11 @@ export interface TranslationData {
     today: string
     inDays: string
     past: string
+    moonInRashi: string
+    sacredAlmanac: string
+    pada: string
+    todayShort: string
+    shareText: string
   }
   contact: {
     visitConnect: string
@@ -635,6 +731,8 @@ export interface TranslationData {
     completed: string
     pending: string
     cancelledStatus: string
+    totalBookings: string
+    guestSearchHint: string
   }
   bookingSuccess: {
     bookingConfirmed: string
@@ -855,6 +953,8 @@ export interface TranslationData {
       hallBookingFillRequired: string
       hallBookingSubmitError: string
       hallBookingSelectDateDesc: string
+      hallBookingError: string
+      hallBookingBackToHalls: string
       panchangaCalendarTitle: string
       panchangaCalendarSub: string
       panchangaFestivalsTitle: string
@@ -990,6 +1090,14 @@ const translations: Record<string, TranslationData> = {
       humbleOfferingDescription: "ನಿಮ್ಮ ಎಲ್ಲಾ ಅರ್ಪಣೆಗಳು ನೇರವಾಗಿ ದೇವಸ್ಥಾನದ ಅಭಿವೃದ್ಧಿ ಮತ್ತು ಸೇವಾ ಕಾರ್ಯಕ್ರಮಗಳಿಗೆ ಬಳಸಲ್ಪಡುತ್ತವೆ.",
       offeringAmount: "ಅರ್ಪಣೆ ಮೊತ್ತ",
       selected: "ಆಯ್ಕೆಮಾಡಲಾಗಿದೆ",
+      dailySevasName: "ದೈನಂದಿನ ಸೇವೆಗಳು",
+      dailySevasDesc: "ನಿತ್ಯ ಪೂಜಾ, ಅಭಿಷೇಕ ಮತ್ತು ಅರ್ಚನೆ ಸೇರಿದಂತೆ ನಿಯಮಿತ ಪೂಜಾ ಸೇವೆಗಳು",
+      shashwathaSevasName: "ಶಾಶ್ವತ ಸೇವೆಗಳು",
+      shashwathaSevasDesc: "ಜೀವನಪರ್ಯಂತ ಆಶೀರ್ವಾದ ಮತ್ತು ದೈವಿಕ ರಕ್ಷಣೆಗಾಗಿ ಶಾಶ್ವತ ಅರ್ಪಣೆಗಳು",
+      specialSevasName: "ವಿಶೇಷ ಸೇವೆಗಳು",
+      specialSevasDesc: "ವಿಶೇಷ ಸಂದರ್ಭಗಳು ಮತ್ತು ಹಬ್ಬಗಳಿಗಾಗಿ ವಿಶಿಷ್ಟ ಕಾರ್ಯಕ್ರಮಗಳು",
+      homasName: "ಹೋಮಗಳು",
+      homasDesc: "ಶುದ್ಧಿ, ಸಮೃದ್ಧಿ ಮತ್ತು ಆಧ್ಯಾತ್ಮಿಕ ಬೆಳವಣಿಗೆಗಾಗಿ ಪವಿತ್ರ ಅಗ್ನಿ ಕಾರ್ಯಕ್ರಮಗಳು",
     },
     sevaDetail: {
       description: "ವಿವರಣೆ",
@@ -1069,6 +1177,14 @@ const translations: Record<string, TranslationData> = {
       accountLabel: "ಖಾತೆ",
       noRecordFound: "ಯಾವುದೇ ದಾಖಲೆ ಸಿಗಲಿಲ್ಲ, ದಯವಿಟ್ಟು ವಿವರಗಳನ್ನು ತುಂಬಿಸಿ",
       lookupUnavailable: "ಲುಕ್‌ಅಪ್ ಲಭ್ಯವಿಲ್ಲ, ದಯವಿಟ್ಟು ಹಸ್ತಚಾಲಿತವಾಗಿ ತುಂಬಿಸಿ",
+      bookingSummary: "ಬುಕಿಂಗ್ ಸಾರಾಂಶ",
+      sevaLabel: "ಸೇವೆ",
+      devoteeLabel: "ಭಕ್ತ",
+      dateLabelShort: "ದಿನಾಂಕ",
+      totalQuantity: "ಒಟ್ಟು ಪ್ರಮಾಣ",
+      subtotalLabel: "ಉಪಮೊತ್ತ",
+      gstLabel: "ಜಿಎಸ್u200cಟಿ (18%)",
+      totalLabel: "ಒಟ್ಟು",
     },
     sriChakraPooja: {
       title: "ಶ್ರೀ ಚಕ್ರ ಪೂಜೆ",
@@ -1120,12 +1236,64 @@ const translations: Record<string, TranslationData> = {
       statsDonors: "ಸಕ್ರಿಯ ದಾನಿಗಳು",
       statsYears: "ಸೇವೆಯ ವರ್ಷಗಳು",
       history: "ಇತಿಹಾಸ",
+      thankYouTitle: "ನಿಮ್ಮ ಔದಾರ್ಯಕ್ಕೆ ಧನ್ಯವಾದಗಳು!",
+      thankYouDesc: "ನಿಮ್ಮ ದಾನ ದಾಖಲೆಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ. ನಮ್ಮ ತಂಡವು ನಿಮ್ಮ ಪಾವತಿಯನ್ನು ಶೀಘ್ರದಲ್ಲಿ ಪರಿಶೀಲಿಸಿ ದೃಢೀಕರಿಸುತ್ತದೆ. ನಿಮ್ಮ ದಯೆ ಮತ್ತು ಬೆಂಬಲಕ್ಕಾಗಿ ದೈವವು ನಿಮಗೆ ಸಮೃದ್ಧ ಆಶೀರ್ವಾದ ನೀಡಲಿ.",
+      pendingVerification: "ಪರಿಶೀಲನೆ ಬಾಕಿ ಇದೆ",
+      receiptNo: "ರಸೀದಿ ಸಂಖ್ಯೆ",
+      downloadReceipt: "ರಸೀದಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
+      downloadCertificate: "ಪ್ರಮಾಣಪತ್ರ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
+      shareYourKindness: "ನಿಮ್ಮ ಔದಾರ್ಯವನ್ನು ಹಂಚಿಕೊಳ್ಳಿ",
+      makeAnotherDonation: "ಮತ್ತೊಂದು ದಾನ ಮಾಡಿ",
+      viewDonationHistory: "ದಾನ ಇತಿಹಾಸ ನೋಡಿ",
+      backToHome: "ಮನೆಗೆ ಹಿಂತಿರುಗಿ",
+      guestDevotee: "ಅತಿಥಿ ಭಕ್ತ",
+      generalDonation: "ಸಾಮಾನ್ಯ ದಾನ",
+      campaignNotFound: "ಅಭಿಯಾನ ಕಂಡುಬಂದಿಲ್ಲ",
+      campaignNotFoundDesc: "ನೀವು ಹುಡುಕುತ್ತಿರುವ ಅಭಿಯಾನ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ ಅಥವಾ ತೆಗೆದುಹಾಕಲಾಗಿದೆ.",
+      loadingCampaign: "ಅಭಿಯಾನ ವಿವರಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
+      aboutThisCampaign: "ಈ ಅಭಿಯಾನದ ಬಗ್ಗೆ",
+      yourImpact: "ನಿಮ್ಮ ಪರಿಣಾಮ",
+      bankAccountDetails: "ಬ್ಯಾಂಕ್ ಖಾತೆ ವಿವರಗಳು",
+      bankDetailsUpdating: "ಪಾವತಿಯ ನಂತರ ಬ್ಯಾಂಕ್ ವಿವರಗಳನ್ನು ನೀಡಲಾಗುತ್ತದೆ.",
+      scanQR: "ಪಾವತಿಸಲು QR ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ",
+      howToPay: "ಹೇಗೆ ಪಾವತಿಸುವುದು",
+      campaignProgress: "ಅಭಿಯಾನ ಪ್ರಗತಿ",
+      funded: "ಹಣಕಾಸು ಒದಗಿಸಲಾಗಿದೆ",
+      supportLabel: "ಈ ಅಭಿಯಾನವನ್ನು ಬೆಂಬಲಿಸಿ",
+      donationId: "ದಾನ ಐಡಿ",
+      donorLabel: "ದಾತ",
+      amountLabel: "ಮೊತ್ತ",
+      campaignLabel: "ಅಭಿಯಾನ",
+      dateLabel: "ದಿನಾಂಕ",
+      emailLabel: "ಇಮೇಲ್ *",
+      phoneLabel: "ಫೋನ್ *",
+      panLabel: "PAN ಸಂಖ್ಯೆ",
+      panOptional: "(ಐಚ್ಛಿಕ)",
+      addressLabel: "ವಿಳಾಸ",
+      cityLabel: "ನಗರ",
+      stateLabel: "ರಾಜ್ಯ",
+      pincodeLabel: "ಪಿನ್‌ಕೋಡ್",
+      customAmountLabel: "ಕಸ್ಟಮ್ ಮೊತ್ತ",
+      enterAmount: "ಮೊತ್ತ ನಮೂದಿಸಿ",
+      streetAddress: "ಬೀದಿ ವಿಳಾಸ",
+      transactionRef: "ವಹಿವಾಟು ಸಂದರ್ಭ ಐಡಿ ಅಥವಾ ಬ್ಯಾಂಕ್ ಉಲ್ಲೇಖ ನಮೂದಿಸಿ",
     },
     hall: {
       bookHall: "ಸಭಾಂಗಣ ಬುಕ್ ಮಾಡಿ",
       capacity: "ಸಾಮರ್ಥ್ಯ",
       amenities: "ಸೌಲಭ್ಯಗಳು",
       pricing: "ದರ",
+      aboutThisHall: "ಈ ಸಭಾಂಗಣದ ಬಗ್ಗೆ",
+      availabilityCalendar: "ಲಭ್ಯತಾ ಕ್ಯಾಲೆಂಡರ್",
+      errorLoadingHall: "ಸಭಾಂಗಣ ಲೋಡ್ ಮಾಡುವಲ್ಲಿ ದೋಷ",
+      hallNotFound: "ಸಭಾಂಗಣ ಕಂಡುಬಂದಿಲ್ಲ",
+      hallNotFoundDesc: "ನೀವು ಹುಡುಕುತ್ತಿರುವ ಸಭಾಂಗಣ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ.",
+      basePrice: "ಮೂಲ ಬೆಲೆ",
+      perHour: "ಪ್ರತಿ ಗಂಟೆ",
+      perDay: "ಪ್ರತಿ ದಿನ",
+      securityDeposit: "ಭದ್ರತಾ ಠೇವಣಿ",
+      overtimeRate: "ಹೆಚ್ಚುವರಿ ದರ",
+      bookThisHall: "ಈ ಸಭಾಂಗಣ ಬುಕ್ ಮಾಡಿ",
       rules: "ನಿಯಮಗಳು",
     },
     footer: {
@@ -1187,6 +1355,29 @@ const translations: Record<string, TranslationData> = {
       ongoing: "ನಡೆಯುತ್ತಿರುವ",
       ourMission: "ನಮ್ಮ ಧ್ಯೇಯ",
       ourVision: "ನಮ್ಮ ದೃಷ್ಟಿ",
+      retry: "ಮರುಪ್ರಯತ್ನಿಸಿ",
+      submitting: "ಸಲ್ಲಿಸಲಾಗುತ್ತಿದೆ...",
+      selectAnArea: "ಒಂದು ಪ್ರದೇಶ ಆಯ್ಕೆಮಾಡಿ",
+      selectAvailability: "ಲಭ್ಯತೆ ಆಯ್ಕೆಮಾಡಿ",
+      securedByRazorpay: "Razorpay ನಿಂದ ಸುರಕ್ಷಿತ",
+      bookAHall: "ಸಭಾಂಗಣ ಬುಕ್ ಮಾಡಿ",
+      makeYourFirstDonation: "ನಿಮ್ಮ ಮೊದಲ ದಾನ ಮಾಡಿ",
+      submitBookingRequest: "ಬುಕಿಂಗ್ ವಿನಂತಿ ಸಲ್ಲಿಸಿ",
+      translationBadge: "ಅನುವಾದ",
+      meaningBadge: "ಅರ್ಥ",
+      moonCurrentlyIn: "ಚಂದ್ರನು ಪ್ರಸ್ತುತ",
+      rashiLabel: "ರಾಶಿಯಲ್ಲಿ",
+      areaOfInterest: "ಆಸಕ್ತಿ ಕ್ಷೇತ್ರ",
+      additionalMessage: "ಹೆಚ್ಚುವರಿ ಸಂದೇಶ (ಐಚ್ಛಿಕ)",
+      namePlaceholder: "ನಿಮ್ಮ ಪೂರ್ಣ ಹೆಸರು",
+      emailPlaceholder: "your@email.com",
+      phonePlaceholder2: "+91 XXXXX XXXXX",
+      messagePlaceholder: "ಯಾವುದಾದರೂ ನಿರ್ದಿಷ್ಟ ಕೌಶಲ್ಯಗಳು ಅಥವಾ ಆದ್ಯತೆಗಳು...",
+      errorLoading: "ಲೋಡ್ ಮಾಡುವಲ್ಲಿ ದೋಷ",
+      networkError: "ನೆಟ್‌ವರ್ಕ್ ದೋಷ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+      failedToSend: "ಸಂದೇಶ ಕಳುಹಿಸಲು ವಿಫಲವಾಗಿದೆ",
+      loadingInfo: "ಮಾಹಿತಿ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+      pleaseWait: "ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ...",
     },
     admin: {
       dashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
@@ -1400,6 +1591,11 @@ const translations: Record<string, TranslationData> = {
       today: "ಇಂದು",
       inDays: "{days} ದಿನಗಳಲ್ಲಿ",
       past: "ಹಿಂದಿನ",
+      moonInRashi: "ಚಂದ್ರನು ಪ್ರಸ್ತುತ",
+      sacredAlmanac: "ಇಂದಿನ ಪವಿತ್ರ ಪಂಚಾಂಗ",
+      pada: "ಪಾದ",
+      todayShort: "ಇಂದು",
+      shareText: "ಇಂದಿನ ಪಂಚಾಂಗ",
     },
     contact: {
       visitConnect: "ಭೇಟಿ ಮತ್ತು ಸಂಪರ್ಕ",
@@ -1502,6 +1698,8 @@ const translations: Record<string, TranslationData> = {
       completed: "ಪೂರ್ಣಗೊಂಡಿದೆ",
       pending: "ಬಾಕಿ",
       cancelledStatus: "ರದ್ದುಮಾಡಲಾಗಿದೆ",
+      totalBookings: "ಒಟ್ಟು ಬುಕಿಂಗ್‌ಗಳು",
+      guestSearchHint: "ಹುಡುಕಿ ಬುಕಿಂಗ್ ಐಡಿ, ಹೆಸರು, ಇಮೇಲ್ ಅಥವಾ ಫೋನ್ ನಂಬರ್ ನಮೂದಿಸಿ",
     },
     bookingSuccess: {
       bookingConfirmed: "ಬುಕಿಂಗ್ ದೃಢೀಕರಿಸಲಾಗಿದೆ",
@@ -1807,6 +2005,8 @@ const translations: Record<string, TranslationData> = {
       hallBookingFillRequired: "ದಯವಿಟ್ಟು ಎಲ್ಲಾ ಅಗತ್ಯ ಕ್ಷೇತ್ರಗಳನ್ನು ಭರ್ತಿ ಮಾಡಿ",
       hallBookingSubmitError: "ಬುಕಿಂಗ್ ಸಲ್ಲಿಸುವಲ್ಲಿ ದೋಷ",
       hallBookingSelectDateDesc: "ನಿಮ್ಮ ಕಾರ್ಯಕ್ರಮಕ್ಕಾಗಿ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+      hallBookingError: "ದೋಷ",
+      hallBookingBackToHalls: "ಸಭಾಂಗಣಗಳಿಗೆ ಹಿಂತಿರುಗಿ",
       panchangaCalendarTitle: "ಮಾಸಿಕ ಕ್ಯಾಲೆಂಡರ್",
       panchangaCalendarSub: "ಹಿಂದೂ ಕ್ಯಾಲೆಂಡರ್ ತಿಂಗಳುಗಳ ಮೂಲಕ ನ್ಯಾವಿಗೇಟ್ ಮಾಡಿ. ಪ್ರತಿ ದಿನವೂ ತಿಥಿ ಮತ್ತು ನಕ್ಷತ್ರವನ್ನು ತೋರಿಸುತ್ತದೆ.",
       panchangaFestivalsTitle: "ಮುಂಬರುವ ಹಬ್ಬಗಳು",
@@ -1940,6 +2140,14 @@ const translations: Record<string, TranslationData> = {
       humbleOfferingDescription: "All your offerings go directly towards temple development and service programs.",
       offeringAmount: "Offering Amount",
       selected: "Selected",
+      dailySevasName: "Daily Sevas",
+      dailySevasDesc: "Regular worship services including Nitya Pooja, Abhishekam, and Archana",
+      shashwathaSevasName: "Shashwatha Sevas",
+      shashwathaSevasDesc: "Perpetual offerings for lifelong blessings and divine protection",
+      specialSevasName: "Special Sevas",
+      specialSevasDesc: "Unique ceremonies for special occasions and festivals",
+      homasName: "Homas",
+      homasDesc: "Sacred fire rituals for purification, prosperity, and spiritual growth",
     },
     sevaDetail: {
       description: "Description",
@@ -2019,6 +2227,14 @@ const translations: Record<string, TranslationData> = {
       accountLabel: "account",
       noRecordFound: "No existing record found, please fill in details",
       lookupUnavailable: "Lookup unavailable, please fill in manually",
+      bookingSummary: "Booking Summary",
+      sevaLabel: "Seva",
+      devoteeLabel: "Devotee",
+      dateLabelShort: "Date",
+      totalQuantity: "Total Quantity",
+      subtotalLabel: "Subtotal",
+      gstLabel: "GST (18%)",
+      totalLabel: "Total",
     },
     sriChakraPooja: {
       title: "Sri Chakra Pooja",
@@ -2070,6 +2286,47 @@ const translations: Record<string, TranslationData> = {
       statsDonors: "Active Donors",
       statsYears: "Years of Service",
       history: "History",
+      thankYouTitle: "Thank You for Your Generosity!",
+      thankYouDesc: "Your donation record has been submitted successfully. Our team will verify and confirm your payment shortly. May the divine bless you abundantly for your kindness and support.",
+      pendingVerification: "Pending Verification",
+      receiptNo: "Receipt No.",
+      downloadReceipt: "Download Receipt",
+      downloadCertificate: "Download Certificate",
+      shareYourKindness: "Share your kindness",
+      makeAnotherDonation: "Make Another Donation",
+      viewDonationHistory: "View Donation History",
+      backToHome: "Back to Home",
+      guestDevotee: "Guest Devotee",
+      generalDonation: "General Donation",
+      campaignNotFound: "Campaign Not Found",
+      campaignNotFoundDesc: "The campaign you're looking for doesn't exist or has been removed.",
+      loadingCampaign: "Loading campaign details...",
+      aboutThisCampaign: "About This Campaign",
+      yourImpact: "Your Impact",
+      bankAccountDetails: "Bank Account Details",
+      bankDetailsUpdating: "Bank details will be provided after submission.",
+      scanQR: "Scan QR Code to Pay",
+      howToPay: "How to Pay",
+      campaignProgress: "Campaign Progress",
+      funded: "Funded",
+      supportLabel: "Support This Campaign",
+      donationId: "Donation ID",
+      donorLabel: "Donor",
+      amountLabel: "Amount",
+      campaignLabel: "Campaign",
+      dateLabel: "Date",
+      emailLabel: "Email *",
+      phoneLabel: "Phone *",
+      panLabel: "PAN Number",
+      panOptional: "(Optional)",
+      addressLabel: "Address",
+      cityLabel: "City",
+      stateLabel: "State",
+      pincodeLabel: "Pincode",
+      customAmountLabel: "Custom Amount",
+      enterAmount: "Enter amount",
+      streetAddress: "Street address",
+      transactionRef: "Enter UPI transaction ID or bank reference",
     },
     hall: {
       bookHall: "Book Hall",
@@ -2077,6 +2334,17 @@ const translations: Record<string, TranslationData> = {
       amenities: "Amenities",
       pricing: "Pricing",
       rules: "Rules",
+      aboutThisHall: "About This Hall",
+      availabilityCalendar: "Availability Calendar",
+      errorLoadingHall: "Error Loading Hall",
+      hallNotFound: "Hall Not Found",
+      hallNotFoundDesc: "The hall you are looking for does not exist.",
+      basePrice: "Base Price",
+      perHour: "Per Hour",
+      perDay: "Per Day",
+      securityDeposit: "Security Deposit",
+      overtimeRate: "Overtime Rate",
+      bookThisHall: "Book This Hall",
     },
     footer: {
       quickLinks: "Quick Links",
@@ -2137,6 +2405,29 @@ const translations: Record<string, TranslationData> = {
       ongoing: "Ongoing",
       ourMission: "Our Mission",
       ourVision: "Our Vision",
+      retry: "Retry",
+      submitting: "Submitting...",
+      selectAnArea: "Select an area",
+      selectAvailability: "Select availability",
+      securedByRazorpay: "Secured by Razorpay",
+      bookAHall: "Book a Hall",
+      makeYourFirstDonation: "Make Your First Donation",
+      submitBookingRequest: "Submit Booking Request",
+      translationBadge: "Translation",
+      meaningBadge: "Meaning",
+      moonCurrentlyIn: "Moon is currently in",
+      rashiLabel: "rashi",
+      areaOfInterest: "Area of Interest",
+      additionalMessage: "Additional Message (Optional)",
+      namePlaceholder: "Your full name",
+      emailPlaceholder: "your@email.com",
+      phonePlaceholder2: "+91 XXXXX XXXXX",
+      messagePlaceholder: "Any specific skills or preferences...",
+      errorLoading: "Error loading",
+      networkError: "Network error. Please try again.",
+      failedToSend: "Failed to send message",
+      loadingInfo: "Loading information...",
+      pleaseWait: "Please wait...",
     },
     admin: {
       dashboard: "Dashboard",
@@ -2350,6 +2641,11 @@ const translations: Record<string, TranslationData> = {
       today: "Today",
       inDays: "In {days} days",
       past: "Past",
+      moonInRashi: "Moon is currently in",
+      sacredAlmanac: "Today's Sacred Almanac",
+      pada: "Pada",
+      todayShort: "Today",
+      shareText: "Today's Panchanga at",
     },
     contact: {
       visitConnect: "Visit & Connect",
@@ -2452,6 +2748,8 @@ const translations: Record<string, TranslationData> = {
       completed: "Completed",
       pending: "Pending",
       cancelledStatus: "Cancelled",
+      totalBookings: "Total Bookings",
+      guestSearchHint: "Search by booking ID, name, email or phone number",
     },
     bookingSuccess: {
       bookingConfirmed: "Booking Confirmed",
@@ -2757,6 +3055,8 @@ const translations: Record<string, TranslationData> = {
       hallBookingFillRequired: "Please fill in all required fields",
       hallBookingSubmitError: "Something went wrong. Please try again.",
       hallBookingSelectDateDesc: "Select a date for your event",
+      hallBookingError: "Error",
+      hallBookingBackToHalls: "Back to Halls",
       panchangaCalendarTitle: "Monthly Calendar",
       panchangaCalendarSub: "Navigate through the Hindu calendar months. Each day shows tithi and nakshatra.",
       panchangaFestivalsTitle: "Upcoming Festivals",

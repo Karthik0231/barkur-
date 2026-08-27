@@ -41,14 +41,14 @@ export default function DonationHistoryPage() {
         const res = await fetch("/api/donations?limit=100")
         const json = await res.json()
         if (!res.ok || !json?.success) {
-          setError(json?.message || "Failed to load donation history")
+          setError(json?.message || t("common.errorLoading"))
           setLoading(false)
           return
         }
         const mapped = (json.data?.donations || []).map((d: any) => ({
           id: d.id,
           date: d.createdAt,
-          campaign: d.campaign?.name || "General Donation",
+          campaign: d.campaign?.name || t("donate.generalDonation"),
           campaignSlug: d.campaign?.slug || "general",
           amount: Number(d.amount),
           receiptNumber: d.receiptNumber || `RCP-${d.id.slice(0, 8)}`,
@@ -58,7 +58,7 @@ export default function DonationHistoryPage() {
         setDonations(mapped)
         setLoading(false)
       } catch {
-        setError("Failed to load donation history")
+        setError(t("common.errorLoading"))
         setLoading(false)
       }
     }
@@ -85,7 +85,7 @@ export default function DonationHistoryPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-500 mb-4">{error}</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>
+          <Button variant="outline" onClick={() => window.location.reload()}>{t("common.retry")}</Button>
         </div>
       </div>
     )
@@ -150,7 +150,7 @@ export default function DonationHistoryPage() {
                 <div className="p-12 text-center">
                   <p className="text-text-muted mb-4">No donations found</p>
                   <Link href="/donate">
-                    <Button variant="primary">Make Your First Donation</Button>
+                    <Button variant="primary">{t("common.makeYourFirstDonation")}</Button>
                   </Link>
                 </div>
               ) : (

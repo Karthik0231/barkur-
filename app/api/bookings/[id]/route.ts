@@ -15,12 +15,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   try {
     const session = await auth()
     const user = getAuthUser(session)
-    if (!user) return errorResponse("Unauthorized", 401)
-
     const { id } = await params
     const isAdmin = checkRole(session, ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER", "RECEPTION"])
     const booking = await findBookingById(id)
-    if (!booking || (!isAdmin && booking.userId !== user.id)) return errorResponse("Booking not found", 404)
+    if (!booking || (!isAdmin && user && booking.userId && booking.userId !== user.id)) return errorResponse("Booking not found", 404)
 
     const [items, payments, sevaDate, certificates, receipts] = await Promise.all([
       findManyBookingItems({ bookingId: id }),

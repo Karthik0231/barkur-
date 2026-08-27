@@ -119,7 +119,7 @@ export default function MyBookingsPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-500 mb-4">{error}</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>
+          <Button variant="outline" onClick={() => window.location.reload()}>{t("common.retry")}</Button>
         </div>
       </div>
     )
@@ -153,10 +153,10 @@ export default function MyBookingsPage() {
 
           <div className="grid sm:grid-cols-4 gap-4 mb-10">
             {[
-              { label: "Total Bookings", value: bookings.length, color: "text-primary" },
-              { label: "Confirmed", value: bookings.filter((b) => b.status === "CONFIRMED").length, color: "text-emerald-600" },
-              { label: "Pending", value: bookings.filter((b) => b.status === "PENDING").length, color: "text-amber-600" },
-              { label: "Completed", value: bookings.filter((b) => b.status === "COMPLETED").length, color: "text-blue-600" },
+              { label: t("myBookings.totalBookings"), value: bookings.length, color: "text-primary" },
+              { label: t("myBookings.confirmed"), value: bookings.filter((b) => b.status === "CONFIRMED").length, color: "text-emerald-600" },
+              { label: t("myBookings.pending"), value: bookings.filter((b) => b.status === "PENDING").length, color: "text-amber-600" },
+              { label: t("myBookings.completed"), value: bookings.filter((b) => b.status === "COMPLETED").length, color: "text-blue-600" },
             ].map((stat, idx) => (
               <Card key={idx} variant="glass" className="p-4 text-center">
                 <p className={`text-2xl font-heading font-bold ${stat.color}`}>{stat.value}</p>
@@ -179,9 +179,9 @@ export default function MyBookingsPage() {
 
               {bookings.length === 0 ? (
                 <div className="p-12 text-center">
-                  <p className="text-text-muted mb-4">No bookings found</p>
+                  <p className="text-text-muted mb-4">{t("myBookings.noBookings")}</p>
                   <Link href="/hall-booking">
-                    <Button variant="primary">Book a Hall</Button>
+                    <Button variant="primary">{t("common.bookAHall")}</Button>
                   </Link>
                 </div>
               ) : (

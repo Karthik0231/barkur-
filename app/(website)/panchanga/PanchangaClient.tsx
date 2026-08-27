@@ -1958,7 +1958,7 @@ export default function PanchangaClient({
                       "
                     >
                       {panchanga?.masa ||
-                        "Today's Sacred Almanac"}
+                        t("panchanga.sacredAlmanac")}
                     </h3>
                   </div>
 
@@ -2029,7 +2029,7 @@ export default function PanchangaClient({
                       label={t(
                         "panchanga.nakshatra"
                       )}
-                      value={`${panchanga.nakshatra} · Pada ${panchanga.nakshatraPada}`}
+                      value={`${panchanga.nakshatra} · ${t("panchanga.pada")} ${panchanga.nakshatraPada}`}
                     />
 
                     <DataItem
@@ -2101,7 +2101,7 @@ export default function PanchangaClient({
                           text-[#FFF8EA]/35
                         "
                       >
-                        Today
+                        {t("panchanga.today")}
                       </span>
 
                       {panchanga.isEkadashi && (
@@ -2537,11 +2537,11 @@ export default function PanchangaClient({
               </div>
 
               <p className="mt-5 text-sm text-text-secondary">
-                Moon is currently in{" "}
+                {t("panchanga.moonInRashi")}{" "}
                 <span className="font-bold text-primary">
                   {rashi}
                 </span>{" "}
-                rashi
+                {t("common.rashiLabel")}
               </p>
 
               <p className="mt-2 text-xs text-text-muted">
@@ -2613,7 +2613,7 @@ export default function PanchangaClient({
                   label: t(
                     "panchanga.nakshatra"
                   ),
-                  value: `${selectedDayPanchanga.nakshatra} (Pada ${selectedDayPanchanga.nakshatraPada})`,
+                  value: `${selectedDayPanchanga.nakshatra} (${t("panchanga.pada")} ${selectedDayPanchanga.nakshatraPada})`,
                   icon: Star,
                 },
                 {

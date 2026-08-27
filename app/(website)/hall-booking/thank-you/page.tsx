@@ -32,7 +32,7 @@ export default function BookingThankYouPage() {
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
 
   const b = booking || {}
-  const hallName = b.hall?.name || "Hall"
+  const hallName = b.hall?.name || t("hall.bookHall")
   const eventDate = b.bookingDate ? new Date(b.bookingDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : ""
   const startStr = b.startTime ? new Date(b.startTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }) : ""
   const endStr = b.endTime ? new Date(b.endTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }) : ""
@@ -64,9 +64,9 @@ export default function BookingThankYouPage() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={mounted ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.6, delay: 0.4 }}>
-            <Badge variant="success" size="md" className="mt-4 mb-3">Booking Confirmed</Badge>
-            <h1 className="text-4xl md:text-5xl font-heading font-bold text-primary">Booking Successful!</h1>
-            <p className="text-lg text-text-secondary mt-4 max-w-xl mx-auto leading-relaxed">Your hall booking has been confirmed. We look forward to hosting your event at Sri Kalikamba Temple.</p>
+            <Badge variant="success" size="md" className="mt-4 mb-3">{t("bookingSuccess.bookingConfirmed")}</Badge>
+            <h1 className="text-4xl md:text-5xl font-heading font-bold text-primary">{t("bookingSuccess.thankYou")}</h1>
+            <p className="text-lg text-text-secondary mt-4 max-w-xl mx-auto leading-relaxed">{t("bookingSuccess.subtitle")}</p>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={mounted ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.6, delay: 0.6 }} className="mt-8">
@@ -85,7 +85,7 @@ export default function BookingThankYouPage() {
                   </div>
                   <div className="mt-3 pt-3 border-t border-border">
                     <div className="flex justify-between text-sm">
-                      <span className="text-text-muted">Booking ID</span>
+                      <span className="text-text-muted">{t("bookingDetail.bookingId")}</span>
                       <span className="text-text-primary font-mono text-xs">{b.bookingId || bid}</span>
                     </div>
                   </div>
@@ -95,13 +95,13 @@ export default function BookingThankYouPage() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={mounted ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.6, delay: 0.8 }} className="mt-8">
-            <Button variant="primary" size="lg" onClick={handleDownloadInvoice}><Download className="h-4 w-4" />Download Invoice</Button>
+            <Button variant="primary" size="lg" onClick={handleDownloadInvoice}><Download className="h-4 w-4" />{t("bookingSuccess.downloadReceipt")}</Button>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={mounted ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.6, delay: 1.0 }} className="mt-10 flex flex-wrap justify-center gap-4">
-            <Link href="/hall-booking/my-bookings"><Button variant="outline"><ArrowRight className="h-4 w-4" />View My Bookings</Button></Link>
-            <Link href="/hall-booking"><Button variant="ghost"><Building2 className="h-4 w-4" />Book Another Hall</Button></Link>
-            <Link href="/"><Button variant="ghost"><Home className="h-4 w-4" />Back to Home</Button></Link>
+            <Link href="/hall-booking/my-bookings"><Button variant="outline"><ArrowRight className="h-4 w-4" />{t("bookingSuccess.viewMyBookings")}</Button></Link>
+            <Link href="/hall-booking"><Button variant="ghost"><Building2 className="h-4 w-4" />{t("bookingSuccess.bookAnotherSeva")}</Button></Link>
+            <Link href="/"><Button variant="ghost"><Home className="h-4 w-4" />{t("donate.backToHome")}</Button></Link>
           </motion.div>
         </div>
       </section>
