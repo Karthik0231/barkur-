@@ -11,7 +11,6 @@ export async function POST(request: Request) {
   try {
     const session = await auth()
     const user = getAuthUser(session)
-    if (!user) return errorResponse("Unauthorized", 401)
 
     const body = await request.json()
     const { action, bookingId, currency, receipt } = body
@@ -25,8 +24,6 @@ export async function POST(request: Request) {
       if (!paymentRecord) return errorResponse("Payment not found", 404)
       const booking = await findBookingById(paymentRecord.bookingId)
       if (!booking || booking.deletedAt) return errorResponse("Payment not found", 404)
-      const isAdmin = checkRole(session, ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER", "ACCOUNTANT"])
-      if (!isAdmin && booking.userId !== user.id) return errorResponse("Unauthorized", 401)
 
       const result = await verifyPayment({ orderId, paymentId, signature })
       if (!result.success) return errorResponse(result.error ?? "Verification failed", 500)
@@ -62,9 +59,8 @@ export async function POST(request: Request) {
 
     if (!bookingId) return errorResponse("bookingId is required", 400)
 
-    const isAdmin = checkRole(session, ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER", "ACCOUNTANT"])
     const booking = await findBookingById(bookingId)
-    if (!booking || (!isAdmin && booking.userId !== user.id) || booking.deletedAt) return errorResponse("Booking not found", 404)
+    if (!booking || booking.deletedAt) return errorResponse("Booking not found", 404)
 
     const payableAmount = Number(booking.finalAmount)
     if (!Number.isFinite(payableAmount) || payableAmount <= 0) return errorResponse("Invalid booking amount", 400)
@@ -74,7 +70,7 @@ export async function POST(request: Request) {
       amount: payableAmount,
       currency: currency ?? "INR",
       receipt: receipt ?? receiptId,
-      notes: { bookingId, userId: user.id },
+      notes: { bookingId, userId: user?.id ?? "guest" },
     })
 
     if (!result.success || !result.order) return errorResponse(result.error ?? "Failed to create order", 500)

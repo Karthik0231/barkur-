@@ -121,58 +121,58 @@ export default function NityaPoojaPage() {
                 <Card variant="elevated" padding="lg">
                   <div className="flex items-center gap-2 mb-6">
                     <Sun className="h-5 w-5 text-primary" />
-                    <h2 className="text-lg font-heading font-bold text-text-primary">Your Details</h2>
+                    <h2 className="text-lg font-heading font-bold text-text-primary">{t("booking.devoteeDetails")}</h2>
                   </div>
                   {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
                   <div className="space-y-4">
                     <Input
-                      label="Full Name"
-                      placeholder="Enter your full name"
+                      label={t("booking.fullName")}
+                      placeholder={t("booking.fullNamePlaceholder")}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required
                     />
                     <Input
-                      label="Phone Number"
-                      placeholder="Enter your phone number"
+                      label={t("booking.phone")}
+                      placeholder={t("booking.phonePlaceholder")}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       required
                     />
                     <Input
-                      label="Email Address"
+                      label={t("booking.email")}
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder={t("booking.emailPlaceholder")}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
                     />
                     <Input
-                      label="Address"
-                      placeholder="Enter your full address"
+                      label={t("booking.address")}
+                      placeholder={t("booking.addressPlaceholder")}
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       required
                     />
                     <div className="grid grid-cols-2 gap-4">
                       <Input
-                        label="State"
-                        placeholder="State"
+                        label={t("booking.state")}
+                        placeholder={t("booking.statePlaceholder")}
                         value={state}
                         onChange={(e) => setState(e.target.value)}
                         required
                       />
                       <Input
-                        label="District"
-                        placeholder="District"
+                        label={t("booking.district")}
+                        placeholder={t("booking.districtPlaceholder")}
                         value={district}
                         onChange={(e) => setDistrict(e.target.value)}
                         required
                       />
                     </div>
                     <Input
-                      label="PIN Code"
-                      placeholder="6-digit PIN code"
+                      label={t("booking.pincode")}
+                      placeholder={t("booking.pincodePlaceholder")}
                       value={pincode}
                       onChange={(e) => setPincode(e.target.value)}
                       required
