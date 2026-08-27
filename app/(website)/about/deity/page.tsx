@@ -12,6 +12,7 @@ import { PageBanner } from "@/components/PageBanner"
 import { useTranslation } from "@/lib/i18n"
 
 function ShlokaCard({ shloka, index }: { shloka: { text: string; translation: string; meaning: string }; index: number }) {
+  const { t } = useTranslation()
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: "-60px" })
 
@@ -31,11 +32,11 @@ function ShlokaCard({ shloka, index }: { shloka: { text: string; translation: st
         </div>
         <div className="pl-9 space-y-4">
           <div>
-            <Badge variant="subtle" size="sm">Translation</Badge>
+            <Badge variant="subtle" size="sm">{t("common.translationBadge")}</Badge>
             <p className="text-text-secondary mt-2 leading-relaxed">{shloka.translation}</p>
           </div>
           <div>
-            <Badge variant="subtle" size="sm">Meaning</Badge>
+            <Badge variant="subtle" size="sm">{t("common.meaningBadge")}</Badge>
             <p className="text-text-muted mt-2 text-sm leading-relaxed">{shloka.meaning}</p>
           </div>
         </div>

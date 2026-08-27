@@ -29,9 +29,9 @@ export default function BookingDetailPage() {
       .then((r) => r.json())
       .then((res) => {
         if (res.success) setBooking(res.data)
-        else setError(res.message || "Failed to load booking")
+        else setError(res.message || t("common.errorLoading"))
       })
-      .catch(() => setError("Failed to load booking"))
+      .catch(() => setError(t("common.errorLoading")))
       .finally(() => setLoading(false))
   }, [id])
 
@@ -194,7 +194,7 @@ export default function BookingDetailPage() {
                   <div className="flex items-center justify-between p-3 rounded-xl bg-bg-secondary">
                     <span className="text-sm text-text-secondary">{t("bookingDetail.status")}</span>
                     <Badge variant={booking.bookingStatus === "CONFIRMED" ? "success" : booking.bookingStatus === "CANCELLED" ? "destructive" : booking.bookingStatus === "COMPLETED" ? "primary" : "warning"}>
-                      {booking.bookingStatus || "PENDING"}
+                      {booking.bookingStatus === "CONFIRMED" ? t("myBookings.confirmed") : booking.bookingStatus === "CANCELLED" ? t("myBookings.cancelledStatus") : booking.bookingStatus === "COMPLETED" ? t("myBookings.completed") : t("myBookings.pending")}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-xl bg-bg-secondary">

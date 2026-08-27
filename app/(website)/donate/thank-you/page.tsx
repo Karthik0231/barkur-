@@ -9,8 +9,10 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { formatPrice } from "@/lib/utils"
+import { useTranslation } from "@/lib/i18n"
 
 function ThankYouContent() {
+  const { t } = useTranslation()
   const searchParams = useSearchParams()
   const [copied, setCopied] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -27,9 +29,9 @@ function ThankYouContent() {
   }
 
   const stored = getStoredDonation()
-  const donorName = searchParams.get("donorName") || stored?.donorName || "Guest Devotee"
+  const donorName = searchParams.get("donorName") || stored?.donorName || t("donate.guestDevotee")
   const amount = Number(searchParams.get("amount")) || Number(stored?.amount) || 0
-  const campaign = searchParams.get("campaign") || stored?.campaign || "General Donation"
+  const campaign = searchParams.get("campaign") || stored?.campaign || t("donate.generalDonation")
   const donationId = searchParams.get("donationId") || stored?.donationId || ""
   const receiptNumber = searchParams.get("receiptNumber") || stored?.receiptNumber || ""
   const date = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
@@ -79,10 +81,10 @@ function ThankYouContent() {
             transition={{ duration: 0.6, delay: 0.4 }}
           >
             <h1 className="text-4xl md:text-5xl font-heading font-bold text-primary mt-6">
-              Thank You for Your Generosity!
+              {t("donate.thankYouTitle")}
             </h1>
             <p className="text-lg text-text-secondary mt-4 max-w-xl mx-auto leading-relaxed">
-              Your donation record has been submitted successfully. Our team will verify and confirm your payment shortly. May the divine bless you abundantly for your kindness and support.
+              {t("donate.thankYouDesc")}
             </p>
           </motion.div>
 
@@ -98,33 +100,33 @@ function ThankYouContent() {
                   <Heart className="h-6 w-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <Badge variant="warning" size="sm" className="mb-2">Pending Verification</Badge>
+                  <Badge variant="warning" size="sm" className="mb-2">{t("donate.pendingVerification")}</Badge>
                   <div className="space-y-1.5 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-text-muted">Donor</span>
+                      <span className="text-text-muted">{t("donate.donorLabel")}</span>
                       <span className="text-text-primary font-medium">{donorName}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-text-muted">Amount</span>
+                      <span className="text-text-muted">{t("donate.amountLabel")}</span>
                       <span className="text-primary font-bold font-heading text-lg">{formatPrice(amount)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-text-muted">Campaign</span>
+                      <span className="text-text-muted">{t("donate.campaignLabel")}</span>
                       <span className="text-text-primary">{campaign}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-text-muted">Date</span>
+                      <span className="text-text-muted">{t("donate.dateLabel")}</span>
                       <span className="text-text-primary">{date}</span>
                     </div>
                     {donationId && (
                       <div className="flex justify-between">
-                        <span className="text-text-muted">Donation ID</span>
+                        <span className="text-text-muted">{t("donate.donationId")}</span>
                         <span className="text-text-primary font-mono text-xs">{donationId}</span>
                       </div>
                     )}
                     {receiptNumber && (
                       <div className="flex justify-between">
-                        <span className="text-text-muted">Receipt No.</span>
+                        <span className="text-text-muted">{t("donate.receiptNo")}</span>
                         <span className="text-text-primary font-mono text-xs">{receiptNumber}</span>
                       </div>
                     )}
@@ -142,11 +144,11 @@ function ThankYouContent() {
           >
             <Button variant="primary" size="lg" onClick={() => handleDownload("receipt")}>
               <Download className="h-4 w-4" />
-              Download Receipt
+              {t("donate.downloadReceipt")}
             </Button>
             <Button variant="secondary" size="lg" onClick={() => handleDownload("certificate")}>
               <Download className="h-4 w-4" />
-              Download Certificate
+              {t("donate.downloadCertificate")}
             </Button>
           </motion.div>
 
@@ -156,7 +158,7 @@ function ThankYouContent() {
             transition={{ duration: 0.6, delay: 1.0 }}
             className="mt-8"
           >
-            <p className="text-sm text-text-muted mb-3">Share your kindness</p>
+            <p className="text-sm text-text-muted mb-3">{t("donate.shareYourKindness")}</p>
             <div className="flex justify-center gap-3">
               <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-xl bg-bg-secondary flex items-center justify-center hover:bg-primary/10 transition-colors">
                 <Globe className="h-5 w-5 text-text-primary" />
@@ -182,19 +184,19 @@ function ThankYouContent() {
             <Link href="/donate">
               <Button variant="outline">
                 <Heart className="h-4 w-4" />
-                Make Another Donation
+                {t("donate.makeAnotherDonation")}
               </Button>
             </Link>
             <Link href="/donate/history">
               <Button variant="ghost">
                 <ArrowRight className="h-4 w-4" />
-                View Donation History
+                {t("donate.viewDonationHistory")}
               </Button>
             </Link>
             <Link href="/">
               <Button variant="ghost">
                 <Home className="h-4 w-4" />
-                Back to Home
+                {t("donate.backToHome")}
               </Button>
             </Link>
           </motion.div>

@@ -15,14 +15,21 @@ export async function GET(request: Request) {
   try {
     const session = await auth()
     const user = getAuthUser(session)
-    if (!user) return errorResponse("Unauthorized", 401)
 
     const { searchParams } = new URL(request.url)
     const { page, limit, skip, search, sortBy, sortOrder } = paginationHelper(searchParams)
     const isAdmin = checkRole(session, ["SUPER_ADMIN", "ADMIN", "TEMPLE_MANAGER", "RECEPTION"])
 
     const where: Record<string, unknown> = {}
-    if (!isAdmin) where.userId = user.id
+    if (!isAdmin && user) where.userId = user.id
+    if (!isAdmin && !user && search) {
+      where.$or = [
+        { bookingId: { $regex: escapeRegex(search), $options: "i" } },
+        { "devoteeDetails.name": { $regex: escapeRegex(search), $options: "i" } },
+        { "devoteeDetails.email": { $regex: escapeRegex(search), $options: "i" } },
+        { "devoteeDetails.phone": { $regex: escapeRegex(search), $options: "i" } },
+      ]
+    }
     if (search) {
       where.$or = [
         { bookingId: { $regex: escapeRegex(search), $options: "i" } },

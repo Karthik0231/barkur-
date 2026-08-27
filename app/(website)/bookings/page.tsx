@@ -38,14 +38,17 @@ export default function BookingsPage() {
   const [searchQuery, setSearchQuery] = useState("")
 
   useEffect(() => {
-    fetch("/api/bookings?limit=100")
+    const query = searchQuery ? `?search=${encodeURIComponent(searchQuery)}&limit=100` : "?limit=100"
+    setLoading(true)
+    fetch(`/api/bookings${query}`)
       .then((r) => r.json())
       .then((res) => {
-        if (res.success) setBookings(res.data.bookings)
+        if (res.success) setBookings(res.data.bookings || [])
+        else setBookings([])
       })
-      .catch(console.error)
+      .catch(() => setBookings([]))
       .finally(() => setLoading(false))
-  }, [])
+  }, [searchQuery])
 
   const normalized = useMemo(() =>
     bookings.map((b) => {
@@ -138,6 +141,7 @@ export default function BookingsPage() {
                 variant="filled"
                 inputSize="sm"
               />
+              <p className="text-xs text-text-muted mt-1">{t("myBookings.guestSearchHint")}</p>
             </div>
           </div>
 
@@ -194,14 +198,14 @@ export default function BookingsPage() {
                             <div className="flex items-start gap-3">
                               <div className={cn(
                                 "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
-                                booking.status === "CONFIRMED" && "bg-emerald-100 text-emerald-600",
-                                booking.status === "COMPLETED" && "bg-primary/10 text-primary",
-                                booking.status === "PENDING" && "bg-amber-100 text-amber-600",
-                                booking.status === "CANCELLED" && "bg-red-100 text-red-600",
+                                booking.bookingStatus === "CONFIRMED" && "bg-emerald-100 text-emerald-600",
+                                booking.bookingStatus === "COMPLETED" && "bg-primary/10 text-primary",
+                                booking.bookingStatus === "PENDING" && "bg-amber-100 text-amber-600",
+                                booking.bookingStatus === "CANCELLED" && "bg-red-100 text-red-600",
                               )}>
-                                {booking.status === "CANCELLED" ? (
+                                {booking.bookingStatus === "CANCELLED" ? (
                                   <XCircle className="h-5 w-5" />
-                                ) : booking.status === "COMPLETED" ? (
+                                ) : booking.bookingStatus === "COMPLETED" ? (
                                   <CheckCircle className="h-5 w-5" />
                                 ) : (
                                   <Calendar className="h-5 w-5" />
