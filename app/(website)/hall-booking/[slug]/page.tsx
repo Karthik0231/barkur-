@@ -354,7 +354,7 @@ export default function HallDetailPage({ params }: { params: Promise<{ slug: str
                     </Link>
                     <p className="text-xs text-text-muted text-center mt-3 flex items-center justify-center gap-1">
                       <Shield className="h-3 w-3 text-secondary" />
-                      Secure booking with secured payment
+                      {t("hallBooking.hallBookingSecureBooking")}
                     </p>
                   </Card>
                 </AnimatedSection>

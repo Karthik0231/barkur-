@@ -1,0 +1,222 @@
+{
+  "summary": {
+    "filesScanned": 310,
+    "staticKeysUsed": 735,
+    "dynamicPatterns": 2,
+    "missingInKannada": 0,
+    "missingInEnglish": 0,
+    "typeIssues": 0,
+    "hardcodedStrings": 38,
+    "kannadaDictKeys": 1015,
+    "englishDictKeys": 1015
+  },
+  "missingInKannada": [],
+  "missingInEnglish": [],
+  "typeIssues": [],
+  "dynamicPatterns": [
+    {
+      "pattern": "myBookings.*DYNAMIC*",
+      "locations": [
+        "app\\(website)\\bookings\\page.tsx:168"
+      ]
+    },
+    {
+      "pattern": "home.*DYNAMIC*",
+      "locations": [
+        "components\\sections\\temple-story-section.tsx:234"
+      ]
+    }
+  ],
+  "hardcodedStrings": [
+    {
+      "file": "app\\admin\\sevas\\[id]\\edit\\page.tsx",
+      "line": 259,
+      "string": "Loading..."
+    },
+    {
+      "file": "app\\api\\announcements\\route.ts",
+      "line": 35,
+      "string": "Success"
+    },
+    {
+      "file": "app\\api\\committee\\route.ts",
+      "line": 29,
+      "string": "Success"
+    },
+    {
+      "file": "app\\api\\festivals\\route.ts",
+      "line": 39,
+      "string": "Success"
+    },
+    {
+      "file": "app\\api\\gallery\\route.ts",
+      "line": 40,
+      "string": "Success"
+    },
+    {
+      "file": "app\\api\\sevas\\route.ts",
+      "line": 80,
+      "string": "Success"
+    },
+    {
+      "file": "components\\ui\\confirm-dialog.tsx",
+      "line": 62,
+      "string": "Confirm"
+    },
+    {
+      "file": "components\\ui\\confirm-dialog.tsx",
+      "line": 63,
+      "string": "Cancel"
+    },
+    {
+      "file": "lib\\api-utils.ts",
+      "line": 7,
+      "string": "Success"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2177,
+      "string": "Book Seva"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2255,
+      "string": "View All"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2256,
+      "string": "Book Now"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2266,
+      "string": "Add to Cart"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2284,
+      "string": "Checkout"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2319,
+      "string": "Next"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2320,
+      "string": "Back"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2321,
+      "string": "Confirm"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2428,
+      "string": "Book Another"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2430,
+      "string": "Pay Now"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2469,
+      "string": "Download Receipt"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2543,
+      "string": "Loading..."
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2544,
+      "string": "Something went wrong"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2545,
+      "string": "Success"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2547,
+      "string": "View All"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2548,
+      "string": "Learn More"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2549,
+      "string": "Close"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2551,
+      "string": "Search"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2562,
+      "string": "Book Now"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2564,
+      "string": "Read More"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2809,
+      "string": "Book Seva"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2812,
+      "string": "Share"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2906,
+      "string": "Book Seva"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2942,
+      "string": "Download Receipt"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2943,
+      "string": "Print"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2953,
+      "string": "Print"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2976,
+      "string": "Download Receipt"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 3237,
+      "string": "Error"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 3254,
+      "string": "Book Another"
+    }
+  ]
+}

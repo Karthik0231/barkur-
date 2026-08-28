@@ -25,9 +25,12 @@ export interface TranslationData {
     subDeities: string
     volunteer: string
     privacy: string
+    privacyPolicy: string
     terms: string
     refund: string
     hallBooking: string
+    rituals: string
+    videos: string
     sriChakraPooja: string
     language: string
     sectionMain: string
@@ -207,6 +210,7 @@ export interface TranslationData {
     pincodePlaceholder: string
     autoFilledFrom: string
     devoteeRecords: string
+    account: string
     accountLabel: string
     noRecordFound: string
     lookupUnavailable: string
@@ -227,12 +231,31 @@ export interface TranslationData {
     aboutDesc: string
     monthlyPooja: string
     selectHunnime: string
+    selectHunnimeSubtext: string
     hunnimeDay: string
     poojaTime: string
+    poojaTimeValue: string
     poojaFee: string
+    selected: string
     bookingSummary: string
+    pooja: string
     date: string
     devoteeDetails: string
+    fullName: string
+    enterName: string
+    phone: string
+    phonePlaceholder: string
+    emailLabel: string
+    addressPlaceholder: string
+    stateLabel: string
+    statePlaceholder: string
+    districtLabel: string
+    districtPlaceholder: string
+    pincodeLabel: string
+    pincodePlaceholder: string
+    gotraPlaceholder: string
+    specialInstructions: string
+    specialInstructionsPlaceholder: string
     bookingConfirmed: string
     bookingConfirmedDesc: string
     bookAnother: string
@@ -242,6 +265,9 @@ export interface TranslationData {
     gotra: string
     nakshatra: string
     rashi: string
+    total: string
+    securePayment: string
+    paymentFailed: string
   }
   donate: {
     supportTemple: string
@@ -344,6 +370,7 @@ export interface TranslationData {
     chatWhatsapp: string
     stayConnected: string
     newsletterDesc: string
+    aboutTemple: string
   }
   common: {
     loading: string
@@ -411,6 +438,8 @@ export interface TranslationData {
     failedToSend: string
     loadingInfo: string
     pleaseWait: string
+    barkurLocation: string
+    goTo: string
   }
   admin: {
     dashboard: string
@@ -962,6 +991,52 @@ export interface TranslationData {
       panchangaMoonTitle: string
       panchangaMoonSub: string
     }
+    hallBooking: {
+    hallBookingFillRequired: string
+    hallBookingSubmitError: string
+    hallBookingFormSub: string
+    hallBookingFormTitle: string
+    hallBookingSubmitted: string
+    hallBookingSubmittedDesc: string
+    hallBookingViewBookings: string
+    hallBookingBookAnother: string
+    hallBookingSelectDate: string
+    hallBookingSelectDateDesc: string
+    hallBookingSelectHall: string
+    hallBookingFrontHall: string
+    hallBookingFrontHallDesc: string
+    hallBookingBackHall: string
+    hallBookingBackHallDesc: string
+    hallBookingEventName: string
+    hallBookingEventNamePlaceholder: string
+    hallBookingGuests: string
+    hallBookingGuestsPlaceholder: string
+    hallBookingYourName: string
+    hallBookingPhone: string
+    hallBookingEmail: string
+    hallBookingAddress: string
+    hallBookingSpecialRequests: string
+    hallBookingSpecialRequestsPlaceholder: string
+    hallBookingSubmit: string
+    hallBookingSubmitting: string
+    hallBookingSacredVenue: string
+    hallBookingSacredVenueDesc: string
+    hallBookingWellMaintained: string
+    hallBookingWellMaintainedDesc: string
+    hallBookingCommunityEvents: string
+    hallBookingCommunityEventsDesc: string
+    hallBookingError: string
+    hallBookingBackToHalls: string
+    hallBookingBookingSummary: string
+    hallBookingTerms: string
+    hallBookingTermsDesc: string
+    hallBookingSubmittedSuccess: string
+    hallBookingBasePriceDesc: string
+    hallBookingHourlyDesc: string
+    hallBookingHourlyCharges: string
+    hallBookingRefundable: string
+    hallBookingSecureBooking: string
+  }
 }
 
 const translations: Record<string, TranslationData> = {
@@ -1003,6 +1078,9 @@ const translations: Record<string, TranslationData> = {
       navigationMenu: "ನ್ಯಾವಿಗೇಷನ್ ಮೆನು",
       closeMenu: "ನ್ಯಾವಿಗೇಷನ್ ಮೆನು ಮುಚ್ಚಿ",
       goTo: "ಗೆ ಹೋಗಿ",
+      privacyPolicy: "ಗೌಪ್ಯತೆ ನೀತಿ",
+      rituals: "ಆಚರಣೆಗಳು",
+      videos: "ವೀಡಿಯೊಗಳು",
     },
     social: {
       facebook: "ಫೇಸ್‌ಬುಕ್",
@@ -1174,6 +1252,7 @@ const translations: Record<string, TranslationData> = {
       pincodePlaceholder: "ಉದಾ. 576101",
       autoFilledFrom: "ಇದರಿಂದ ಸ್ವಯಂ ತುಂಬಿಸಲಾಗಿದೆ",
       devoteeRecords: "ಭಕ್ತ ದಾಖಲೆಗಳು",
+      account: "ಖಾತೆ",
       accountLabel: "ಖಾತೆ",
       noRecordFound: "ಯಾವುದೇ ದಾಖಲೆ ಸಿಗಲಿಲ್ಲ, ದಯವಿಟ್ಟು ವಿವರಗಳನ್ನು ತುಂಬಿಸಿ",
       lookupUnavailable: "ಲುಕ್‌ಅಪ್ ಲಭ್ಯವಿಲ್ಲ, ದಯವಿಟ್ಟು ಹಸ್ತಚಾಲಿತವಾಗಿ ತುಂಬಿಸಿ",
@@ -1191,17 +1270,36 @@ const translations: Record<string, TranslationData> = {
       eyebrow: "ವಿಶೇಷ ಮಾಸಿಕ ಪೂಜೆ",
       subtitle: "ಪ್ರತಿ ತಿಂಗಳು ಹುಣ್ಣಿಮೆ ದಿನದಂದು ಮಾತ್ರ ನಡೆಯುವ ಪವಿತ್ರ ಶ್ರೀ ಚಕ್ರ ಪೂಜೆ",
       aboutTitle: "ಶ್ರೀ ಚಕ್ರ ಪೂಜೆಯ ಬಗ್ಗೆ",
-      aboutDesc: "ಶ್ರೀ ಚಕ್ರ ಪೂಜೆಯು ಪ್ರತಿ ತಿಂಗಳು ಹುಣ್ಣಿಮೆ (ಪೂರ್ಣಿಮೆ) ದಿನದಂದು ನಡೆಯುವ ಅತ್ಯಂತ ಪವಿತ್ರ ಪೂಜೆಯಾಗಿದೆ. ಈ ಪೂಜೆಯು ದೇವಿಯ ಶ್ರೀ ಚಕ್ರಕ್ಕೆ ಸಂಬಂಧಿಸಿದೆ ಮತ್ತು ಭಕ್ತರಿಗೆ ವಿಶೇಷ ಅನುಗ್ರಹ ನೀಡುತ್ತದೆ.",
+      aboutDesc: "ಶ್ರೀ ಚಕ್ರ ಪೂಜೆಯು ಹಿಂದೂ ಧರ್ಮದ ಅತ್ಯಂತ ಪವಿತ್ರ ಪೂಜೆಗಳಲ್ಲಿ ಒಂದಾಗಿದೆ. ಇದನ್ನು ಪ್ರತಿ ತಿಂಗಳು ಹುಣ್ಣಿಮೆ (ಪೌರ್ಣಿಮೆ) ದಿನದಂದು ಮಾತ್ರ ನಡೆಸಲಾಗುತ್ತದೆ. ಶ್ರೀ ಚಕ್ರವು ದೇವಿಯ ಯಂತ್ರವಾಗಿದ್ದು, ಅದರ ಪೂಜೆಯಿಂದ ಸಕಲ ಕಾಮನಬಿಡಿಗಳು ಈಡೇರುತ್ತವೆ.",
       monthlyPooja: "ಮಾಸಿಕ ಪೂಜೆ",
       selectHunnime: "ಹುಣ್ಣಿಮೆ ದಿನ ಆಯ್ಕೆಮಾಡಿ",
+      selectHunnimeSubtext: "ಮುಂದಿನ ಹುಣ್ಣಿಮೆ ದಿನಗಳಲ್ಲಿ ಒಂದನ್ನು ಆಯ್ಕೆಮಾಡಿ",
       hunnimeDay: "ಹುಣ್ಣಿಮೆ ದಿನ",
       poojaTime: "ಪೂಜಾ ಸಮಯ",
+      poojaTimeValue: "ಬೆಳಿಗ್ಗೆ 6:00",
       poojaFee: "ಪೂಜಾ ಶುಲ್ಕ",
-      bookingSummary: "ಬುಕಿಂಗ್ ಸಾರಾಂಶ",
+      selected: "ಆಯ್ಕೆಮಾಡಲಾಗಿದೆ",
+      bookingSummary: "ಪೂಜಾ ವಿವರ",
+      pooja: "ಪೂಜೆ",
       date: "ದಿನಾಂಕ",
       devoteeDetails: "ಭಕ್ತರ ವಿವರಗಳು",
+      fullName: "ಹೆಸರು *",
+      enterName: "ನಿಮ್ಮ ಹೆಸರು",
+      phone: "ದೂರವಾಣಿ *",
+      phonePlaceholder: "ದೂರವಾಣಿ ಸಂಖ್ಯೆ",
+      emailLabel: "ಇಮೇಲ್ *",
+      addressPlaceholder: "ವಾಸದ ವಿಳಾಸ",
+      stateLabel: "ರಾಜ್ಯ *",
+      statePlaceholder: "ರಾಜ್ಯ",
+      districtLabel: "ಜಿಲ್ಲೆ *",
+      districtPlaceholder: "ಜಿಲ್ಲೆ",
+      pincodeLabel: "ಪಿನ್ ಕೋಡ್ *",
+      pincodePlaceholder: "ಪಿನ್ ಕೋಡ್",
+      gotraPlaceholder: "ಉದಾ: ಭರದ್ವಾಜ",
+      specialInstructions: "ವಿಶೇಷ ಸೂಚನೆಗಳು",
+      specialInstructionsPlaceholder: "ಯಾವುದೇ ವಿಶೇಷ ವಿನಂತಿಗಳು...",
       bookingConfirmed: "ಬುಕಿಂಗ್ ದೃಢೀಕರಿಸಲಾಗಿದೆ!",
-      bookingConfirmedDesc: "ನಿಮ್ಮ ಬುಕಿಂಗ್ ಯಶಸ್ವಿಯಾಗಿ ದೃಢೀಕರಿಸಲಾಗಿದೆ.",
+      bookingConfirmedDesc: "ನಿಮ್ಮ ಶ್ರೀ ಚಕ್ರ ಪೂಜೆ ಬುಕಿಂಗ್ ಯಶಸ್ವಿಯಾಗಿದೆ. ಪೂಜೆಯು ಪ್ರತಿ ತಿಂಗಳು ಹುಣ್ಣಿಮೆ ದಿನದಂದು ನಡೆಯುತ್ತದೆ.",
       bookAnother: "ಮತ್ತೊಮ್ಮೆ ಬುಕ್ ಮಾಡಿ",
       confirmPayment: "ಪಾವತಿ ದೃಢೀಕರಿಸಿ",
       payNow: "ಈಗ ಪಾವತಿಸಿ",
@@ -1209,6 +1307,9 @@ const translations: Record<string, TranslationData> = {
       gotra: "ಗೋತ್ರ",
       nakshatra: "ನಕ್ಷತ್ರ",
       rashi: "ರಾಶಿ",
+      total: "ಒಟ್ಟು",
+      securePayment: "ನಿಮ್ಮ ಪಾವತಿಯನ್ನು Razorpay ಮೂಲಕ ಸುರಕ್ಷಿತವಾಗಿ ಪ್ರಕ್ರಿಯೆಗೊಳಿಸಲಾಗುತ್ತದೆ.",
+      paymentFailed: "ಪಾವತಿ ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
     },
     donate: {
       supportTemple: "ದೇವಸ್ಥಾನವನ್ನು ಬೆಂಬಲಿಸಿ",
@@ -1311,6 +1412,7 @@ const translations: Record<string, TranslationData> = {
       chatWhatsapp: "ವಾಟ್ಸ್‌ಆಪ್‌ನಲ್ಲಿ ಚಾಟ್ ಮಾಡಿ",
       stayConnected: "ಸಂಪರ್ಕದಲ್ಲಿರಿ",
       newsletterDesc: "ದೇವಸ್ಥಾನದ ನವೀಕರಣಗಳು, ಕಾರ್ಯಕ್ರಮದ ಅಧಿಸೂಚನೆಗಳು ಮತ್ತು ಆಧ್ಯಾತ್ಮಿಕ ಒಳನೋಟಗಳನ್ನು ಸ್ವೀಕರಿಸಲು ಚಂದಾದಾರರಾಗಿ.",
+      aboutTemple: "ದೇವಸ್ಥಾನದ ಬಗ್ಗೆ",
     },
     common: {
       loading: "ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
@@ -1378,6 +1480,8 @@ const translations: Record<string, TranslationData> = {
       failedToSend: "ಸಂದೇಶ ಕಳುಹಿಸಲು ವಿಫಲವಾಗಿದೆ",
       loadingInfo: "ಮಾಹಿತಿ ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
       pleaseWait: "ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ...",
+      barkurLocation: "ಬಾರ್ಕೂರು, ಉಡುಪಿ",
+      goTo: "ಗೆ ಹೋಗಿ",
     },
     admin: {
       dashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
@@ -2014,6 +2118,52 @@ const translations: Record<string, TranslationData> = {
       panchangaMoonTitle: "ಚಂದ್ರನ ಕಲೆ",
       panchangaMoonSub: "ಪ್ರಸ್ತುತ ಚಂದ್ರನ ಕಲೆ, ತಿಥಿ ಪ್ರಗತಿ ಮತ್ತು ರಾಶಿ ಸ್ಥಾನ.",
     },
+    hallBooking: {
+      hallBookingFillRequired: "ದಯವಿಟ್ಟು ಎಲ್ಲಾ ಅಗತ್ಯ ಕ್ಷೇತ್ರಗಳನ್ನು ತುಂಬಿಸಿ",
+      hallBookingSubmitError: "ಬುಕಿಂಗ್ ಸಲ್ಲಿಸುವಲ್ಲಿ ದೋಷ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+      hallBookingFormSub: "ನಿಮ್ಮ ಕಾರ್ಯಕ್ರಮಕ್ಕಾಗಿ ಸಭಾಂಗಣ ಕಾಯ್ದಿರಿಸಿ",
+      hallBookingFormTitle: "ಸಭಾಂಗಣ ಬುಕಿಂಗ್",
+      hallBookingSubmitted: "ಬುಕಿಂಗ್ ವಿನಂತಿ ಸಲ್ಲಿಸಲಾಗಿದೆ!",
+      hallBookingSubmittedDesc: "ನಿಮ್ಮ ಸಭಾಂಗಣ ಬುಕಿಂಗ್ ವಿನಂತಿಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ. ನಮ್ಮ ತಂಡವು ಶೀಘ್ರದಲ್ಲಿ ನಿಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸುತ್ತದೆ.",
+      hallBookingViewBookings: "ನನ್ನ ಬುಕಿಂಗ್‌ಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
+      hallBookingBookAnother: "ಮತ್ತೊಮ್ಮೆ ಬುಕ್ ಮಾಡಿ",
+      hallBookingSelectDate: "ದಿನಾಂಕ ಆಯ್ಕೆಮಾಡಿ",
+      hallBookingSelectDateDesc: "ನಿಮ್ಮ ಕಾರ್ಯಕ್ರಮಕ್ಕಾಗಿ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+      hallBookingSelectHall: "ಸಭಾಂಗಣ ಆಯ್ಕೆಮಾಡಿ",
+      hallBookingFrontHall: "ಮುಂಭಾಗದ ಸಭಾಂಗಣ",
+      hallBookingFrontHallDesc: "ಶುಭ ಕಾರ್ಯಕ್ರಮಗಳು ಮತ್ತು ಸಭೆಗಳಿಗೆ ಸೂಕ್ತ",
+      hallBookingBackHall: "ಹಿಂಭಾಗದ ಸಭಾಂಗಣ",
+      hallBookingBackHallDesc: "ದೊಡ್ಡ ಕಾರ್ಯಕ್ರಮಗಳು ಮತ್ತು ಸಮುದಾಯ ಸಭೆಗಳಿಗೆ ಸೂಕ್ತ",
+      hallBookingEventName: "ಕಾರ್ಯಕ್ರಮದ ಹೆಸರು *",
+      hallBookingEventNamePlaceholder: "ಉದಾ. ವಿವಾಹ, ಜನ್ಮದಿನ...",
+      hallBookingGuests: "ಅತಿಥಿಗಳ ಸಂಖ್ಯೆ *",
+      hallBookingGuestsPlaceholder: "ಅಂದಾಜು ಅತಿಥಿಗಳ ಸಂಖ್ಯೆ",
+      hallBookingYourName: "ನಿಮ್ಮ ಹೆಸರು *",
+      hallBookingPhone: "ಫೋನ್ ಸಂಖ್ಯೆ *",
+      hallBookingEmail: "ಇಮೇಲ್ ವಿಳಾಸ",
+      hallBookingAddress: "ವಿಳಾಸ *",
+      hallBookingSpecialRequests: "ವಿಶೇಷ ವಿನಂತಿಗಳು",
+      hallBookingSpecialRequestsPlaceholder: "ಯಾವುದೇ ವಿಶೇಷ ಅವಶ್ಯಕತೆಗಳು ಅಥವಾ ವಿನಂತಿಗಳು...",
+      hallBookingSubmit: "ಬುಕಿಂಗ್ ವಿನಂತಿ ಸಲ್ಲಿಸಿ",
+      hallBookingSubmitting: "ಸಲ್ಲಿಸಲಾಗುತ್ತಿದೆ...",
+      hallBookingSacredVenue: "ಪವಿತ್ರ ಸ್ಥಳ",
+      hallBookingSacredVenueDesc: "ನಮ್ಮ ಸಭಾಂಗಣಗಳು ಪವಿತ್ರ ದೇವಸ್ಥಾನದ ಒಳಗೆ ಇವೆ, ನಿಮ್ಮ ಕಾರ್ಯಕ್ರಮಕ್ಕೆ ದಿವ್ಯ ವಾತಾವರಣವನ್ನು ನೀಡುತ್ತವೆ.",
+      hallBookingWellMaintained: "ಚೆನ್ನಾಗಿ ನಿರ್ವಹಿಸಲಾಗಿದೆ",
+      hallBookingWellMaintainedDesc: "ಶುಚಿರ್ಭ್ಯ, ಸುಸಜ್ಜಿತ ಸಭಾಂಗಣಗಳು ನಿಮ್ಮ ಅಗತ್ಯಗಳಿಗೆ ಸಿದ್ಧವಾಗಿವೆ.",
+      hallBookingCommunityEvents: "ಸಮುದಾಯ ಕಾರ್ಯಕ್ರಮಗಳು",
+      hallBookingCommunityEventsDesc: "ಸಮುದಾಯ ಸಭೆಗಳು, ಹಬ್ಬಗಳು ಮತ್ತು ಸಾಂಸ್ಕೃತಿಕ ಕಾರ್ಯಕ್ರಮಗಳಿಗೆ ಸೂಕ್ತ.",
+      hallBookingError: "ಸಭಾಂಗಣ ಲೋಡ್ ಮಾಡುವಲ್ಲಿ ದೋಷ",
+      hallBookingBackToHalls: "ಸಭಾಂಗಣಗಳಿಗೆ ಹಿಂತಿರುಗಿ",
+      hallBookingBookingSummary: "ಬುಕಿಂಗ್ ಸಾರಾಂಶ",
+      hallBookingTerms: "ನಿಯಮಗಳು",
+      hallBookingTermsDesc: "ಪಾವತಿಯೊಂದಿಗೆ ಮುಂದುವರಿಯುವ ಮೂಲಕ, ನೀವು ರಿಫಂಡ್ ಮತ್ತು ರದ್ದತಿ ನೀತಿ ಸೇರಿದಂತೆ ದೇವಸ್ಥಾನದ ಸಭಾಂಗಣ ಬುಕಿಂಗ್ ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳನ್ನು ಒಪ್ಪುತ್ತೀರಿ.",
+      hallBookingSubmittedSuccess: "✓ ಬುಕಿಂಗ್ ಸಲ್ಲಿಸಲಾಗಿದೆ",
+      hallBookingBasePriceDesc: "ಪ್ರಮಾಣಿತ ಸಭಾಂಗಣ ಬಾಡಿಗೆ",
+      hallBookingHourlyDesc: "4 ಗಂಟೆಗಳ ಅಂದಾಜು",
+      hallBookingHourlyCharges: "ಗಂಟೆಯ ಶುಲ್ಕಗಳು",
+      hallBookingRefundable: "ಮರುಪಾವನೀಯ",
+      hallBookingSecureBooking: "ಸುರಕ್ಷಿತ ಬುಕಿಂಗ್",
+    },
   },
   en: {
     nav: {
@@ -2053,6 +2203,9 @@ const translations: Record<string, TranslationData> = {
       navigationMenu: "Navigation menu",
       closeMenu: "Close navigation menu",
       goTo: "Go to",
+      privacyPolicy: "Privacy Policy",
+      rituals: "Rituals",
+      videos: "Videos",
     },
     social: {
       facebook: "Facebook",
@@ -2224,6 +2377,7 @@ const translations: Record<string, TranslationData> = {
       pincodePlaceholder: "e.g. 576101",
       autoFilledFrom: "Auto-filled from",
       devoteeRecords: "devotee records",
+      account: "account",
       accountLabel: "account",
       noRecordFound: "No existing record found, please fill in details",
       lookupUnavailable: "Lookup unavailable, please fill in manually",
@@ -2241,17 +2395,36 @@ const translations: Record<string, TranslationData> = {
       eyebrow: "Special Monthly Pooja",
       subtitle: "Sacred Sri Chakra Pooja performed only on Hunnime (Full Moon) day every month",
       aboutTitle: "About Sri Chakra Pooja",
-      aboutDesc: "Sri Chakra Pooja is the most sacred pooja performed every month on Hunnime (Full Moon) day. This pooja is associated with the Sri Chakra of the Goddess and bestows special blessings upon devotees.",
+      aboutDesc: "Sri Chakra Pooja is one of the most sacred rituals in Hinduism. It is performed only on Hunnime (Full Moon / Pournima) day every month. The Sri Chakra is the sacred yantra of the Goddess, and worshipping it fulfills all desires and grants divine blessings.",
       monthlyPooja: "Monthly Pooja",
       selectHunnime: "Select Hunnime Date",
+      selectHunnimeSubtext: "Choose one of the upcoming full moon days",
       hunnimeDay: "Hunnime Day",
       poojaTime: "Pooja Time",
+      poojaTimeValue: "6:00 AM",
       poojaFee: "Pooja Fee",
+      selected: "Selected",
       bookingSummary: "Booking Summary",
+      pooja: "Pooja",
       date: "Date",
       devoteeDetails: "Devotee Details",
+      fullName: "Full Name *",
+      enterName: "Enter your name",
+      phone: "Phone *",
+      phonePlaceholder: "Phone number",
+      emailLabel: "Email *",
+      addressPlaceholder: "Residential address",
+      stateLabel: "State *",
+      statePlaceholder: "State",
+      districtLabel: "District *",
+      districtPlaceholder: "District",
+      pincodeLabel: "Pincode *",
+      pincodePlaceholder: "Pincode",
+      gotraPlaceholder: "e.g. Bharadwaja",
+      specialInstructions: "Special Instructions",
+      specialInstructionsPlaceholder: "Any special requests...",
       bookingConfirmed: "Booking Confirmed!",
-      bookingConfirmedDesc: "Your booking has been confirmed successfully.",
+      bookingConfirmedDesc: "Your Sri Chakra Pooja booking has been confirmed. The pooja is performed every month on the full moon day.",
       bookAnother: "Book Another",
       confirmPayment: "Confirm Payment",
       payNow: "Pay Now",
@@ -2259,6 +2432,9 @@ const translations: Record<string, TranslationData> = {
       gotra: "Gotra",
       nakshatra: "Nakshatra",
       rashi: "Rashi",
+      total: "Total",
+      securePayment: "Your payment is securely processed through Razorpay.",
+      paymentFailed: "Payment failed. Please try again.",
     },
     donate: {
       supportTemple: "Support the Temple",
@@ -2361,6 +2537,7 @@ const translations: Record<string, TranslationData> = {
       chatWhatsapp: "Chat on WhatsApp",
       stayConnected: "Stay Connected",
       newsletterDesc: "Subscribe to receive temple updates, event notifications, and spiritual insights.",
+      aboutTemple: "About the Temple",
     },
     common: {
       loading: "Loading...",
@@ -2428,6 +2605,8 @@ const translations: Record<string, TranslationData> = {
       failedToSend: "Failed to send message",
       loadingInfo: "Loading information...",
       pleaseWait: "Please wait...",
+      barkurLocation: "Barkur, Udupi",
+      goTo: "Go to",
     },
     admin: {
       dashboard: "Dashboard",
@@ -3063,6 +3242,52 @@ const translations: Record<string, TranslationData> = {
       panchangaFestivalsSub: "Mark your calendar with these sacred occasions at the temple.",
       panchangaMoonTitle: "Moon Phase",
       panchangaMoonSub: "Current lunar phase, tithi progress, and zodiac position.",
+    },
+    hallBooking: {
+      hallBookingFillRequired: "Please fill in all required fields",
+      hallBookingSubmitError: "Error submitting booking. Please try again.",
+      hallBookingFormSub: "Reserve a hall for your event",
+      hallBookingFormTitle: "Hall Booking",
+      hallBookingSubmitted: "Booking Request Submitted!",
+      hallBookingSubmittedDesc: "Your hall booking request has been submitted successfully. Our team will contact you shortly.",
+      hallBookingViewBookings: "View My Bookings",
+      hallBookingBookAnother: "Book Another",
+      hallBookingSelectDate: "Select Date",
+      hallBookingSelectDateDesc: "Choose a date for your event",
+      hallBookingSelectHall: "Select Hall",
+      hallBookingFrontHall: "Front Hall",
+      hallBookingFrontHallDesc: "Ideal for auspicious occasions and gatherings",
+      hallBookingBackHall: "Back Hall",
+      hallBookingBackHallDesc: "Ideal for larger events and community gatherings",
+      hallBookingEventName: "Event Name *",
+      hallBookingEventNamePlaceholder: "e.g. Wedding, Birthday...",
+      hallBookingGuests: "Number of Guests *",
+      hallBookingGuestsPlaceholder: "Approximate number of guests",
+      hallBookingYourName: "Your Name *",
+      hallBookingPhone: "Phone Number *",
+      hallBookingEmail: "Email Address",
+      hallBookingAddress: "Address *",
+      hallBookingSpecialRequests: "Special Requests",
+      hallBookingSpecialRequestsPlaceholder: "Any special requirements or requests...",
+      hallBookingSubmit: "Submit Booking Request",
+      hallBookingSubmitting: "Submitting...",
+      hallBookingSacredVenue: "Sacred Venue",
+      hallBookingSacredVenueDesc: "Our halls are located within the sacred temple premises, providing a divine atmosphere for your event.",
+      hallBookingWellMaintained: "Well Maintained",
+      hallBookingWellMaintainedDesc: "Clean, well-equipped halls ready for your needs.",
+      hallBookingCommunityEvents: "Community Events",
+      hallBookingCommunityEventsDesc: "Perfect for community meetings, festivals, and cultural programs.",
+      hallBookingError: "Error Loading Hall",
+      hallBookingBackToHalls: "Back to Halls",
+      hallBookingBookingSummary: "Booking Summary",
+      hallBookingTerms: "Terms",
+      hallBookingTermsDesc: "By proceeding with the payment, you agree to the temple's hall booking terms and conditions including the refund and cancellation policy.",
+      hallBookingSubmittedSuccess: "✓ Booking Submitted",
+      hallBookingBasePriceDesc: "Standard hall rental",
+      hallBookingHourlyDesc: "4 hours estimated",
+      hallBookingHourlyCharges: "Hourly Charges",
+      hallBookingRefundable: "Refundable",
+      hallBookingSecureBooking: "Secure booking with secured payment",
     },
   },
 }

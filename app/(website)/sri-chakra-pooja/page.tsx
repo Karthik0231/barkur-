@@ -17,7 +17,6 @@ import { RazorpayButton } from "@/components/booking/razorpay-button"
 import { nakshatraOptions, rashiOptions } from "@/lib/nakshatra-data"
 
 // Approximate Hunnime (Full Moon) dates for 2025-2026
-// In production, this should come from a Hindu calendar API
 const HUNNIME_DATES: Record<string, string> = {
   "2025-01": "2025-01-13",
   "2025-02": "2025-02-12",
@@ -45,14 +44,15 @@ const HUNNIME_DATES: Record<string, string> = {
   "2026-12": "2026-11-23",
 }
 
-const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+const MONTHS_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 const MONTHS_KN = ["ಜನವರಿ", "ಫೆಬ್ರವರಿ", "ಮಾರ್ಚ್", "ಏಪ್ರಿಲ್", "ಮೇ", "ಜೂನ್", "ಜುಲೈ", "ಆಗಸ್ಟ್", "ಸೆಪ್ಟೆಂಬರ್", "ಅಕ್ಟೋಬರ್", "ನವೆಂಬರ್", "ಡಿಸೆಂಬರ್"]
 
-function getNextHunnimes(count = 6) {
+function getNextHunnimes(count = 6, lang: "kn" | "en" = "kn") {
   const now = new Date()
   const results: { date: Date; label: string; monthKey: string; isPast: boolean }[] = []
   const year = now.getFullYear()
   const month = now.getMonth()
+  const months = lang === "kn" ? MONTHS_KN : MONTHS_EN
 
   for (let i = 0; i < 12; i++) {
     const m = (month + i) % 12
@@ -65,7 +65,7 @@ function getNextHunnimes(count = 6) {
     if (!isPast || i === 0) {
       results.push({
         date,
-        label: `${MONTHS[m]} ${date.getDate()}`,
+        label: `${months[m]} ${date.getDate()}`,
         monthKey: key,
         isPast,
       })
@@ -79,7 +79,7 @@ export default function SriChakraPoojaPage() {
   const { t, language } = useTranslation()
   const router = useRouter()
 
-  const hunnimes = useMemo(() => getNextHunnimes(6), [])
+  const hunnimes = useMemo(() => getNextHunnimes(6, language), [language])
   const [selectedHunnime, setSelectedHunnime] = useState<string | null>(null)
 
   const [form, setForm] = useState({
@@ -143,7 +143,7 @@ export default function SriChakraPoojaPage() {
       if (!payData.success) throw new Error(payData.message || "Failed to create payment order")
       setRazorpayOrder(payData.data)
     } catch (err) {
-      setPayError(err instanceof Error ? err.message : "Payment failed")
+      setPayError(err instanceof Error ? err.message : t("sriChakraPooja.paymentFailed"))
     } finally {
       setPayLoading(false)
     }
@@ -167,15 +167,13 @@ export default function SriChakraPoojaPage() {
             <CheckCircle className="h-10 w-10 text-success" />
           </div>
           <h1 className="text-2xl font-heading font-bold text-text-primary mb-2">
-            {language === "kn" ? "ಬುಕಿಂಗ್ ದೃಢೀಕರಿಸಲಾಗಿದೆ!" : "Booking Confirmed!"}
+            {t("sriChakraPooja.bookingConfirmed")}
           </h1>
           <p className="text-text-secondary mb-6">
-            {language === "kn"
-              ? `ನಿಮ್ಮ ಶ್ರೀ ಚಕ್ರ ಪೂಜೆ ಬುಕಿಂಗ್ ಯಶಸ್ವಿಯಾಗಿದೆ. ಪೂಜೆಯು ಪ್ರತಿ ತಿಂಗಳು ಹುಣ್ಣಿಮೆ ದಿನದಂದು ನಡೆಯುತ್ತದೆ.`
-              : `Your Sri Chakra Pooja booking has been confirmed. The pooja is performed every month on the full moon day.`}
+            {t("sriChakraPooja.bookingConfirmedDesc")}
           </p>
           <Button variant="gradient" onClick={() => router.push("/sri-chakra-pooja")}>
-            {language === "kn" ? "ಮತ್ತೊಮ್ಮೆ ಬುಕ್ ಮಾಡಿ" : "Book Another"}
+            {t("sriChakraPooja.bookAnother")}
           </Button>
         </motion.div>
       </div>
@@ -185,9 +183,9 @@ export default function SriChakraPoojaPage() {
   return (
     <div className="min-h-screen">
       <PageBanner
-        title={language === "kn" ? "ಶ್ರೀ ಚಕ್ರ ಪೂಜೆ" : "Sri Chakra Pooja"}
-        eyebrow={language === "kn" ? "ವಿಶೇಷ ಮಾಸಿಕ ಪೂಜೆ" : "Special Monthly Pooja"}
-        subtitle={language === "kn" ? "ಪ್ರತಿ ತಿಂಗಳು ಹುಣ್ಣಿಮೆ ದಿನದಂದು ಮಾತ್ರ ನಡೆಯುವ ಪವಿತ್ರ ಶ್ರೀ ಚಕ್ರ ಪೂಜೆ" : "Sacred Sri Chakra Pooja performed only on Hunnime (Full Moon) day every month"}
+        title={t("sriChakraPooja.title")}
+        eyebrow={t("sriChakraPooja.eyebrow")}
+        subtitle={t("sriChakraPooja.subtitle")}
       />
 
       <section className="py-16 px-4">
@@ -195,7 +193,7 @@ export default function SriChakraPoojaPage() {
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 text-sm text-text-muted mb-10">
             <Link href="/" className="hover:text-secondary transition-colors">{t("nav.home")}</Link>
             <ChevronRight className="h-3.5 w-3.5" />
-            <span className="text-text-primary font-medium">{language === "kn" ? "ಶ್ರೀ ಚಕ್ರ ಪೂಜೆ" : "Sri Chakra Pooja"}</span>
+            <span className="text-text-primary font-medium">{t("sriChakraPooja.title")}</span>
           </motion.div>
 
           <div className="grid lg:grid-cols-[1fr_380px] gap-8">
@@ -208,29 +206,27 @@ export default function SriChakraPoojaPage() {
                     <Moon className="h-5 w-5 text-white" />
                   </div>
                   <h2 className="text-xl font-heading font-bold text-text-primary">
-                    {language === "kn" ? "ಶ್ರೀ ಚಕ್ರ ಪೂಜೆಯ ಬಗ್ಗೆ" : "About Sri Chakra Pooja"}
+                    {t("sriChakraPooja.aboutTitle")}
                   </h2>
                 </div>
                 <p className="text-text-secondary leading-relaxed">
-                  {language === "kn"
-                    ? "ಶ್ರೀ ಚಕ್ರ ಪೂಜೆಯು ಹಿಂದೂ ಧರ್ಮದ ಅತ್ಯಂತ ಪವಿತ್ರ ಪೂಜೆಗಳಲ್ಲಿ ಒಂದಾಗಿದೆ. ಇದನ್ನು ಪ್ರತಿ ತಿಂಗಳು ಹುಣ್ಣಿಮೆ (ಪೌರ್ಣಿಮೆ) ದಿನದಂದು ಮಾತ್ರ ನಡೆಸಲಾಗುತ್ತದೆ. ಶ್ರೀ ಚಕ್ರವು ದೇವಿಯ ಯಂತ್ರವಾಗಿದ್ದು, ಅದರ ಪೂಜೆಯಿಂದ ಸಕಲ ಕಾಮನಬಿಡಿಗಳು ಈಡೇರುತ್ತವೆ."
-                    : "Sri Chakra Pooja is one of the most sacred rituals in Hinduism. It is performed only on Hunnime (Full Moon / Pournima) day every month. The Sri Chakra is the sacred yantra of the Goddess, and worshipping it fulfills all desires and grants divine blessings."}
+                  {t("sriChakraPooja.aboutDesc")}
                 </p>
                 <div className="grid sm:grid-cols-3 gap-4 mt-6">
                   <div className="p-4 rounded-xl bg-bg-secondary text-center">
                     <Calendar className="h-6 w-6 text-primary mx-auto mb-2" />
-                    <p className="text-sm font-semibold text-text-primary">{language === "kn" ? "ಮಾಸಿಕ ಪೂಜೆ" : "Monthly Pooja"}</p>
-                    <p className="text-xs text-text-muted mt-1">{language === "kn" ? "ಹುಣ್ಣಿಮೆ ದಿನ" : "Hunnime Day"}</p>
+                    <p className="text-sm font-semibold text-text-primary">{t("sriChakraPooja.monthlyPooja")}</p>
+                    <p className="text-xs text-text-muted mt-1">{t("sriChakraPooja.hunnimeDay")}</p>
                   </div>
                   <div className="p-4 rounded-xl bg-bg-secondary text-center">
                     <Clock className="h-6 w-6 text-primary mx-auto mb-2" />
-                    <p className="text-sm font-semibold text-text-primary">{language === "kn" ? "ಬೆಳಿಗ್ಗೆ 6:00" : "6:00 AM"}</p>
-                    <p className="text-xs text-text-muted mt-1">{language === "kn" ? "ಪೂಜಾ ಸಮಯ" : "Pooja Time"}</p>
+                    <p className="text-sm font-semibold text-text-primary">{t("sriChakraPooja.poojaTimeValue")}</p>
+                    <p className="text-xs text-text-muted mt-1">{t("sriChakraPooja.poojaTime")}</p>
                   </div>
                   <div className="p-4 rounded-xl bg-bg-secondary text-center">
                     <Star className="h-6 w-6 text-primary mx-auto mb-2" />
                     <p className="text-sm font-semibold text-text-primary">{formatPrice(price)}</p>
-                    <p className="text-xs text-text-muted mt-1">{language === "kn" ? "ಪೂಜಾ ಶುಲ್ಕ" : "Pooja Fee"}</p>
+                    <p className="text-xs text-text-muted mt-1">{t("sriChakraPooja.poojaFee")}</p>
                   </div>
                 </div>
               </Card>
@@ -243,10 +239,10 @@ export default function SriChakraPoojaPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-heading font-bold text-text-primary">
-                      {language === "kn" ? "ಹುಣ್ಣಿಮೆ ದಿನ ಆಯ್ಕೆಮಾಡಿ" : "Select Hunnime Date"}
+                      {t("sriChakraPooja.selectHunnime")}
                     </h3>
                     <p className="text-sm text-text-muted">
-                      {language === "kn" ? "ಮುಂದಿನ ಹುಣ್ಣಿಮೆ ದಿನಗಳಲ್ಲಿ ಒಂದನ್ನು ಆಯ್ಕೆಮಾಡಿ" : "Choose one of the upcoming full moon days"}
+                      {t("sriChakraPooja.selectHunnimeSubtext")}
                     </p>
                   </div>
                 </div>
@@ -275,7 +271,7 @@ export default function SriChakraPoojaPage() {
                       {selectedHunnime === h.monthKey && (
                         <div className="mt-2">
                           <Badge variant="success" size="sm">
-                            {language === "kn" ? "ಆಯ್ಕೆಮಾಡಲಾಗಿದೆ" : "Selected"}
+                            {t("sriChakraPooja.selected")}
                           </Badge>
                         </div>
                       )}
@@ -291,37 +287,37 @@ export default function SriChakraPoojaPage() {
                     <CheckCircle className="h-5 w-5 text-primary" />
                   </div>
                   <h3 className="text-lg font-heading font-bold text-text-primary">
-                    {language === "kn" ? "ಭಕ್ತರ ವಿವರಗಳು" : "Devotee Details"}
+                    {t("sriChakraPooja.devoteeDetails")}
                   </h3>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <Input label={language === "kn" ? "ಹೆಸರು *" : "Full Name *"} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={language === "kn" ? "ನಿಮ್ಮ ಹೆಸರು" : "Enter your name"} />
-                  <Input label={language === "kn" ? "ದೂರವಾಣಿ *" : "Phone *"} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder={language === "kn" ? "ದೂರವಾಣಿ ಸಂಖ್ಯೆ" : "Phone number"} />
-                  <Input label={language === "kn" ? "ಇಮೇಲ್ *" : "Email *"} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@example.com" type="email" />
-                  <Input label={language === "kn" ? "ವಿಳಾಸ *" : "Address *"} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder={language === "kn" ? "ವಾಸದ ವಿಳಾಸ" : "Residential address"} />
-                  <Input label={language === "kn" ? "ರಾಜ್ಯ *" : "State *"} value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} placeholder={language === "kn" ? "ರಾಜ್ಯ" : "State"} />
-                  <Input label={language === "kn" ? "ಜಿಲ್ಲೆ *" : "District *"} value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} placeholder={language === "kn" ? "ಜಿಲ್ಲೆ" : "District"} />
-                  <Input label={language === "kn" ? "ಪಿನ್ ಕೋಡ್ *" : "Pincode *"} value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} placeholder={language === "kn" ? "ಪಿನ್ ಕೋಡ್" : "Pincode"} />
-                  <Input label={language === "kn" ? "ಗೋತ್ರ" : "Gotra"} value={form.gotra} onChange={(e) => setForm({ ...form, gotra: e.target.value })} placeholder={language === "kn" ? "ಉದಾ: ಭರದ್ವಾಜ" : "e.g. Bharadwaja"} />
+                  <Input label={t("sriChakraPooja.fullName")} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t("sriChakraPooja.enterName")} />
+                  <Input label={t("sriChakraPooja.phone")} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder={t("sriChakraPooja.phonePlaceholder")} />
+                  <Input label={t("sriChakraPooja.emailLabel")} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@example.com" type="email" />
+                  <Input label={t("sriChakraPooja.address")} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder={t("sriChakraPooja.addressPlaceholder")} />
+                  <Input label={t("sriChakraPooja.stateLabel")} value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} placeholder={t("sriChakraPooja.statePlaceholder")} />
+                  <Input label={t("sriChakraPooja.districtLabel")} value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} placeholder={t("sriChakraPooja.districtPlaceholder")} />
+                  <Input label={t("sriChakraPooja.pincodeLabel")} value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} placeholder={t("sriChakraPooja.pincodePlaceholder")} />
+                  <Input label={t("sriChakraPooja.gotra")} value={form.gotra} onChange={(e) => setForm({ ...form, gotra: e.target.value })} placeholder={t("sriChakraPooja.gotraPlaceholder")} />
                   <select value={form.nakshatra} onChange={(e) => setForm({ ...form, nakshatra: e.target.value })} className="h-10 px-3 text-sm rounded-xl border border-border bg-warm-white text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/20">
-                    <option value="">{language === "kn" ? "ನಕ್ಷತ್ರ" : "Nakshatra"}</option>
+                    <option value="">{t("sriChakraPooja.nakshatra")}</option>
                     {nakshatraOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                   <select value={form.rashi} onChange={(e) => setForm({ ...form, rashi: e.target.value })} className="h-10 px-3 text-sm rounded-xl border border-border bg-warm-white text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/20">
-                    <option value="">{language === "kn" ? "ರಾಶಿ" : "Rashi"}</option>
+                    <option value="">{t("sriChakraPooja.rashi")}</option>
                     {rashiOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 </div>
 
                 <div className="mt-4">
                   <label className="text-sm font-medium text-text-primary mb-1.5 block">
-                    {language === "kn" ? "ವಿಶೇಷ ಸೂಚನೆಗಳು" : "Special Instructions"}
+                    {t("sriChakraPooja.specialInstructions")}
                   </label>
                   <textarea
                     value={form.notes}
                     onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                    placeholder={language === "kn" ? "ಯಾವುದೇ ವಿಶೇಷ ವಿನಂತಿಗಳು..." : "Any special requests..."}
+                    placeholder={t("sriChakraPooja.specialInstructionsPlaceholder")}
                     rows={3}
                     className="w-full rounded-xl border border-border bg-warm-white p-3 text-sm text-text-primary placeholder:text-text-muted focus:border-secondary focus:ring-2 focus:ring-secondary/20 focus-visible:outline-none transition-all resize-none"
                   />
@@ -333,7 +329,7 @@ export default function SriChakraPoojaPage() {
             <div className="lg:sticky lg:top-24 space-y-4 lg:self-start">
               <Card variant="elevated" padding="lg">
                 <h3 className="text-lg font-heading font-bold text-text-primary mb-4">
-                  {language === "kn" ? "ಪೂಜಾ ವಿವರ" : "Booking Summary"}
+                  {t("sriChakraPooja.bookingSummary")}
                 </h3>
 
                 {selectedHunnime && (
@@ -349,7 +345,7 @@ export default function SriChakraPoojaPage() {
 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-text-muted">{language === "kn" ? "ಪೂಜಾ ಶುಲ್ಕ" : "Pooja Fee"}</span>
+                    <span className="text-text-muted">{t("sriChakraPooja.poojaFee")}</span>
                     <span className="font-medium text-text-primary">{formatPrice(price)}</span>
                   </div>
                   <div className="flex justify-between">
@@ -357,7 +353,7 @@ export default function SriChakraPoojaPage() {
                     <span className="font-medium text-text-primary">{formatPrice(gst)}</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t border-border">
-                    <span className="font-bold text-text-primary">{language === "kn" ? "ಒಟ್ಟು" : "Total"}</span>
+                    <span className="font-bold text-text-primary">{t("sriChakraPooja.total")}</span>
                     <span className="font-heading font-bold text-lg text-primary">{formatPrice(total)}</span>
                   </div>
                 </div>
@@ -372,16 +368,14 @@ export default function SriChakraPoojaPage() {
                   iconRight={<IndianRupee className="h-4 w-4" />}
                 >
                   {payLoading
-                    ? (language === "kn" ? "ಪ್ರಕ್ರಿಯೆ..." : "Processing...")
-                    : `${language === "kn" ? "ಪಾವತಿಸಿ" : "Pay Now"} ${formatPrice(total)}`}
+                    ? t("common.submitting")
+                    : `${t("sriChakraPooja.payNow")} ${formatPrice(total)}`}
                 </Button>
 
                 <div className="mt-4 p-3 rounded-xl bg-bg-secondary flex items-start gap-3">
                   <Shield className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                   <p className="text-[10px] text-text-muted leading-relaxed">
-                    {language === "kn"
-                      ? "ನಿಮ್ಮ ಪಾವತಿಯನ್ನು Razorpay ಮೂಲಕ ಸುರಕ್ಷಿತವಾಗಿ ಪ್ರಕ್ರಿಯೆಗೊಳಿಸಲಾಗುತ್ತದೆ."
-                      : "Your payment is securely processed through Razorpay."}
+                    {t("sriChakraPooja.securePayment")}
                   </p>
                 </div>
 
@@ -396,23 +390,23 @@ export default function SriChakraPoojaPage() {
       <Dialog open={paymentDialog} onClose={() => { if (!payLoading) { setPaymentDialog(false); setRazorpayOrder(null); setPayError("") } }}>
         <DialogContent size="md" className="p-6">
           <DialogHeader className="mb-4">
-            <DialogTitle>{language === "kn" ? "ಪಾವತಿ ದೃಢೀಕರಿಸಿ" : "Confirm Payment"}</DialogTitle>
+            <DialogTitle>{t("sriChakraPooja.confirmPayment")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="p-4 rounded-xl bg-bg-secondary space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-text-muted">{language === "kn" ? "ಪೂಜೆ" : "Pooja"}</span>
+                <span className="text-text-muted">{t("sriChakraPooja.pooja")}</span>
                 <span className="font-medium text-text-primary">Sri Chakra Pooja</span>
               </div>
               {selectedHunnime && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-text-muted">{language === "kn" ? "ದಿನಾಂಕ" : "Date"}</span>
+                  <span className="text-text-muted">{t("sriChakraPooja.date")}</span>
                   <span className="font-medium text-text-primary">{hunnimes.find((h) => h.monthKey === selectedHunnime)?.label}</span>
                 </div>
               )}
               <div className="border-t border-border pt-2 mt-2">
                 <div className="flex justify-between">
-                  <span className="font-bold text-text-primary">{language === "kn" ? "ಒಟ್ಟು" : "Total"}</span>
+                  <span className="font-bold text-text-primary">{t("sriChakraPooja.total")}</span>
                   <span className="font-bold text-primary text-lg">{formatPrice(total)}</span>
                 </div>
               </div>
@@ -421,18 +415,18 @@ export default function SriChakraPoojaPage() {
             {razorpayOrder ? (
               <RazorpayButton
                 amount={total}
-                orderId={razorpayOrder.razorpayOrderId}
+                orderId={razorpayOrder.order.id}
                 name="Sri Kalikamba Temple"
                 description="Sri Chakra Pooja Booking"
                 prefill={{ name: form.name, email: form.email, contact: form.phone }}
                 onSuccess={handlePaySuccess}
-                onError={() => { setRazorpayOrder(null); setPayError("Payment failed. Please try again.") }}
+                onError={() => { setRazorpayOrder(null); setPayError(t("sriChakraPooja.paymentFailed")) }}
               />
             ) : (
               <Button variant="premium" size="lg" className="w-full" onClick={handleSubmit} loading={payLoading}>
                 {payLoading
-                  ? (language === "kn" ? "ಪ್ರಕ್ರಿಯೆ..." : "Processing...")
-                  : `${language === "kn" ? "ಪಾವತಿಸಿ" : "Pay Now"} ${formatPrice(total)}`}
+                  ? t("common.submitting")
+                  : `${t("sriChakraPooja.payNow")} ${formatPrice(total)}`}
               </Button>
             )}
 

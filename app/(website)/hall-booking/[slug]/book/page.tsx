@@ -208,10 +208,10 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
   const tax = hall?.tax ?? 18
 
   const lineItems = useMemo(() => [
-    { label: "Base Price", amount: basePrice, description: "Standard hall rental" },
-    { label: "Hourly Charges", amount: pricePerHour * 4, description: "4 hours estimated" },
-    { label: "Security Deposit", amount: securityDeposit, description: "Refundable" },
-  ], [basePrice, pricePerHour, securityDeposit])
+    { label: t("hall.basePrice"), amount: basePrice, description: t("hallBooking.hallBookingBasePriceDesc") },
+    { label: t("hallBooking.hallBookingHourlyCharges"), amount: pricePerHour * 4, description: t("hallBooking.hallBookingHourlyDesc") },
+    { label: t("hall.securityDeposit"), amount: securityDeposit, description: t("hallBooking.hallBookingRefundable") },
+  ], [basePrice, pricePerHour, securityDeposit, t])
 
   const total = useMemo(() => basePrice + pricePerHour * 4, [basePrice, pricePerHour])
 
@@ -477,10 +477,10 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                     </div>
 
                     <div className="flex justify-between mt-8 pt-6 border-t border-border">
-                      <Button variant="outline" size="lg" type="button" onClick={handleBack}>
-                        <ArrowLeft className="h-4 w-4 mr-1" />
-                        Back
-                      </Button>
+                      <Button variant="outline" size="lg" type="button" onClick={handleBack}                        >
+                          <ArrowLeft className="h-4 w-4 mr-1" />
+                          {t("booking.back")}
+                        </Button>
                       <Button variant="gradient" size="lg" type="button" onClick={handleNext}>
                         Next: Contact Info
                         <ChevronRight className="h-4 w-4 ml-1" />
@@ -553,10 +553,10 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                     </div>
 
                     <div className="flex justify-between mt-8 pt-6 border-t border-border">
-                      <Button variant="outline" size="lg" type="button" onClick={handleBack}>
-                        <ArrowLeft className="h-4 w-4 mr-1" />
-                        Back
-                      </Button>
+                      <Button variant="outline" size="lg" type="button" onClick={handleBack}                        >
+                          <ArrowLeft className="h-4 w-4 mr-1" />
+                          {t("booking.back")}
+                        </Button>
                       <Button variant="gradient" size="lg" type="button" onClick={handleNext}>
                         Next: Review & Pay
                         <ChevronRight className="h-4 w-4 ml-1" />
@@ -581,7 +581,7 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
 
                         <div className="space-y-4">
                           <div className="p-4 rounded-xl bg-bg-secondary/50">
-                            <h3 className="text-sm font-semibold text-primary mb-3">Booking Summary</h3>
+                            <h3 className="text-sm font-semibold text-primary mb-3">{t("hallBooking.hallBookingBookingSummary")}</h3>
                             <div className="space-y-2 text-sm">
                               <div className="flex justify-between">
                                 <span className="text-text-muted">Hall</span>
@@ -615,9 +615,9 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                           </div>
 
                           <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-secondary/5 border border-primary/10">
-                            <h3 className="text-sm font-semibold text-primary mb-2">Terms</h3>
+                            <h3 className="text-sm font-semibold text-primary mb-2">{t("hallBooking.hallBookingTerms")}</h3>
                             <p className="text-xs text-text-secondary">
-                              By proceeding with the payment, you agree to the temple's hall booking terms and conditions including the refund and cancellation policy.
+                              {t("hallBooking.hallBookingTermsDesc")}
                             </p>
                           </div>
                         </div>
@@ -629,10 +629,10 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                     )}
 
                     <div className="flex justify-between mt-8 pt-6 border-t border-border">
-                      <Button variant="outline" type="button" onClick={handleBack}>
-                        <ArrowLeft className="h-4 w-4 mr-1" />
-                        Back
-                      </Button>
+                      <Button variant="outline" type="button" onClick={handleBack}                        >
+                          <ArrowLeft className="h-4 w-4 mr-1" />
+                          {t("booking.back")}
+                        </Button>
                       <Button
                         variant="gradient"
                         size="lg"
@@ -643,7 +643,7 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                         {submitting ? (
                           <>{t("common.submitting")}</>
                         ) : submitted ? (
-                          <>✓ Booking Submitted</>
+                          <>{t("hallBooking.hallBookingSubmittedSuccess")}</>
                         ) : (
                           <>{t("common.submitBookingRequest")}</>
                         )}
@@ -659,7 +659,7 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                     deposit={securityDeposit}
                     total={total}
                     onPayment={handleSubmitBooking}
-                    paymentLabel={submitting ? t("common.submitting") : submitted ? "✓ Submitted" : t("common.submitBookingRequest")}
+                    paymentLabel={submitting ? t("common.submitting") : submitted ? t("hallBooking.hallBookingSubmittedSuccess") : t("common.submitBookingRequest")}
                   />
                 </div>
                   </div>

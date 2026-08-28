@@ -341,7 +341,7 @@ export default function CartCheckoutPage() {
             {razorpayOrder ? (
               <RazorpayButton
                 amount={grandTotal}
-                orderId={razorpayOrder.razorpayOrderId}
+                orderId={razorpayOrder.order.id}
                 name="Sri Kalikamba Temple"
                 description={`${cart.length} seva(s) booking`}
                 prefill={{ name: sharedDevotee.name, email: sharedDevotee.email, contact: sharedDevotee.phone }}
