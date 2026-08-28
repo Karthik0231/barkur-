@@ -7,6 +7,7 @@ import { BookingSteps } from "./booking-steps"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import { useTranslation } from "@/lib/i18n"
 
 export interface BookingStep {
   label: string
@@ -29,6 +30,7 @@ export function BookingForm({
   completeLabel = "Complete Booking",
 }: BookingFormProps) {
   const [currentStep, setCurrentStep] = useState(0)
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
 
   const isFirst = currentStep === 0
@@ -80,7 +82,7 @@ export function BookingForm({
           disabled={isFirst || loading}
           iconLeft={<ChevronLeft className="h-4 w-4" />}
         >
-          Back
+          {t("booking.back")}
         </Button>
         <Button
           variant="gradient"
@@ -88,7 +90,7 @@ export function BookingForm({
           loading={loading}
           iconRight={!isLast ? <ChevronRight className="h-4 w-4" /> : undefined}
         >
-          {isLast ? completeLabel : "Next"}
+          {isLast ? completeLabel : t("booking.next")}
         </Button>
       </div>
     </div>

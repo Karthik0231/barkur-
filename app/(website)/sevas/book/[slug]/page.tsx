@@ -284,7 +284,7 @@ export default function BookSevaPage() {
             {razorpayOrder ? (
               <RazorpayButton
                 amount={grandTotal}
-                orderId={razorpayOrder.razorpayOrderId}
+                orderId={razorpayOrder.order.id}
                 name="Sri Kalikamba Temple"
                 description={seva.name}
                 prefill={{ name: devoteeData.name, email: devoteeData.email, contact: devoteeData.phone }}

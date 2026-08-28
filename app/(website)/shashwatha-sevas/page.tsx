@@ -117,7 +117,7 @@ export default function ShashwathaSevasPage() {
                         className="w-full group/btn"
                         onClick={() => router.push(`/shashwatha-sevas/${plan.slug}`)}
                       >
-                        {language === "kn" ? "ಈಗ ಬುಕ್ ಮಾಡಿ" : "Book Now"}
+                        {t("sevas.bookNow")}
                         <ArrowRight className="h-4 w-4 ml-1 transition-transform group-hover/btn:translate-x-0.5" />
                       </Button>
                     </div>
