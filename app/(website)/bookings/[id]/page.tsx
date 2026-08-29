@@ -122,31 +122,93 @@ export default function BookingDetailPage() {
                     <p className="font-semibold text-text-primary">{t("bookingDetail.locationValue")}</p>
                   </div>
                 </div>
+              </Card>              <Card variant="elevated" padding="lg">
+                <h2 className="text-lg font-heading font-bold text-text-primary mb-4">
+                  {t("bookingDetail.devoteeDetails")}
+                </h2>
+                {(() => {
+                  const items = booking.items || []
+                  const hasPerPerson = items.some((it: any) => it.devotees && it.devotees.length > 0)
+                  if (hasPerPerson) {
+                    return (
+                      <div className="space-y-4">
+                        {items.map((it: any, idx: number) => {
+                          const devotees = it.devotees || (it.devoteeName ? [{ name: it.devoteeName, gotra: it.gotra, nakshatra: it.nakshatra, rashi: it.rashi }] : [])
+                          return (
+                            <div key={idx} className="space-y-2">
+                              {items.length > 1 && (
+                                <p className="text-sm font-semibold text-text-primary border-b border-border pb-1">
+                                  {it.seva?.name || it.sevaName || "Seva"} × {it.quantity}
+                                </p>
+                              )}
+                              {devotees.map((person: any, pIdx: number) => (
+                                <div key={pIdx} className="flex items-start gap-3 p-3 rounded-xl bg-bg-secondary/50 border border-border/30">
+                                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                                    {pIdx + 1}
+                                  </div>
+                                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1 min-w-0">
+                                    <div>
+                                      <p className="text-[10px] text-text-muted uppercase">{t("bookingDetail.fullName")}</p>
+                                      <p className="text-sm font-medium text-text-primary truncate">{person.name || "-"}</p>
+                                    </div>
+                                    {person.gotra && (
+                                      <div>
+                                        <p className="text-[10px] text-text-muted uppercase">{t("bookingDetail.gotra")}</p>
+                                        <p className="text-sm font-medium text-text-primary truncate">{person.gotra}</p>
+                                      </div>
+                                    )}
+                                    {person.nakshatra && (
+                                      <div>
+                                        <p className="text-[10px] text-text-muted uppercase">{t("booking.nakshatra")}</p>
+                                        <p className="text-sm font-medium text-text-primary truncate">{person.nakshatra}</p>
+                                      </div>
+                                    )}
+                                    {person.rashi && (
+                                      <div>
+                                        <p className="text-[10px] text-text-muted uppercase">{t("booking.rashi")}</p>
+                                        <p className="text-sm font-medium text-text-primary truncate">{person.rashi}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )
+                  }
+                  // Fallback for old bookings without per-person data
+                  return (
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="p-4 rounded-xl bg-bg-secondary">
+                        <p className="text-xs text-text-muted mb-1 flex items-center gap-1">
+                          <User className="h-3 w-3" /> {t("bookingDetail.fullName")}
+                        </p>
+                        <p className="font-semibold text-text-primary">{d.name || "-"}</p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-bg-secondary">
+                        <p className="text-xs text-text-muted mb-1">{t("bookingDetail.gotra")}</p>
+                        <p className="font-semibold text-text-primary">{d.gotra || "-"}</p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-bg-secondary">
+                        <p className="text-xs text-text-muted mb-1">{t("booking.nakshatra")}</p>
+                        <p className="font-semibold text-text-primary">{d.nakshatra || "-"}</p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-bg-secondary">
+                        <p className="text-xs text-text-muted mb-1">{t("booking.rashi")}</p>
+                        <p className="font-semibold text-text-primary">{d.rashi || "-"}</p>
+                      </div>
+                    </div>
+                  )
+                })()}
               </Card>
 
               <Card variant="elevated" padding="lg">
                 <h2 className="text-lg font-heading font-bold text-text-primary mb-4">
-                  {t("bookingDetail.devoteeDetails")}
+                  {t("booking.contactDetails")}
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl bg-bg-secondary">
-                    <p className="text-xs text-text-muted mb-1 flex items-center gap-1">
-                      <User className="h-3 w-3" /> {t("bookingDetail.fullName")}
-                    </p>
-                    <p className="font-semibold text-text-primary">{d.name || "-"}</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-bg-secondary">
-                    <p className="text-xs text-text-muted mb-1">{t("bookingDetail.gotra")}</p>
-                    <p className="font-semibold text-text-primary">{d.gotra || "-"}</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-bg-secondary">
-                    <p className="text-xs text-text-muted mb-1">{t("booking.nakshatra")}</p>
-                    <p className="font-semibold text-text-primary">{d.nakshatra || "-"}</p>
-                  </div>
-                  <div className="p-4 rounded-xl bg-bg-secondary">
-                    <p className="text-xs text-text-muted mb-1">{t("booking.rashi")}</p>
-                    <p className="font-semibold text-text-primary">{d.rashi || "-"}</p>
-                  </div>
                   <div className="p-4 rounded-xl bg-bg-secondary">
                     <p className="text-xs text-text-muted mb-1 flex items-center gap-1">
                       <Phone className="h-3 w-3" /> {t("booking.phone")}

@@ -1,11 +1,10 @@
 "use client"
 
-export interface CartDevoteeDetails {
+export interface CartDevoteeEntry {
   name: string
+  gotra: string
   nakshatra: string
   rashi: string
-  gothra: string
-  notes: string
 }
 
 export interface CartItem {
@@ -14,8 +13,11 @@ export interface CartItem {
   name: string
   price: number
   quantity: number
-  devoteeDetails?: CartDevoteeDetails
+  devotees?: CartDevoteeEntry[]
 }
+
+/** Legacy type kept for backward compat */
+export type CartDevoteeDetails = CartDevoteeEntry
 
 const CART_KEY = "seva_cart"
 
@@ -74,11 +76,27 @@ export function updateCartQuantity(sevaId: string, quantity: number): CartItem[]
   return cart
 }
 
-export function updateCartDevotee(sevaId: string, devoteeDetails: CartDevoteeDetails): CartItem[] {
+export function updateCartDevotee(sevaId: string, devotees: CartDevoteeEntry[]): CartItem[] {
   const cart = getCart()
   const idx = cart.findIndex((c) => c.sevaId === sevaId)
   if (idx >= 0) {
-    cart[idx].devoteeDetails = devoteeDetails
+    cart[idx].devotees = devotees
+    saveCart(cart)
+  }
+  return cart
+}
+
+/** Ensure cart item has correct number of devotee entries based on quantity */
+export function syncCartDevotees(sevaId: string, quantity: number): CartItem[] {
+  const cart = getCart()
+  const idx = cart.findIndex((c) => c.sevaId === sevaId)
+  if (idx >= 0) {
+    const current = cart[idx].devotees || []
+    const synced: CartDevoteeEntry[] = []
+    for (let i = 0; i < quantity; i++) {
+      synced.push(current[i] || { name: "", gotra: "", nakshatra: "", rashi: "" })
+    }
+    cart[idx].devotees = synced
     saveCart(cart)
   }
   return cart

@@ -151,6 +151,8 @@ export async function POST(request: Request) {
 
         if (!primaryDevoteeName && item.devoteeName) primaryDevoteeName = item.devoteeName
 
+        const devotees = (item as any).devotees || (item.devoteeName ? [{ name: item.devoteeName, gotra: item.gotra, nakshatra: item.nakshatra, rashi: item.rashi }] : [])
+
         itemsToCreate.push({
           sevaId: item.sevaId,
           sevaName: localSeva?.name?.en || localSeva?.name || "Seva",
@@ -158,6 +160,7 @@ export async function POST(request: Request) {
           gotra: item.gotra ?? null,
           nakshatra: item.nakshatra ?? null,
           rashi: item.rashi ?? null,
+          devotees,
           quantity: item.quantity,
           unitPrice: price,
           totalPrice: itemTotal,
@@ -195,6 +198,8 @@ export async function POST(request: Request) {
       primaryDevoteeName = singleData.devoteeName
       sevaName = (typeof localSeva?.name === "object" ? localSeva.name.en : localSeva?.name) || "Seva"
 
+      const singleDevotees = (singleData as any).devotees || (singleData.devoteeName ? [{ name: singleData.devoteeName, gotra: singleData.gotra, nakshatra: singleData.nakshatra, rashi: singleData.rashi }] : [])
+
       itemsToCreate.push({
         sevaId: singleData.sevaId,
         sevaName,
@@ -202,6 +207,7 @@ export async function POST(request: Request) {
         gotra: singleData.gotra,
         nakshatra: singleData.nakshatra,
         rashi: singleData.rashi,
+        devotees: singleDevotees,
         quantity: singleData.quantity,
         unitPrice: itemPrice,
         totalPrice: totalAmount,
@@ -257,6 +263,7 @@ export async function POST(request: Request) {
         sevaId: item.sevaId,
         sevaName: item.sevaName,
         devoteeName: item.devoteeName,
+        devotees: item.devotees || [],
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         totalPrice: item.totalPrice,

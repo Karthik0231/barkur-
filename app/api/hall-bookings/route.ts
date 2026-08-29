@@ -60,17 +60,20 @@ export async function POST(request: Request) {
     const hall = await findHallBySlug(data.hallName)
     if (!hall?.isActive) return errorResponse("Hall not found", 404)
 
-    const bookingDate = new Date(data.eventDate)
-    const startTime = new Date(`${data.eventDate}T${data.startTime}`)
-    const endTime = new Date(`${data.eventDate}T${data.endTime}`)
+    const bookingDate = new Date(`${data.eventDate}T00:00:00`)
+    if (isNaN(bookingDate.getTime())) {
+      return errorResponse("Invalid date format", 400)
+    }
 
+    // Date-only conflict check: hall is already booked on this date
+    const startOfDay = new Date(`${data.eventDate}T00:00:00`)
+    const endOfDay = new Date(`${data.eventDate}T23:59:59`)
     const conflict = await findManyHallBookings({
       hallId: hall.id,
       bookingStatus: { $nin: ["CANCELLED"] },
-      startTime: { $lt: endTime },
-      endTime: { $gt: startTime },
+      bookingDate: { $gte: startOfDay, $lte: endOfDay },
     }, { limit: 1 })
-    if (conflict.length > 0) return errorResponse("Hall is already booked for the requested time slot", 409)
+    if (conflict.length > 0) return errorResponse("Hall is already booked for the selected date", 409)
 
     const count = await countHallBookings({})
     const bookingId = generateBookingId("HALL", count + 1)
@@ -80,24 +83,24 @@ export async function POST(request: Request) {
       bookingId,
       hallId: hall.id,
       userId: user?.id ?? null,
-      eventName: data.eventType,
+      eventName: data.eventName ?? data.eventType,
       eventType: data.eventType,
       organizerName: data.organizerName,
       organizerPhone: data.organizerPhone,
       organizerEmail: data.organizerEmail,
       bookingDate,
-      startTime,
-      endTime,
       totalAmount,
       finalAmount: totalAmount,
       expectedGuests: data.expectedGuests,
+      address: data.address,
+      purpose: data.purpose ?? null,
       specialRequests: data.remarks ?? null,
       createdBy: user?.id ?? null,
     })
 
     const [createdHall, createdUser] = await Promise.all([
       findManyHalls({ _id: { $in: [toObjectId(booking.hallId)] } }),
-      findManyUsers({ _id: { $in: [toObjectId(booking.userId)] } }),
+      booking.userId ? findManyUsers({ _id: { $in: [toObjectId(booking.userId)] } }) : Promise.resolve([]),
     ])
 
     const finalBooking = {

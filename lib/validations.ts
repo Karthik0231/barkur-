@@ -38,9 +38,17 @@ export const profileSchema = z.object({
   pincode: z.string().regex(/^\d{6}$/, "Pincode must be 6 digits").optional(),
 })
 
+const devoteeInfoSchema = z.object({
+  name: z.string().min(1, "Name is required").max(200),
+  gotra: z.string().optional(),
+  nakshatra: z.string().optional(),
+  rashi: z.string().optional(),
+})
+
 const bookingItemSchema = z.object({
   sevaId: z.string().min(1, "Seva is required"),
   quantity: z.number().int().min(1, "Quantity must be at least 1").max(100, "Quantity cannot exceed 100"),
+  devotees: z.array(devoteeInfoSchema).optional(),
   devoteeName: z.string().min(2, "Devotee name must be at least 2 characters").max(200).optional(),
   gotra: z.string().optional(),
   nakshatra: z.string().optional(),
@@ -64,6 +72,7 @@ export const sevaBookingSchema = z.union([
   }),
   z.object({
     sevaId: z.string().min(1, "Seva is required"),
+    devotees: z.array(devoteeInfoSchema).optional(),
     devoteeName: z.string().min(2, "Devotee name must be at least 2 characters").max(200),
     gotra: z.string().optional(),
     nakshatra: z.string().optional(),
@@ -127,23 +136,17 @@ export const donationSchema = z.object({
 
 export const hallBookingSchema = z.object({
   hallName: z.string().min(1, "Hall name is required"),
+  eventName: z.string().min(2, "Event name must be at least 2 characters").max(200).optional(),
   eventType: z.string().min(1, "Event type is required"),
   eventDate: z.string().min(1, "Event date is required"),
-  startTime: z.string().min(1, "Start time is required"),
-  endTime: z.string().min(1, "End time is required"),
   organizerName: z.string().min(2, "Organizer name must be at least 2 characters").max(200),
   organizerPhone: z.string().regex(/^\+?[\d\s-]{10,15}$/, "Please enter a valid phone number"),
   organizerEmail: z.email("Please enter a valid email address"),
   address: z.string().min(5, "Address must be at least 5 characters").max(500),
-  expectedGuests: z.number().int().positive("Expected guests must be a positive number"),
+  expectedGuests: z.coerce.number().int().positive("Expected guests must be a positive number"),
+  purpose: z.string().max(2000).optional(),
   remarks: z.string().max(1000).optional(),
-}).refine(
-  (data) => {
-    if (!data.startTime || !data.endTime) return true
-    return data.startTime < data.endTime
-  },
-  { message: "End time must be after start time", path: ["endTime"] }
-)
+})
 
 export const contactSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
