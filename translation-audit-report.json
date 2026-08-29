@@ -1,14 +1,14 @@
 {
   "summary": {
-    "filesScanned": 310,
-    "staticKeysUsed": 735,
+    "filesScanned": 311,
+    "staticKeysUsed": 741,
     "dynamicPatterns": 2,
     "missingInKannada": 0,
     "missingInEnglish": 0,
     "typeIssues": 0,
     "hardcodedStrings": 38,
-    "kannadaDictKeys": 1015,
-    "englishDictKeys": 1015
+    "kannadaDictKeys": 1024,
+    "englishDictKeys": 1024
   },
   "missingInKannada": [],
   "missingInEnglish": [],
@@ -75,147 +75,147 @@
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2177,
+      "line": 2195,
       "string": "Book Seva"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2255,
+      "line": 2273,
       "string": "View All"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2256,
+      "line": 2274,
       "string": "Book Now"
-    },
-    {
-      "file": "lib\\i18n\\translations.ts",
-      "line": 2266,
-      "string": "Add to Cart"
     },
     {
       "file": "lib\\i18n\\translations.ts",
       "line": 2284,
+      "string": "Add to Cart"
+    },
+    {
+      "file": "lib\\i18n\\translations.ts",
+      "line": 2302,
       "string": "Checkout"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2319,
+      "line": 2337,
       "string": "Next"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2320,
+      "line": 2338,
       "string": "Back"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2321,
+      "line": 2339,
       "string": "Confirm"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2428,
+      "line": 2455,
       "string": "Book Another"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2430,
+      "line": 2457,
       "string": "Pay Now"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2469,
+      "line": 2496,
       "string": "Download Receipt"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2543,
+      "line": 2570,
       "string": "Loading..."
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2544,
+      "line": 2571,
       "string": "Something went wrong"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2545,
+      "line": 2572,
       "string": "Success"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2547,
+      "line": 2574,
       "string": "View All"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2548,
+      "line": 2575,
       "string": "Learn More"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2549,
+      "line": 2576,
       "string": "Close"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2551,
+      "line": 2578,
       "string": "Search"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2562,
+      "line": 2589,
       "string": "Book Now"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2564,
+      "line": 2591,
       "string": "Read More"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2809,
+      "line": 2836,
       "string": "Book Seva"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2812,
+      "line": 2839,
       "string": "Share"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2906,
+      "line": 2933,
       "string": "Book Seva"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2942,
+      "line": 2969,
       "string": "Download Receipt"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2943,
+      "line": 2970,
       "string": "Print"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2953,
+      "line": 2980,
       "string": "Print"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 2976,
+      "line": 3003,
       "string": "Download Receipt"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 3237,
+      "line": 3264,
       "string": "Error"
     },
     {
       "file": "lib\\i18n\\translations.ts",
-      "line": 3254,
+      "line": 3281,
       "string": "Book Another"
     }
   ]

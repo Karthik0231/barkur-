@@ -13,6 +13,26 @@ import { PageSkeleton } from "@/components/ui/skeleton"
 import { formatPrice, formatDateTime } from "@/lib/utils"
 import toast from "react-hot-toast"
 
+interface DevoteePerson {
+  name: string
+  gotra: string | null
+  nakshatra: string | null
+  rashi: string | null
+}
+
+interface BookingSevaItem {
+  sevaName: string
+  sevaCategory: string | null
+  quantity: number
+  unitPrice: number
+  totalPrice: number
+  devotees: DevoteePerson[]
+  devoteeName: string | null
+  gotra: string | null
+  nakshatra: string | null
+  rashi: string | null
+}
+
 interface BookingDetail {
   id: string
   bookingId: string
@@ -30,6 +50,7 @@ interface BookingDetail {
   cancellationReason: string | null
   createdAt: string
   updatedAt: string
+  sevaItems: BookingSevaItem[]
   seva: { name: string; category: string; duration: number | null }
   devotee: { name: string; phone: string; email: string; address: string; gotra: string | null; nakshatra: string | null; rashi: string | null }
   payment: { razorpayPaymentId: string | null; amount: number; status: string; method: string | null; paidAt: string | null }
@@ -76,6 +97,18 @@ export default function BookingDetailPage() {
           cancellationReason: raw.cancellationReason,
           createdAt: raw.createdAt,
           updatedAt: raw.updatedAt,
+          sevaItems: (raw.items || []).map((item: any) => ({
+            sevaName: item.seva?.name || item.sevaName || "Unknown Seva",
+            sevaCategory: item.seva?.category || null,
+            quantity: item.quantity || 1,
+            unitPrice: Number(item.unitPrice || 0),
+            totalPrice: Number(item.totalPrice || 0),
+            devotees: item.devotees || (item.devoteeName ? [{ name: item.devoteeName, gotra: item.gotra, nakshatra: item.nakshatra, rashi: item.rashi }] : []),
+            devoteeName: item.devoteeName || null,
+            gotra: item.gotra || null,
+            nakshatra: item.nakshatra || null,
+            rashi: item.rashi || null,
+          })),
           seva: {
             name: firstSeva.name || "Unknown Seva",
             category: firstSeva.category || "General",
@@ -210,15 +243,60 @@ export default function BookingDetailPage() {
           </Card>
 
           <Card className="p-6">
-            <h3 className="text-lg font-semibold font-heading text-text-primary mb-4">Devotee Details</h3>
+            <h3 className="text-lg font-semibold font-heading text-text-primary mb-4">Contact Details</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div><p className="text-xs text-text-muted uppercase tracking-wider">Name</p><p className="text-sm font-medium text-text-primary mt-1">{booking.devotee.name}</p></div>
               <div><p className="text-xs text-text-muted uppercase tracking-wider">Phone</p><p className="text-sm font-medium text-text-primary mt-1">{booking.devotee.phone}</p></div>
               <div><p className="text-xs text-text-muted uppercase tracking-wider">Email</p><p className="text-sm font-medium text-text-primary mt-1">{booking.devotee.email}</p></div>
               <div><p className="text-xs text-text-muted uppercase tracking-wider">Address</p><p className="text-sm text-text-primary mt-1">{booking.devotee.address}</p></div>
-              {booking.devotee.gotra && <div><p className="text-xs text-text-muted uppercase tracking-wider">Gotra</p><p className="text-sm font-medium text-text-primary mt-1">{booking.devotee.gotra}</p></div>}
-              {booking.devotee.nakshatra && <div><p className="text-xs text-text-muted uppercase tracking-wider">Nakshatra</p><p className="text-sm font-medium text-text-primary mt-1">{booking.devotee.nakshatra}</p></div>}
             </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold font-heading text-text-primary mb-4">Devotee Details (Per Person)</h3>
+            {booking.sevaItems.map((item, idx) => (
+              <div key={idx} className="mb-4 last:mb-0">
+                {booking.sevaItems.length > 1 && (
+                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
+                    <span className="text-sm font-semibold text-text-primary">{item.sevaName}</span>
+                    <span className="text-xs text-text-muted">× {item.quantity}</span>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  {item.devotees.map((person, pIdx) => (
+                    <div key={pIdx} className="flex items-start gap-3 p-3 rounded-lg bg-bg-secondary/50 border border-border/30">
+                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                        {pIdx + 1}
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1 min-w-0">
+                        <div>
+                          <p className="text-[10px] text-text-muted uppercase">Name</p>
+                          <p className="text-sm font-medium text-text-primary truncate">{person.name}</p>
+                        </div>
+                        {person.gotra && (
+                          <div>
+                            <p className="text-[10px] text-text-muted uppercase">Gotra</p>
+                            <p className="text-sm font-medium text-text-primary truncate">{person.gotra}</p>
+                          </div>
+                        )}
+                        {person.nakshatra && (
+                          <div>
+                            <p className="text-[10px] text-text-muted uppercase">Nakshatra</p>
+                            <p className="text-sm font-medium text-text-primary truncate">{person.nakshatra}</p>
+                          </div>
+                        )}
+                        {person.rashi && (
+                          <div>
+                            <p className="text-[10px] text-text-muted uppercase">Rashi</p>
+                            <p className="text-sm font-medium text-text-primary truncate">{person.rashi}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </Card>
 
           <Card className="p-6">

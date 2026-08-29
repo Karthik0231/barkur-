@@ -222,6 +222,15 @@ export interface TranslationData {
     subtotalLabel: string
     gstLabel: string
     totalLabel: string
+    personDetails: string
+    persons: string
+    person: string
+    filled: string
+    pending: string
+    complete: string
+    perPersonDetails: string
+    contactPersonDetails: string
+    bookingForMultiple: string
   }
   sriChakraPooja: {
     title: string
@@ -1264,6 +1273,15 @@ const translations: Record<string, TranslationData> = {
       subtotalLabel: "ಉಪಮೊತ್ತ",
       gstLabel: "ಜಿಎಸ್u200cಟಿ (18%)",
       totalLabel: "ಒಟ್ಟು",
+      personDetails: "ವ್ಯಕ್ತಿವಿವರಗಳು",
+      persons: "ವ್ಯಕ್ತಿಗಳು",
+      person: "ವ್ಯಕ್ತಿ",
+      filled: "ತುಂಬಿಸಲಾಗಿದೆ",
+      pending: "ಬಾಕಿ",
+      complete: "ಪೂರ್ಣ",
+      perPersonDetails: "ಪ್ರತಿ ವ್ಯಕ್ತಿ ವಿವರಗಳು",
+      contactPersonDetails: "ಸಂಪರ್ಕ ವ್ಯಕ್ತಿ ವಿವರಗಳು",
+      bookingForMultiple: "%d ವ್ಯಕ್ತಿಗಳಿಗಾಗಿ ಬುಕಿಂಗ್",
     },
     sriChakraPooja: {
       title: "ಶ್ರೀ ಚಕ್ರ ಪೂಜೆ",
@@ -2389,6 +2407,15 @@ const translations: Record<string, TranslationData> = {
       subtotalLabel: "Subtotal",
       gstLabel: "GST (18%)",
       totalLabel: "Total",
+      personDetails: "Person Details",
+      persons: "persons",
+      person: "Person",
+      filled: "filled",
+      pending: "pending",
+      complete: "Complete",
+      perPersonDetails: "Per-Person Details",
+      contactPersonDetails: "Contact Person Details",
+      bookingForMultiple: "Booking for %d persons",
     },
     sriChakraPooja: {
       title: "Sri Chakra Pooja",

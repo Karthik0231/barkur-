@@ -1,16 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { ChevronRight, CreditCard, CheckCircle, Shield, IndianRupee } from "lucide-react"
+import { ChevronRight, CreditCard, CheckCircle, Shield, IndianRupee, Users } from "lucide-react"
 import { BookingWizard, type WizardStep } from "@/components/booking/booking-wizard"
 import { BookingSummary } from "@/components/booking/booking-summary"
 import { DateTimePicker } from "@/components/booking/date-time-picker"
-import { DevoteeForm } from "@/components/booking/devotee-form"
+import { DevoteeListForm, type DevoteeListGroup, type DevoteeEntry } from "@/components/booking/devotee-list-form"
 import { RazorpayButton } from "@/components/booking/razorpay-button"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useTranslation } from "@/lib/i18n"
 import { cn, formatPrice } from "@/lib/utils"
@@ -32,16 +33,40 @@ export default function BookSevaPage() {
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>()
   const [quantity, setQuantity] = useState(1)
-  const [devoteeData, setDevoteeData] = useState({
-    name: "", gotra: "", nakshatra: "", rashi: "",
-    phone: "", email: "", address: "", state: "", district: "", pincode: "",
-  })
+  const [devoteeGroups, setDevoteeGroups] = useState<DevoteeListGroup[]>([])
+  const [contactName, setContactName] = useState("")
+  const [contactPhone, setContactPhone] = useState("")
+  const [contactEmail, setContactEmail] = useState("")
+  const [contactAddress, setContactAddress] = useState("")
+  const [contactState, setContactState] = useState("")
+  const [contactDistrict, setContactDistrict] = useState("")
+  const [contactPincode, setContactPincode] = useState("")
   const [instructions, setInstructions] = useState("")
   const [payLoading, setPayLoading] = useState(false)
   const [payError, setPayError] = useState("")
   const [paymentDialog, setPaymentDialog] = useState(false)
   const [razorpayOrder, setRazorpayOrder] = useState<any>(null)
   const [createdBookingId, setCreatedBookingId] = useState("")
+
+  // Initialize devotee group when quantity changes
+  const currentGroup: DevoteeListGroup = useMemo(() => {
+    const existing = devoteeGroups[0]
+    const devotees: DevoteeEntry[] = []
+    for (let i = 0; i < quantity; i++) {
+      devotees.push(existing?.devotees[i] || { name: "", gotra: "", nakshatra: "", rashi: "" })
+    }
+    return {
+      sevaId: seva?.id || "",
+      sevaName: seva?.name || "",
+      quantity,
+      devotees,
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seva?.id, seva?.name, quantity])
+
+  const handleDevoteeGroupsChange = (groups: DevoteeListGroup[]) => {
+    setDevoteeGroups(groups)
+  }
 
   if (!seva) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -56,6 +81,13 @@ export default function BookSevaPage() {
     setPayLoading(true)
     setPayError("")
     try {
+      const devotees = currentGroup.devotees.map((d) => ({
+        name: d.name,
+        gotra: d.gotra || undefined,
+        nakshatra: d.nakshatra || undefined,
+        rashi: d.rashi || undefined,
+      }))
+
       const bookingRes = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -63,16 +95,17 @@ export default function BookSevaPage() {
           sevaId: seva.id,
           quantity,
           preferredDate: selectedDate?.toISOString(),
-          devoteeName: devoteeData.name,
-          gotra: devoteeData.gotra || undefined,
-          nakshatra: devoteeData.nakshatra || undefined,
-          rashi: devoteeData.rashi || undefined,
-          phone: devoteeData.phone,
-          email: devoteeData.email,
-          address: devoteeData.address,
-          state: devoteeData.state,
-          district: devoteeData.district,
-          pincode: devoteeData.pincode,
+          devotees,
+          devoteeName: devotees[0]?.name || "",
+          gotra: devotees[0]?.gotra || undefined,
+          nakshatra: devotees[0]?.nakshatra || undefined,
+          rashi: devotees[0]?.rashi || undefined,
+          phone: contactPhone,
+          email: contactEmail,
+          address: contactAddress,
+          state: contactState,
+          district: contactDistrict,
+          pincode: contactPincode,
           specialInstructions: instructions || undefined,
         }),
       })
@@ -114,15 +147,22 @@ export default function BookSevaPage() {
     ? selectedDate.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
     : t("booking.notSelected")
 
+  const allDevoteesFilled = currentGroup.devotees.every((d) => d.name.trim().length > 0)
+
+  const contactFieldsFilled = Boolean(
+    contactName && contactPhone && contactEmail && contactAddress && contactState && contactDistrict && contactPincode
+  )
+
   const stepCanProceed = [
     // Step 0: Date + Quantity
     Boolean(selectedDate && quantity >= 1),
-    // Step 1: Devotee details (required fields)
-    Boolean(devoteeData.name && devoteeData.phone && devoteeData.email &&
-      devoteeData.address && devoteeData.state && devoteeData.district && devoteeData.pincode),
-    // Step 2: Instructions (optional)
+    // Step 1: All devotee details filled
+    allDevoteesFilled,
+    // Step 2: Contact details
+    contactFieldsFilled,
+    // Step 3: Instructions (optional)
     true,
-    // Step 3: Review
+    // Step 4: Review
     true,
   ]
 
@@ -145,15 +185,95 @@ export default function BookSevaPage() {
       ),
     },
     {
-      id: "devotee",
-      title: t("booking.devoteeDetails"),
+      id: "devotees",
+      title: t("booking.personDetails"),
       content: (
-        <div>
-          <div className="flex items-center gap-2 mb-6">
-            <div className="p-2 rounded-lg bg-primary/10"><CheckCircle className="h-5 w-5 text-primary" /></div>
-            <h2 className="text-lg font-heading font-bold text-text-primary">{t("booking.devoteeDetails")}</h2>
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-2 rounded-lg bg-primary/10"><Users className="h-5 w-5 text-primary" /></div>
+            <div>
+              <h2 className="text-lg font-heading font-bold text-text-primary">{t("booking.perPersonDetails")}</h2>
+              <p className="text-sm text-text-muted">
+                {quantity} {quantity === 1 ? t("booking.person") : t("booking.persons")} — {t("booking.fullName")} *
+              </p>
+            </div>
           </div>
-          <DevoteeForm data={devoteeData} onChange={setDevoteeData} />
+          <DevoteeListForm
+            groups={[currentGroup]}
+            onChange={handleDevoteeGroupsChange}
+          />
+        </div>
+      ),
+    },
+    {
+      id: "contact",
+      title: t("booking.contactDetails"),
+      content: (
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-2 rounded-lg bg-primary/10"><CheckCircle className="h-5 w-5 text-primary" /></div>
+            <div>
+              <h2 className="text-lg font-heading font-bold text-text-primary">{t("booking.contactPersonDetails")}</h2>
+              <p className="text-sm text-text-muted">{t("booking.devoteeDetailsDesc")}</p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Input
+                variant="premium"
+                label={t("booking.fullName")}
+                placeholder={t("booking.fullNamePlaceholder")}
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
+              />
+              <Input
+                variant="premium"
+                label={t("booking.phone")}
+                type="tel"
+                placeholder={t("booking.phonePlaceholder")}
+                value={contactPhone}
+                onChange={(e) => setContactPhone(e.target.value)}
+              />
+            </div>
+            <Input
+              variant="premium"
+              label={t("booking.email")}
+              type="email"
+              placeholder={t("booking.emailPlaceholder")}
+              value={contactEmail}
+              onChange={(e) => setContactEmail(e.target.value)}
+            />
+            <textarea
+              value={contactAddress}
+              onChange={(e) => setContactAddress(e.target.value)}
+              placeholder={t("booking.addressPlaceholder")}
+              rows={3}
+              className="w-full rounded-xl border-2 border-gold-200/30 bg-warm-white p-4 text-sm text-text-primary placeholder:text-text-muted focus:border-gold-500 focus:ring-2 focus:ring-gold-500/10 focus-visible:outline-none transition-all resize-none shadow-premium"
+            />
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <Input
+                variant="premium"
+                label={t("booking.state")}
+                placeholder={t("booking.statePlaceholder")}
+                value={contactState}
+                onChange={(e) => setContactState(e.target.value)}
+              />
+              <Input
+                variant="premium"
+                label={t("booking.district")}
+                placeholder={t("booking.districtPlaceholder")}
+                value={contactDistrict}
+                onChange={(e) => setContactDistrict(e.target.value)}
+              />
+              <Input
+                variant="premium"
+                label={t("booking.pincode")}
+                placeholder={t("booking.pincodePlaceholder")}
+                value={contactPincode}
+                onChange={(e) => setContactPincode(e.target.value)}
+              />
+            </div>
+          </div>
         </div>
       ),
     },
@@ -186,43 +306,59 @@ export default function BookSevaPage() {
       id: "review",
       title: t("booking.reviewPay"),
       content: (
-        <div>
-          <div className="flex items-center gap-2 mb-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-lg bg-primary/10"><CreditCard className="h-5 w-5 text-primary" /></div>
             <h2 className="text-lg font-heading font-bold text-text-primary">{t("booking.reviewLabel")}</h2>
           </div>
-          <div className="space-y-4">
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div className="p-4 rounded-xl bg-bg-secondary border border-border/50">
-                <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("booking.seva")}</p>
-                <p className="font-semibold text-text-primary">{seva.name}</p>
-              </div>
-              <div className="p-4 rounded-xl bg-bg-secondary border border-border/50">
-                <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("booking.dateLabel")}</p>
-                <p className="font-semibold text-text-primary">{dateStr}</p>
-              </div>
-              <div className="p-4 rounded-xl bg-bg-secondary border border-border/50">
-                <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("booking.quantityLabel")}</p>
-                <p className="font-semibold text-text-primary">{quantity}</p>
-              </div>
-              <div className="p-4 rounded-xl bg-bg-secondary border border-border/50">
-                <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("booking.total")}</p>
-                <p className="font-semibold text-primary">₹{grandTotal.toLocaleString("en-IN")}</p>
-              </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div className="p-4 rounded-xl bg-bg-secondary border border-border/50">
+              <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("booking.seva")}</p>
+              <p className="font-semibold text-text-primary">{seva.name}</p>
             </div>
             <div className="p-4 rounded-xl bg-bg-secondary border border-border/50">
-              <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("booking.devotee")}</p>
-              <p className="font-semibold text-text-primary">{devoteeData.name}</p>
-              <p className="text-sm text-text-secondary">{devoteeData.phone} &middot; {devoteeData.email}</p>
+              <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("booking.dateLabel")}</p>
+              <p className="font-semibold text-text-primary">{dateStr}</p>
             </div>
-            <div className="pt-4">
-              <Button variant="premium" size="xl" className="w-full" onClick={() => setPaymentDialog(true)} iconRight={<IndianRupee className="h-4 w-4" />}>
-                {t("booking.payNow")} {grandTotal.toLocaleString("en-IN")}
-              </Button>
-              <div className="mt-4 p-3 rounded-xl bg-bg-secondary flex items-start gap-3">
-                <Shield className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                <p className="text-[10px] text-text-muted leading-relaxed">{t("booking.securePaymentNote")}</p>
+            <div className="p-4 rounded-xl bg-bg-secondary border border-border/50">
+              <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("booking.quantityLabel")}</p>
+              <p className="font-semibold text-text-primary">{quantity}</p>
+            </div>
+            <div className="p-4 rounded-xl bg-bg-secondary border border-border/50">
+              <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("booking.total")}</p>
+              <p className="font-semibold text-primary">₹{grandTotal.toLocaleString("en-IN")}</p>
+            </div>
+          </div>
+
+          {/* Person details */}
+          <div className="p-4 rounded-xl bg-bg-secondary border border-border/50 space-y-2">
+            <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("booking.perPersonDetails")}</p>
+            {currentGroup.devotees.map((d, i) => (
+              <div key={i} className="flex items-center gap-2 text-sm">
+                <span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
+                  {i + 1}
+                </span>
+                <span className="text-text-primary font-medium truncate">{d.name}</span>
+                {d.rashi && <span className="text-text-muted text-xs">· {d.rashi}</span>}
+                {d.nakshatra && <span className="text-text-muted text-xs">· {d.nakshatra}</span>}
               </div>
+            ))}
+          </div>
+
+          {/* Contact */}
+          <div className="p-4 rounded-xl bg-bg-secondary border border-border/50">
+            <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">{t("booking.contactPersonDetails")}</p>
+            <p className="font-semibold text-text-primary">{contactName}</p>
+            <p className="text-sm text-text-secondary">{contactPhone} · {contactEmail}</p>
+          </div>
+
+          <div className="pt-4">
+            <Button variant="premium" size="xl" className="w-full" onClick={() => setPaymentDialog(true)} iconRight={<IndianRupee className="h-4 w-4" />}>
+              {t("booking.payNow")} {grandTotal.toLocaleString("en-IN")}
+            </Button>
+            <div className="mt-4 p-3 rounded-xl bg-bg-secondary flex items-start gap-3">
+              <Shield className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+              <p className="text-[10px] text-text-muted leading-relaxed">{t("booking.securePaymentNote")}</p>
             </div>
           </div>
         </div>
@@ -235,9 +371,9 @@ export default function BookSevaPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-bg-secondary/30 to-bg-primary">
-      <section className="py-12 px-4">
+      <section className="py-8 sm:py-12 px-4">
         <div className="max-w-6xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 text-sm text-text-muted mb-6">
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 text-sm text-text-muted mb-6 flex-wrap">
             <Link href="/" className="hover:text-secondary transition-colors">{t("nav.home")}</Link>
             <ChevronRight className="h-3.5 w-3.5" />
             <Link href="/sevas" className="hover:text-secondary transition-colors">{t("nav.sevas")}</Link>
@@ -249,18 +385,18 @@ export default function BookSevaPage() {
 
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="mb-8">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-secondary shadow-premium shadow-glow-gold/20">
-                <CreditCard className="h-7 w-7 text-warm-white" />
+              <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-secondary shadow-premium shadow-glow-gold/20">
+                <CreditCard className="h-6 w-6 sm:h-7 sm:w-7 text-warm-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-heading font-bold text-text-primary">{t("booking.bookingTitle")} {seva.name}</h1>
-                <p className="text-sm text-text-muted">{formatPrice(price)} &middot; {seva.duration ? `${seva.duration} min` : ""}</p>
+                <h1 className="text-xl sm:text-2xl font-heading font-bold text-text-primary">{t("booking.bookingTitle")} {seva.name}</h1>
+                <p className="text-sm text-text-muted">{formatPrice(price)} · {seva.duration ? `${seva.duration} min` : ""}</p>
               </div>
             </div>
           </motion.div>
 
           <div className="grid lg:grid-cols-[1fr_320px] gap-8">
-            <div className="bg-warm-white rounded-2xl border border-gold-200/20 shadow-premium p-6 sm:p-8">
+            <div className="bg-warm-white rounded-2xl border border-gold-200/20 shadow-premium p-4 sm:p-6 lg:p-8">
               <BookingWizard steps={steps} onComplete={() => setPaymentDialog(true)} canProceed={stepCanProceed} />
             </div>
             <div className="hidden lg:block">
@@ -271,7 +407,7 @@ export default function BookSevaPage() {
       </section>
 
       <Dialog open={paymentDialog} onClose={() => { if (!payLoading) { setPaymentDialog(false); setRazorpayOrder(null); setPayError("") } }}>
-        <DialogContent size="md" className="p-6">
+        <DialogContent size="md" className="p-4 sm:p-6">
           <DialogHeader className="mb-4"><DialogTitle>{t("booking.confirmPayment")}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="p-4 rounded-xl bg-bg-secondary space-y-2">
@@ -287,7 +423,7 @@ export default function BookSevaPage() {
                 orderId={razorpayOrder.order.id}
                 name="Sri Kalikamba Temple"
                 description={seva.name}
-                prefill={{ name: devoteeData.name, email: devoteeData.email, contact: devoteeData.phone }}
+                prefill={{ name: contactName, email: contactEmail, contact: contactPhone }}
                 onSuccess={handlePaySuccess}
                 onError={() => { setRazorpayOrder(null); setPayError("Payment failed. Please try again.") }}
               />

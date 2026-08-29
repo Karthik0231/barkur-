@@ -72,8 +72,7 @@ const emptyDevotee = {
   name: "",
   nakshatra: "",
   rashi: "",
-  gothra: "",
-  notes: "",
+  gotra: "",
 }
 
 /* ==========================================================================
@@ -886,9 +885,6 @@ export default function SevasPage() {
             price: Number(
               seva.price,
             ),
-            devoteeDetails: {
-              ...emptyDevotee,
-            },
           })
 
         setCart(updated)

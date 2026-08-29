@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { motion, AnimatePresence } from "framer-motion"
 import { z } from "zod"
 import { format } from "date-fns"
-import { ArrowLeft, ChevronRight, CalendarDays, Clock, Building2, Users, User, Phone, Mail, MessageSquare, Check, Shield, AlertCircle, MapPin, Loader2 } from "lucide-react"
+import { ArrowLeft, ChevronRight, CalendarDays, Building2, Users, User, Phone, Mail, MessageSquare, Check, Shield, AlertCircle, MapPin, Loader2 } from "lucide-react"
 import { AnimatedSection } from "@/components/animated-section"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -18,12 +18,6 @@ import { PaymentSummary } from "@/components/booking/payment-summary"
 import { AvailabilityCalendar } from "@/components/hall-booking/availability-calendar"
 import { formatPrice, cn } from "@/lib/utils"
 import { useTranslation } from "@/lib/i18n"
-
-const timeSlots = [
-  "6:00 AM", "7:00 AM", "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM",
-  "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM",
-  "6:00 PM", "7:00 PM", "8:00 PM",
-]
 
 const eventTypes = [
   { value: "wedding", label: "Wedding" },
@@ -36,8 +30,6 @@ const eventTypes = [
 
 const bookingFormSchema = z.object({
   eventDate: z.string().min(1, "Please select an event date"),
-  startTime: z.string().min(1, "Please select start time"),
-  endTime: z.string().min(1, "Please select end time"),
   eventName: z.string().min(3, "Event name must be at least 3 characters"),
   eventType: z.string().min(1, "Please select event type"),
   expectedGuests: z.string().min(1, "Please enter expected guests"),
@@ -52,7 +44,7 @@ const bookingFormSchema = z.object({
 type BookingFormData = z.infer<typeof bookingFormSchema>
 
 const steps = [
-  { label: "Date & Time", description: "Select your preferred date" },
+  { label: "Select Date", description: "Select your preferred date" },
   { label: "Event Details", description: "Tell us about your event" },
   { label: "Contact Info", description: "Your contact details" },
   { label: "Review & Pay", description: "Confirm and pay" },
@@ -114,8 +106,6 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
   const { hall, loading: hallLoading, error: hallError } = useHallInfo(slug)
   const [currentStep, setCurrentStep] = useState(0)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
-  const [selectedStartTime, setSelectedStartTime] = useState("")
-  const [selectedEndTime, setSelectedEndTime] = useState("")
 
   const {
     register,
@@ -137,9 +127,9 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
 
   const handleNext = async () => {
     let fields: (keyof BookingFormData)[] = []
-    if (currentStep === 0) fields = ["eventDate", "startTime", "endTime"]
+    if (currentStep === 0) fields = ["eventDate"]
     else if (currentStep === 1) fields = ["eventName", "eventType", "expectedGuests", "purpose"]
-    else if (currentStep === 2) fields = ["organizerName", "organizerPhone", "organizerEmail"]
+    else if (currentStep === 2) fields = ["organizerName", "organizerPhone", "organizerEmail", "address"]
 
     const isValid = await trigger(fields)
     if (isValid) {
@@ -173,15 +163,15 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
       const formData = watchAll
       const payload = {
         hallName: slug,
+        eventName: formData.eventName,
         eventType: formData.eventType,
         eventDate: formData.eventDate,
-        startTime: formData.startTime,
-        endTime: formData.endTime,
         organizerName: formData.organizerName,
         organizerPhone: formData.organizerPhone,
         organizerEmail: formData.organizerEmail,
         address: formData.address,
         expectedGuests: Number(formData.expectedGuests),
+        purpose: formData.purpose,
         remarks: formData.specialRequests || undefined,
       }
       const res = await fetch("/api/hall-bookings", {
@@ -338,69 +328,16 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                         <CalendarDays className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-heading font-bold text-primary">Step 1: Select Date & Time</h2>
-                        <p className="text-sm text-text-muted">Choose your preferred event date and time slot</p>
+                        <h2 className="text-xl font-heading font-bold text-primary">Step 1: Select Date</h2>
+                        <p className="text-sm text-text-muted">Choose your preferred event date</p>
                       </div>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-8">
-                      <div>
-                        <h3 className="text-sm font-semibold text-text-primary mb-3">Select Date</h3>
-                        <AvailabilityCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} hallSlug={slug} />
-                        {errors.eventDate && (
-                          <p className="text-xs text-red-500 mt-2">{errors.eventDate.message}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <h3 className="text-sm font-semibold text-text-primary mb-3">Select Time Slot</h3>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="text-xs text-text-muted mb-1.5 block">Start Time</label>
-                            <div className="grid grid-cols-1 gap-1.5 max-h-48 overflow-y-auto pr-1">
-                              {timeSlots.map((time) => (
-                                <button
-                                  key={time}
-                                  type="button"
-                                  onClick={() => { setSelectedStartTime(time); setValue("startTime", time, { shouldValidate: true }); setSelectedEndTime("") }}
-                                  className={cn(
-                                    "py-2 px-3 rounded-lg border text-xs text-left transition-all",
-                                    selectedStartTime === time
-                                      ? "border-primary bg-primary/5 text-primary font-medium"
-                                      : "border-border text-text-secondary hover:border-secondary/50",
-                                  )}
-                                >
-                                  <Clock className="h-3 w-3 inline mr-1.5" />
-                                  {time}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                          <div>
-                            <label className="text-xs text-text-muted mb-1.5 block">End Time</label>
-                            <div className="grid grid-cols-1 gap-1.5 max-h-48 overflow-y-auto pr-1">
-                              {timeSlots.filter((t) => !selectedStartTime || t > selectedStartTime).map((time) => (
-                                <button
-                                  key={time}
-                                  type="button"
-                                  onClick={() => { setSelectedEndTime(time); setValue("endTime", time, { shouldValidate: true }) }}
-                                  className={cn(
-                                    "py-2 px-3 rounded-lg border text-xs text-left transition-all",
-                                    selectedEndTime === time
-                                      ? "border-primary bg-primary/5 text-primary font-medium"
-                                      : "border-border text-text-secondary hover:border-secondary/50",
-                                  )}
-                                >
-                                  <Clock className="h-3 w-3 inline mr-1.5" />
-                                  {time}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                        {errors.startTime && <p className="text-xs text-red-500 mt-2">{errors.startTime.message}</p>}
-                        {errors.endTime && <p className="text-xs text-red-500 mt-2">{errors.endTime.message}</p>}
-                      </div>
+                    <div>
+                      <AvailabilityCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} hallSlug={slug} />
+                      {errors.eventDate && (
+                        <p className="text-xs text-red-500 mt-2">{errors.eventDate.message}</p>
+                      )}
                     </div>
 
                     <div className="flex justify-end mt-8 pt-6 border-t border-border">
@@ -590,10 +527,6 @@ export default function BookHallPage({ params }: { params: Promise<{ slug: strin
                               <div className="flex justify-between">
                                 <span className="text-text-muted">Date</span>
                                 <span className="text-text-primary">{watchAll.eventDate ? format(new Date(watchAll.eventDate), "dd MMM yyyy") : "-"}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-text-muted">Time</span>
-                                <span className="text-text-primary">{watchAll.startTime} - {watchAll.endTime}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-text-muted">Event</span>
